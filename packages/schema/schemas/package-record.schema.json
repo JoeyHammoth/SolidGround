@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/package-record.schema.json",
+  "title": "Solid Ground package record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "name",
+    "status",
+    "confidence",
+    "verified",
+    "reasons",
+    "lines",
+    "checkedAt",
+    "tested",
+    "links"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 214 },
+    "family": { "type": ["string", "null"], "maxLength": 100 },
+    "category": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "repository": { "type": ["string", "null"], "maxLength": 500 },
+    "status": {
+      "enum": ["ready", "prerelease", "in-progress", "blocked", "unmaintained", "agnostic", "unknown"]
+    },
+    "confidence": {
+      "type": "array",
+      "items": { "enum": ["D", "S", "B", "T", "A", "U"] },
+      "uniqueItems": true
+    },
+    "verified": { "type": "boolean" },
+    "reasons": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "maxLength": 600 }
+    },
+    "recommendedVersion": { "type": ["string", "null"], "maxLength": 120 },
+    "solid2Version": { "type": ["string", "null"], "maxLength": 120 },
+    "solid2Tag": { "type": ["string", "null"], "maxLength": 60 },
+    "lines": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "stability", "admitsSolid2"],
+        "properties": {
+          "version": { "type": "string", "maxLength": 120 },
+          "tag": { "type": ["string", "null"], "maxLength": 60 },
+          "stability": { "enum": ["stable", "prerelease"] },
+          "phase": { "enum": ["stable", "alpha", "beta", "rc", "next", "dev"] },
+          "solidRange": { "type": ["string", "null"], "maxLength": 300 },
+          "parsed": { "type": "boolean" },
+          "admitsSolid2": { "type": "boolean" },
+          "clean": { "type": ["boolean", "null"] },
+          "publishedAt": { "type": ["string", "null"], "maxLength": 40 },
+          "deprecated": { "type": "boolean" }
+        }
+      }
+    },
+    "upstream": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hasSolid2Work", "isArchived", "links"],
+      "properties": {
+        "hasSolid2Work": { "type": "boolean" },
+        "isArchived": { "type": "boolean" },
+        "links": { "type": "array", "items": { "type": "string" } },
+        "lastPushAt": { "type": ["string", "null"] }
+      }
+    },
+    "attestations": { "type": "array", "items": { "type": "object" } },
+    "smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "import": { "type": ["boolean", "null"] },
+        "build": { "type": ["boolean", "null"] },
+        "types": { "type": ["boolean", "null"] }
+      }
+    },
+    "shipsTypes": { "type": "boolean" },
+    "checkedAt": { "type": "string", "maxLength": 40 },
+    "tested": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["solid", "rules", "tool"],
+      "properties": {
+        "solid": { "type": "string" },
+        "solidNext": { "type": ["string", "null"] },
+        "rules": { "type": "string" },
+        "tool": { "type": "string" }
+      }
+    },
+    "downloadsWeekly": { "type": ["integer", "null"], "minimum": 0 },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["npm", "migration"],
+      "properties": {
+        "npm": { "type": "string" },
+        "repository": { "type": ["string", "null"] },
+        "migration": { "type": "string" }
+      }
+    }
+  }
+}

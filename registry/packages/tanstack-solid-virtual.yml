@@ -1,0 +1,9 @@
+name: "@tanstack/solid-virtual"
+category: other
+tracked: true
+family: tanstack
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Virtualisation primitives; a known fixture for removed-API findings.
+attestations: []

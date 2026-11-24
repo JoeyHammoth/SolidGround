@@ -1,0 +1,50 @@
+# Human-curated replacement hints. Detection itself is dynamic: the scanner
+# compares imports against the real Solid 2 export surface, so this file only
+# improves the advice shown to readers. Keep links on the public migration page.
+version: "2026.11.1"
+source: https://docs.solidjs.com/migration/from-solid-1
+
+subpaths:
+  - from: solid-js/web
+    hint: Import DOM rendering APIs from @solidjs/web.
+  - from: solid-js/store
+    hint: Stores are exported from solid-js in Solid 2.
+  - from: solid-js/h
+    hint: The hyperscript helper was removed; use JSX with the Solid 2 compiler.
+  - from: solid-js/html
+    hint: The tagged-template helper was removed; use JSX.
+  - from: solid-js/universal
+    hint: Universal renderer entry points moved.
+  - from: solid-js/jsx-runtime
+    hint: The JSX runtime moved to @solidjs/web.
+  - from: solid-js/jsx-dev-runtime
+    hint: The JSX dev runtime moved to @solidjs/web.
+
+exports:
+  - from: mergeProps
+    to: merge
+    hint: mergeProps was replaced by merge.
+  - from: splitProps
+    to: omit
+    hint: splitProps was replaced by omit.
+  - from: onMount
+    to: onSettled
+    hint: onMount was replaced by onSettled.
+  - from: createComputed
+    hint: createComputed was removed; use an effect or a memo.
+  - from: createResource
+    hint: createResource is replaced by async createMemo and Suspense-style loading.
+  - from: Suspense
+    to: Loading
+    hint: Suspense was replaced by Loading.
+  - from: ErrorBoundary
+    to: Errored
+    hint: ErrorBoundary was replaced by Errored.
+  - from: Index
+    hint: Index was removed; use For with keyed={false}.
+  - from: batch
+    hint: batch was removed; updates batch by default in Solid 2.
+  - from: on
+    hint: on was removed; dependencies are tracked explicitly.
+  - from: JSX
+    hint: Import JSX types from @solidjs/web rather than solid-js.

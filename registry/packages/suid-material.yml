@@ -1,0 +1,9 @@
+name: "@suid/material"
+category: ui-components
+tracked: true
+family: suid
+aliases: []
+supersededBy: null
+alternatives: ["@kobalte/core"]
+notes: Material Design components for Solid.
+attestations: []

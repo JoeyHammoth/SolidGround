@@ -1,0 +1,9 @@
+name: "@solidjs/testing-library"
+category: testing
+tracked: true
+family: null
+aliases: []
+supersededBy: null
+alternatives: []
+notes: DOM testing utilities for Solid components.
+attestations: []

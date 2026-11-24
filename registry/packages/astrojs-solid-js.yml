@@ -1,0 +1,9 @@
+name: "@astrojs/solid-js"
+category: meta-frameworks
+tracked: true
+family: null
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Renders Solid components inside Astro.
+attestations: []

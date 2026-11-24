@@ -1,0 +1,9 @@
+name: "@solidjs/router"
+category: routing
+tracked: true
+family: null
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Official router for SolidJS.
+attestations: []

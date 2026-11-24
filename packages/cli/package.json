@@ -1,0 +1,16 @@
+{
+  "name": "solid-ground",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Check which of your dependencies block a SolidJS 2 upgrade.",
+  "type": "module",
+  "bin": {
+    "solid-ground": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@solid-ground/schema": "workspace:*"
+  }
+}

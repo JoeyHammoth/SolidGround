@@ -1,0 +1,9 @@
+name: "vite-plugin-solid"
+category: build-tools
+tracked: true
+family: null
+aliases: []
+supersededBy: "@solidjs/vite-plugin"
+alternatives: ["@solidjs/vite-plugin"]
+notes: Renamed to @solidjs/vite-plugin for the Solid 2 line. Kept for 1.x users.
+attestations: []

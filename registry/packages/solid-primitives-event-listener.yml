@@ -1,0 +1,9 @@
+name: "@solid-primitives/event-listener"
+category: primitives
+tracked: true
+family: solid-primitives
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Reactive DOM event listeners.
+attestations: []

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/registry-entry.schema.json",
+  "title": "Solid Ground registry entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "category", "tracked"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 214,
+      "pattern": "^(@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "ui-components",
+        "routing",
+        "data-fetching",
+        "state",
+        "forms",
+        "build-tools",
+        "testing",
+        "meta-frameworks",
+        "primitives",
+        "styling",
+        "devtools",
+        "other"
+      ]
+    },
+    "tracked": { "type": "boolean" },
+    "family": { "type": ["string", "null"], "maxLength": 100 },
+    "aliases": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "maxLength": 214 }
+    },
+    "supersededBy": { "type": ["string", "null"], "maxLength": 214 },
+    "alternatives": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "maxLength": 214 }
+    },
+    "notes": { "type": ["string", "null"], "maxLength": 1000 },
+    "attestations": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "version", "evidence", "attestedBy", "expires"],
+        "properties": {
+          "claim": {
+            "enum": ["ready", "prerelease", "in-progress", "blocked", "unmaintained", "agnostic", "unknown"]
+          },
+          "version": { "type": "string", "maxLength": 120 },
+          "evidence": { "type": "string", "pattern": "^https://" },
+          "attestedBy": { "type": "string", "maxLength": 100 },
+          "expires": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" }
+        }
+      }
+    }
+  }
+}

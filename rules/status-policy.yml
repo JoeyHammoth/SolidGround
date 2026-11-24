@@ -1,0 +1,41 @@
+# Versioned decision policy. Changing this file invalidates every status, so
+# it requires maintainer review (see .github/CODEOWNERS).
+version: "2026.11.1"
+
+staleness:
+  metadataHours: 48
+  staticScanDays: 7
+  smokeDays: 21
+  attestationDays: 90
+
+unmaintainedAfterMonths: 18
+
+# A range is only trusted as weak evidence; static scan and sandbox results
+# decide whether a package is actually usable with Solid 2.
+solidEntryPoints:
+  - solid-js
+  - "@solidjs/web"
+
+removedSubpaths:
+  - solid-js/web
+  - solid-js/store
+  - solid-js/h
+  - solid-js/html
+  - solid-js/universal
+  - solid-js/jsx-runtime
+  - solid-js/jsx-dev-runtime
+
+upstreamPatterns:
+  branches: ["solid-2", "solid2", "v2", "next"]
+  titleRegex: "solid(\\s|-)?(js)?\\s*2|solid-js@2|solid 2\\.0"
+
+anomaly:
+  maxStatusChangeShare: 0.05
+  maxNewUnknownShare: 0.03
+  minTrackedRatio: 0.9
+  holdOnSolidVersionChange: true
+
+scope:
+  # A package is tracked when it depends or peers on solid-js / @solidjs/*.
+  minWeeklyDownloads: 500
+  requireCuratedOrRequested: false

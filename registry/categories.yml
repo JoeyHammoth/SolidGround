@@ -1,0 +1,39 @@
+# Ordered taxonomy used by the site, the CLI and the registry schema.
+version: "2026.11.1"
+categories:
+  - id: ui-components
+    label: UI components
+    description: Component libraries, headless primitives and design systems.
+  - id: routing
+    label: Routing
+    description: Routers and navigation helpers.
+  - id: data-fetching
+    label: Data fetching
+    description: Query, cache and transport libraries.
+  - id: state
+    label: State management
+    description: Stores, signals and state utilities.
+  - id: forms
+    label: Forms
+    description: Form state, validation and input helpers.
+  - id: build-tools
+    label: Build tools
+    description: Compilers, bundler plugins and framework integrations.
+  - id: testing
+    label: Testing
+    description: Test renderers, utilities and harnesses.
+  - id: meta-frameworks
+    label: Meta-frameworks
+    description: Full-stack frameworks and site generators.
+  - id: primitives
+    label: Primitives
+    description: Focused reactive utilities.
+  - id: styling
+    label: Styling
+    description: CSS-in-JS, preprocessors and styling helpers.
+  - id: devtools
+    label: Devtools
+    description: Inspectors, debuggers and developer panels.
+  - id: other
+    label: Other
+    description: Useful packages that do not fit the categories above.

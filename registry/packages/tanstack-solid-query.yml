@@ -1,0 +1,9 @@
+name: "@tanstack/solid-query"
+category: data-fetching
+tracked: true
+family: tanstack
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Async state and caching for Solid.
+attestations: []
