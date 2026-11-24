@@ -93,7 +93,7 @@ and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the pipeline.
 
 ## Quick start
 
-Requirements: Node.js **20.19+** and pnpm (Corepack ships with Node).
+Requirements: Node.js **20.18+** and pnpm (Corepack ships with Node).
 
 ```bash
 git clone https://github.com/JoeyHammoth/SolidGround.git
@@ -131,6 +131,12 @@ It lists direct dependencies that block a Solid 2 upgrade, the first version
 that supports Solid 2, and an upgrade order. A non-zero exit code means
 blockers exist, so it can gate CI. A browser version that never uploads your
 lockfile is on the roadmap.
+
+> **Package name note.** The unscoped npm name `solid-ground` is already taken
+> by an unrelated package, so `npx solid-ground` is **not** the install command.
+> A scoped release (`@solid-ground/cli`) is planned; until then, run the CLI
+> from a clone as shown above. Tracked in
+> [issue #9](https://github.com/JoeyHammoth/SolidGround/issues/9).
 
 ## JSON API
 

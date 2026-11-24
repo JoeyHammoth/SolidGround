@@ -76,7 +76,7 @@ export async function fetchPackument(
   } = {},
 ): Promise<FetchResult> {
   const fetchImpl = options.fetchImpl ?? fetch;
-  const encoded = name.replace("/", "%2F");
+  const encoded = encodeURIComponent(name).replace(/%40/g, "@");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 20_000);
   try {
@@ -108,7 +108,7 @@ export async function fetchWeeklyDownloads(
 ): Promise<number | null> {
   const fetchImpl = options.fetchImpl ?? fetch;
   try {
-    const response = await fetchImpl(`${DOWNLOADS}/${name.replace("/", "%2F")}`, {
+    const response = await fetchImpl(`${DOWNLOADS}/${encodeURIComponent(name).replace(/%40/g, "@")}`, {
       headers: { "user-agent": USER_AGENT },
     });
     if (!response.ok) return null;
