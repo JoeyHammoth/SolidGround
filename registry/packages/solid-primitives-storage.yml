@@ -1,0 +1,9 @@
+name: "@solid-primitives/storage"
+category: primitives
+tracked: true
+family: solid-primitives
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Reactive storage helpers.
+attestations: []

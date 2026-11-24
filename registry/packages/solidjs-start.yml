@@ -1,0 +1,9 @@
+name: "@solidjs/start"
+category: meta-frameworks
+tracked: true
+family: null
+aliases: ["solid-start"]
+supersededBy: null
+alternatives: []
+notes: Solid's full-stack framework. v2 targets Solid 1; check the version line before upgrading.
+attestations: []

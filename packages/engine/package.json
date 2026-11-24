@@ -1,0 +1,17 @@
+{
+  "name": "@solid-ground/engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure, rule-based status engine for Solid Ground.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@solid-ground/schema": "workspace:*",
+    "semver": "^7.6.3"
+  }
+}

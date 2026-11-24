@@ -1,0 +1,32 @@
+# Discovery is a proposal mechanism only: candidates are never auto-promoted
+# into the registry. Humans review the generated candidate list.
+version: "2026.11.1"
+
+queries:
+  - "keywords:solid-js"
+  - "keywords:solidjs"
+  - "keywords:solid"
+  - "solid-js"
+  - "solidjs"
+  - "scope:solidjs-community"
+  - "scope:solid-primitives"
+  - "scope:solidjs"
+
+pageSize: 250
+maxPagesPerQuery: 2
+
+noise:
+  namePatterns:
+    - "^@types/"
+    - "^eslint-config-"
+    - "^prettier-config-"
+  keywordBlocklist:
+    - solidity
+    - ethereum
+    - blockchain
+  # A candidate must depend or peer on solid-js or @solidjs/* to be proposed.
+  requireSolidDependency: true
+
+thresholds:
+  minWeeklyDownloads: 500
+  maxCandidatesPerRun: 50

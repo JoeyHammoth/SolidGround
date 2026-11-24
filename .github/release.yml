@@ -1,0 +1,16 @@
+changelog:
+  categories:
+    - title: Breaking changes
+      labels: [breaking]
+    - title: New features
+      labels: [enhancement]
+    - title: Data and status corrections
+      labels: [data-correction]
+    - title: Bug fixes
+      labels: [bug]
+    - title: Documentation
+      labels: [documentation]
+    - title: Pipeline and CI
+      labels: [ci, pipeline]
+    - title: Other changes
+      labels: ["*"]

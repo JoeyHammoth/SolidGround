@@ -1,0 +1,62 @@
+name: Add a package
+description: Ask for a Solid package to be tracked
+title: "registry: add "
+labels: ["data-correction", "good first issue"]
+body:
+  - type: input
+    id: package
+    attributes:
+      label: npm package name
+      placeholder: "@scope/name"
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Repository URL
+      placeholder: "https://github.com/owner/repo"
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - ui-components
+        - routing
+        - data-fetching
+        - state
+        - forms
+        - build-tools
+        - testing
+        - meta-frameworks
+        - primitives
+        - styling
+        - devtools
+        - other
+    validations:
+      required: true
+  - type: input
+    id: family
+    attributes:
+      label: Family (optional)
+      description: For monorepo siblings, e.g. solid-primitives.
+  - type: input
+    id: downloads
+    attributes:
+      label: Approximate weekly downloads (optional)
+      description: Helps us prioritise. The collector records the real value.
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should this be tracked?
+      description: Who uses it, and does it depend or peer on solid-js or @solidjs/*?
+    validations:
+      required: true
+  - type: checkboxes
+    id: coc
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

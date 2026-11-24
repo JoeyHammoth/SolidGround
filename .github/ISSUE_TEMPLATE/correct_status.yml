@@ -1,0 +1,40 @@
+name: Correct a package status
+description: Tell us a status is wrong or out of date. Evidence helps us fix it faster.
+title: "data: "
+labels: ["data-correction"]
+body:
+  - type: input
+    id: package
+    attributes:
+      label: npm package name
+      placeholder: "@scope/name"
+    validations:
+      required: true
+  - type: dropdown
+    id: relationship
+    attributes:
+      label: Your relationship to the package
+      options: [Maintainer, Contributor, User, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: claim
+    attributes:
+      label: What should the status be?
+      options: [ready, prerelease, in-progress, blocked, unmaintained, agnostic, I am not sure]
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Links to a release, CI run, PR or issue. Please paste links, not screenshots.
+    validations:
+      required: true
+  - type: checkboxes
+    id: coc
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

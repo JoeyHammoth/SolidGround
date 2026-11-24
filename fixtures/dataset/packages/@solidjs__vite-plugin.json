@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "name": "@solidjs/vite-plugin",
+  "family": null,
+  "category": "build-tools",
+  "repository": "https://github.com/solidjs/solid-vite-plugin",
+  "lines": [
+    {
+      "version": "3.0.1",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-17T20:34:55.263Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-17T08:18:43.887Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.57",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-06T18:43:33.224Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.56",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-04T02:38:20.958Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.55",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-01T20:01:39.498Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.54",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-30T22:21:30.004Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.53",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-29T23:14:54.154Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.52",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-28T05:47:24.358Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.51",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.16",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-21T20:44:36.747Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.50",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.14",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-13T19:55:07.729Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.0.0-next.35",
+      "tag": "next",
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-28T22:11:18.842Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-24T16:47:41.644Z",
+  "tested": {
+    "solid": "2.0.3",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 348188,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@solidjs/vite-plugin",
+    "repository": "https://github.com/solidjs/solid-vite-plugin",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "ready",
+  "confidence": [
+    "D"
+  ],
+  "verified": false,
+  "reasons": [
+    "Stable release 3.0.1 admits Solid 2 (`^2.0.0`).",
+    "The published code has not been statically scanned yet."
+  ],
+  "recommendedVersion": "3.0.1",
+  "solid2Version": "3.0.1",
+  "solid2Tag": "latest"
+}

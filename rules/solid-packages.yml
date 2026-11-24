@@ -1,0 +1,14 @@
+# Watched by the hourly sentinel. A change in any dist-tag invalidates prior
+# verification and dispatches the collect + verify workflows.
+version: "2026.11.1"
+
+packages:
+  - solid-js
+  - "@solidjs/web"
+  - "@solidjs/signals"
+  - "@solidjs/vite-plugin"
+  - babel-preset-solid
+
+docs:
+  migration: https://docs.solidjs.com/migration/from-solid-1
+  aiTools: https://docs.solidjs.com/guides/ai-tools

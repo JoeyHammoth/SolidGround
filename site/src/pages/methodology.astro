@@ -1,0 +1,91 @@
+---
+import Base from "../layouts/Base.astro";
+import { meta } from "../lib/data";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const levels = [
+  ["D", "Declared", "npm peer or dependency range", "48 hours"],
+  ["S", "Static", "published code parsed against real Solid 2 exports", "7 days"],
+  ["B", "Build/import", "sandboxed install, import and build", "21 days"],
+  ["T", "Types", "TypeScript consumer snippet compiles", "21 days"],
+  ["A", "Attested", "named maintainer claim with evidence", "90 days"],
+  ["U", "Upstream CI", "the library's own CI tests Solid 2", "90 days"],
+];
+const statuses = [
+  ["ready", "A stable release admits Solid 2 and the evidence policy is met."],
+  ["prerelease", "Only an alpha, beta, rc or next line admits Solid 2."],
+  ["in-progress", "No release yet, but upstream work is visible."],
+  ["blocked", "No Solid 2 support and no visible upstream work."],
+  ["unmaintained", "Deprecated, archived, or no release for 18 months."],
+  ["agnostic", "No solid-js dependency or peer range; excluded from percentages."],
+  ["unknown", "Not enough evidence; always shown with a reason."],
+];
+---
+
+<Base title="Methodology" description="How Solid Ground decides a package's SolidJS 2 status, and what it deliberately does not claim.">
+  <h1>Methodology</h1>
+  <p class="lede">
+    A status must be reproducible from published rules. If it is not, that is a bug.
+    The canonical, versioned policy lives in <a href="https://github.com/JoeyHammoth/SolidGround/blob/main/rules/status-policy.yml"><code>rules/status-policy.yml</code></a>.
+  </p>
+
+  <h2>Statuses</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Status</th><th scope="col">Definition</th></tr></thead>
+      <tbody>{statuses.map(([status, definition]) => (
+        <tr><td><span class={`status status-${status}`}>{status}</span></td><td>{definition}</td></tr>
+      ))}</tbody>
+    </table>
+  </div>
+
+  <h2>Evidence levels</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Level</th><th scope="col">Name</th><th scope="col">What it means</th><th scope="col">Freshness</th></tr></thead>
+      <tbody>{levels.map(([level, name, meaning, window]) => (
+        <tr><td><code>{level}</code></td><td>{name}</td><td>{meaning}</td><td>{window}</td></tr>
+      ))}</tbody>
+    </table>
+  </div>
+
+  <h2>Decision logic in one paragraph</h2>
+  <p>
+    If a package does not depend on Solid APIs it is <strong>agnostic</strong>. Otherwise, a release
+    line <em>admits</em> Solid 2 when its declared range satisfies the tested stable or <code>next</code>
+    Solid version. The highest stable line that admits Solid 2 and whose published code is not known
+    to import removed APIs is <strong>ready</strong>. Otherwise a clean prerelease line is
+    <strong>prerelease</strong>; visible upstream work is <strong>in-progress</strong>; deprecation,
+    archival or 18 months without a release is <strong>unmaintained</strong>; a line that caps Solid 1
+    or a permissive range with removed imports is <strong>blocked</strong>; everything else is
+    <strong>unknown</strong>.
+  </p>
+
+  <h2>What "verified" means</h2>
+  <p>
+    <strong>Verified</strong> is reserved for a <strong>ready</strong> verdict backed by a passing
+    build/import smoke test inside its freshness window. A static scan alone never produces
+    "verified"; it produces <strong>analysed</strong>. A stale verified result is displayed as
+    <strong>declared</strong>.
+  </p>
+
+  <h2>Known limits</h2>
+  <ul>
+    <li>Static analysis cannot see runtime semantics such as batching or effect timing.</li>
+    <li>Dead code and optional dual-support imports can cause false positives.</li>
+    <li>Discovery is not exhaustive. Coverage is stated on every page that summarises data.</li>
+    <li>Non-GitHub upstream hosts have weaker signals in v1.</li>
+  </ul>
+
+  <h2>Privacy</h2>
+  <p>
+    No cookies, no analytics, no fingerprinting. “Check my app” reads your file in the browser and
+    uploads nothing. The dataset is fetched as static JSON. Maintainer emails are never collected;
+    public GitHub handles appear only on public attestations.
+  </p>
+
+  <p class="small muted">
+    Rules <code>{meta.versions.rules}</code> · schema <code>{meta.versions.schema}</code> ·
+    dataset generated {meta.generatedAt} ·
+    <a href="https://github.com/JoeyHammoth/SolidGround/blob/main/docs/METHODOLOGY.md">full methodology</a>.
+  </p>
+</Base>

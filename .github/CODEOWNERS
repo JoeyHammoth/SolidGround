@@ -1,0 +1,10 @@
+# Changes here can alter many statuses or the trust boundary.
+*                       @JoeyHammoth
+
+/.github/**             @JoeyHammoth
+/rules/**               @JoeyHammoth
+/packages/engine/**     @JoeyHammoth
+/packages/scanner/**    @JoeyHammoth
+/packages/smoke/**      @JoeyHammoth
+/SECURITY.md            @JoeyHammoth
+/CODE_OF_CONDUCT.md     @JoeyHammoth

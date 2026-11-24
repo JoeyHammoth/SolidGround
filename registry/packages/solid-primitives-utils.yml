@@ -1,0 +1,9 @@
+name: "@solid-primitives/utils"
+category: primitives
+tracked: true
+family: solid-primitives
+aliases: []
+supersededBy: null
+alternatives: []
+notes: Shared helpers used across Solid Primitives.
+attestations: []

@@ -1,0 +1,47 @@
+---
+import Base from "../layouts/Base.astro";
+import { meta, relativeAge, records } from "../lib/data";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
+const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
+---
+
+<Base title="Health" description="Freshness, coverage and provenance of the Solid Ground dataset.">
+  <h1>Health</h1>
+  <p class="lede">Trustworthy dates are the product. This page makes automation failures visible instead of hiding them.</p>
+
+  {stale && <div class="banner" role="status">No successful dataset generation in the last 72 hours. Treat statuses as stale until the next run.</div>}
+
+  <div class="grid cols-3">
+    <div class="card"><div class="stat">{relativeAge(meta.generatedAt)}</div><div class="stat-label">Dataset age</div></div>
+    <div class="card"><div class="stat">{meta.coverage.tracked}</div><div class="stat-label">Tracked packages</div></div>
+    <div class="card"><div class="stat">{meta.coverage.candidates}</div><div class="stat-label">Candidates awaiting review</div></div>
+  </div>
+
+  <h2>Versions and provenance</h2>
+  <ul>
+    <li>Solid stable tested: <code>{meta.solid.stable2}</code>{meta.solid.next ? <>; next: <code>{meta.solid.next}</code></> : null}</li>
+    <li>Observed at <code>{meta.solid.observedAt}</code></li>
+    <li>Rules <code>{meta.versions.rules}</code> · tool <code>{meta.versions.tool}</code> · schema <code>{meta.versions.schema}</code></li>
+    <li>Oldest record checked: <code>{oldest?.checkedAt ?? "none"}</code>{oldest ? ` (${oldest.name})` : ""}</li>
+    <li>Last successful collect: <code>{meta.lastSuccessfulCollect ?? "never"}</code></li>
+    <li>Last successful verify: <code>{meta.lastSuccessfulVerify ?? "not run yet"}</code></li>
+  </ul>
+
+  <h2>Anomaly gate</h2>
+  <p>
+    A run that would change more than 5% of statuses, or drop more than 10% of records, is held for
+    human review rather than published. A new Solid release also gets a human look at the first diff.
+    Current state: <strong>{meta.anomaly.held ? "held" : "clear"}</strong>.
+  </p>
+  <ul>{meta.anomaly.reasons.map((reason) => <li>{reason}</li>)}</ul>
+
+  <h2>Coverage statement</h2>
+  <p>
+    Tracking {meta.coverage.tracked} packages ({meta.coverage.curated} curated). Discovery is not
+    exhaustive; a package that peers on <code>solid-js</code> can still be missing.
+    <a href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=add-package.yml">Request an addition</a>.
+  </p>
+
+  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a></p>
+</Base>

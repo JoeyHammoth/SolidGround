@@ -1,0 +1,9 @@
+name: "@kobalte/core"
+category: ui-components
+tracked: true
+family: null
+aliases: []
+supersededBy: null
+alternatives: ["@suid/material"]
+notes: Accessible, unstyled UI primitives.
+attestations: []
