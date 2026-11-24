@@ -1,0 +1,118 @@
+---
+import Base from "../../layouts/Base.astro";
+import { records, relativeAge, statusIcon, formatDownloads } from "../../lib/data";
+
+export function getStaticPaths() {
+  return records.map((record) => ({
+    params: { slug: record.name.replace(/\//g, "__") },
+    props: { record },
+  }));
+}
+
+const { record } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const slug = record.name.replace(/\//g, "__");
+const badgeUrl = `https://img.shields.io/endpoint?url=https://joeyhammoth.github.io/SolidGround/api/../badges/${slug}.json`;
+const snippets = [
+  `[![Solid 2](https://img.shields.io/endpoint?url=https://joeyhammoth.github.io/SolidGround/badges/${slug}.json)](https://joeyhammoth.github.io/SolidGround/packages/${slug}/)`,
+];
+const updateUrl = `https://github.com/JoeyHammoth/SolidGround/issues/new?template=correct-status.yml&title=${encodeURIComponent(`data: ${record.name}`)}`;
+---
+
+<Base title={`${record.name} · Solid 2 readiness`} description={`${record.name}: ${record.status}. ${record.reasons[0] ?? ""}`}>
+  <p class="small"><a href={`${base}/packages/`}>← All packages</a></p>
+  <span class={`status status-${record.status}`}>{statusIcon(record.status)} {record.status}</span>
+  {record.verified && <span class="pill" style="margin-left:6px">verified</span>}
+  <h1 style="font-size:clamp(1.8rem,4vw,2.6rem);margin-top:10px">{record.name}</h1>
+  <p class="verdict">{record.reasons[0]}</p>
+  <p class="small muted">
+    {formatDownloads(record.downloadsWeekly)} weekly downloads · category {record.category}{record.family ? ` · family ${record.family}` : ""} · checked {relativeAge(record.checkedAt)}
+  </p>
+
+  <h2>Why this status</h2>
+  <ol>
+    {record.reasons.map((reason) => <li>{reason}</li>)}
+  </ol>
+
+  <h2>Version lines</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th scope="col">Version</th><th scope="col">Channel</th><th scope="col">Stability</th><th scope="col">Declared <code>solid-js</code></th><th scope="col">Admits Solid 2</th><th scope="col">Scan</th><th scope="col">Published</th></tr>
+      </thead>
+      <tbody>
+        {record.lines.map((line) => (
+          <tr>
+            <td><code>{line.version}</code></td>
+            <td>{line.tag ?? "—"}</td>
+            <td>{line.stability === "stable" ? "stable" : line.phase}</td>
+            <td>{line.solidRange ? <code>{line.solidRange}</code> : <span class="muted">none</span>}</td>
+            <td>{line.admitsSolid2 ? "yes" : "no"}</td>
+            <td>{line.clean === null ? "not run" : line.clean ? "clean" : "findings"}</td>
+            <td class="small">{line.publishedAt ? line.publishedAt.slice(0, 10) : "—"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Evidence</h2>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Checklist</h3>
+      <p class="evidence" style="font-size:1rem">
+        {["D", "S", "B", "T", "A", "U"].map((level) => (
+          <span class={record.confidence.includes(level as never) ? "on" : ""}>{level}</span>
+        ))}
+      </p>
+      <ul class="small">
+        <li><strong>D</strong> Declared: peer or dependency range on <code>solid-js</code>.</li>
+        <li><strong>S</strong> Static: published code parsed against the Solid 2 export surface.</li>
+        <li><strong>B</strong> Build/import: sandboxed install, import and build{record.smoke.import === null ? " (not run yet)" : record.smoke.import ? " (passed)" : " (failed)"}.</li>
+        <li><strong>T</strong> Types: consumer snippet compiles{record.smoke.types === null ? " (not run yet)" : ""}.</li>
+        <li><strong>A</strong> Attestation: named maintainer claim with evidence.</li>
+        <li><strong>U</strong> Upstream CI tests Solid 2.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Provenance</h3>
+      <ul class="small">
+        <li>Tested against Solid <code>{record.tested.solid}</code>{record.tested.solidNext ? <> and <code>{record.tested.solidNext}</code></> : null}</li>
+        <li>Rules <code>{record.tested.rules}</code> · tool <code>{record.tested.tool}</code></li>
+        <li>Checked at <code>{record.checkedAt}</code></li>
+        <li><a href={`${base}/api/v1/packages/${slug}.json`}>Raw JSON record</a></li>
+        <li><a href={updateUrl}>Report a problem</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Upstream</h2>
+  {record.upstream.hasSolid2Work ? (
+    <>
+      <p>Work toward Solid 2 is visible upstream.</p>
+      <ul>{record.upstream.links.map((link) => <li><a href={link}>{link}</a></li>)}</ul>
+    </>
+  ) : (
+    <p class="muted">No Solid 2 pull request, branch, milestone or release found in the last 180 days.</p>
+  )}
+  {record.repository && <p><a href={record.repository}>Repository</a> · <a href={record.links.npm}>npm</a> · <a href={record.links.migration}>Migration guide</a></p>}
+
+  <h2>Badge</h2>
+  <p>Maintainers can embed the current status. It says the status in text, so colour is not the only signal.</p>
+  <pre><code>{snippets[0]}</code></pre>
+  <p class="small muted">Endpoint: <code>{badgeUrl}</code></p>
+
+  {record.attestations.length > 0 && (
+    <>
+      <h2>Attestations</h2>
+      <ul>
+        {record.attestations.map((attestation) => (
+          <li>
+            <strong>{attestation.attestedBy}</strong> claims <strong>{attestation.claim}</strong> for <code>{attestation.version}</code>
+            (<a href={attestation.evidence}>evidence</a>, expires {attestation.expires})
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+</Base>

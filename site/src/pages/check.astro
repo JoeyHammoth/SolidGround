@@ -1,0 +1,101 @@
+---
+import Base from "../layouts/Base.astro";
+import { meta } from "../lib/data";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base title="Check my app" description="Find the Solid dependencies blocking a SolidJS 2 upgrade. Runs entirely in your browser.">
+  <h1>Check my app</h1>
+  <p class="lede">
+    Paste a <code>package.json</code>. Nothing is uploaded: the file is parsed in your browser
+    and matched against the static dataset.
+  </p>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <label for="manifest" class="small muted">package.json</label>
+      <textarea id="manifest" spellcheck="false" placeholder={'{\n  "dependencies": {\n    "@solidjs/router": "^0.15.0"\n  }\n}'}></textarea>
+      <p style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:0">
+        <button class="btn primary" id="run" type="button">Check dependencies</button>
+        <button class="btn" id="markdown" type="button">Copy Markdown</button>
+      </p>
+      <p class="small muted" style="margin-bottom:0">Dataset generated {meta.generatedAt}. Tested against Solid {meta.solid.stable2}.</p>
+    </div>
+    <div class="card" id="output" aria-live="polite">
+      <h3>Result</h3>
+      <p class="muted">Paste a manifest and run the check.</p>
+    </div>
+  </div>
+
+  <h2>How it decides</h2>
+  <p>
+    A dependency is <strong>ready</strong> when a stable release admits Solid 2 and the evidence
+    policy is met, <strong>prerelease</strong> when only an alpha/beta/rc/next line works, and
+    <strong>blocked</strong> when there is no support and no visible upstream work.
+    <a href={`${base}/methodology/`}>Read the full methodology</a>.
+  </p>
+
+  <script>
+    const status = {
+      ready: { label: "ready", blocking: false },
+      prerelease: { label: "prerelease", blocking: true },
+      "in-progress": { label: "in-progress", blocking: true },
+      blocked: { label: "blocked", blocking: true },
+      unmaintained: { label: "unmaintained", blocking: true },
+      unknown: { label: "unknown", blocking: true },
+      agnostic: { label: "agnostic", blocking: false },
+    };
+    const base = document.documentElement.dataset.base ?? "";
+    const output = document.getElementById("output");
+    let lastMarkdown = "";
+
+    async function check() {
+      if (!output) return;
+      let manifest;
+      try {
+        manifest = JSON.parse(document.getElementById("manifest").value);
+      } catch {
+        output.innerHTML = "<h3>Could not parse</h3><p class=\"muted\">That is not valid JSON.</p>";
+        return;
+      }
+      const deps = { ...(manifest.dependencies ?? {}), ...(manifest.devDependencies ?? {}), ...(manifest.peerDependencies ?? {}) };
+      const response = await fetch(`${base}/api/v1/index.json`);
+      const index = await response.json();
+      const byName = new Map(index.map((row) => [row.name, row]));
+      const tracked = Object.entries(deps).filter(([name]) => byName.has(name));
+      const blocking = tracked.filter(([name]) => status[byName.get(name).status]?.blocking);
+      const ready = tracked.filter(([name]) => byName.get(name).status === "ready");
+      const unknown = Object.keys(deps).filter((name) => !byName.has(name) && (name === "solid-js" || name.startsWith("@solidjs/") || name.includes("solid")));
+
+      const rows = (list) => list.map(([name, range]) => {
+        const row = byName.get(name);
+        return `<tr><td><code>${name}</code></td><td><code>${range}</code></td><td>${row.status}</td><td>${row.solid2Version ? `<code>${row.solid2Version}</code>` : "—"}</td></tr>`;
+      }).join("");
+
+      const verdict = blocking.length === 0
+        ? `Ready to try: ${ready.length} tracked Solid dependencies are ready.`
+        : `Blocked by ${blocking.length} package${blocking.length === 1 ? "" : "s"}.`;
+
+      output.innerHTML = `
+        <h3>${verdict}</h3>
+        <p class="small muted">Checked ${tracked.length} tracked dependencies. Dataset: ${index.length} packages.</p>
+        ${ready.length ? `<h4>Ready</h4><div class="table-wrap"><table><thead><tr><th>Package</th><th>Declared</th><th>Status</th><th>Solid 2</th></tr></thead><tbody>${rows(ready)}</tbody></table></div>` : ""}
+        ${blocking.length ? `<h4>Blocking</h4><div class="table-wrap"><table><thead><tr><th>Package</th><th>Declared</th><th>Status</th><th>Solid 2</th></tr></thead><tbody>${rows(blocking)}</tbody></table></div><p class="small">Upgrade order: compiler and build plugin first, then ready libraries, then prerelease lines.</p>` : ""}
+        ${unknown.length ? `<p class="small muted">Not tracked yet: ${unknown.map((name) => `<code>${name}</code>`).join(", ")}. <a href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=add-package.yml">Request a package</a>.</p>` : ""}
+      `;
+
+      lastMarkdown = `## Solid Ground report\n\n${verdict}\n\n| Package | Declared | Status | Solid 2 |\n| --- | --- | --- | --- |\n${rows([...ready, ...blocking])}`;
+    }
+
+    document.getElementById("run")?.addEventListener("click", check);
+    document.getElementById("markdown")?.addEventListener("click", async () => {
+      if (!lastMarkdown) await check();
+      await navigator.clipboard?.writeText(lastMarkdown);
+      const button = document.getElementById("markdown");
+      if (button) {
+        button.textContent = "Copied";
+        setTimeout(() => (button.textContent = "Copy Markdown"), 1500);
+      }
+    });
+  </script>
+</Base>

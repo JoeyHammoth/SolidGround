@@ -1,0 +1,182 @@
+---
+import Base from "../layouts/Base.astro";
+import {
+  CATEGORY_LABELS,
+  formatDownloads,
+  index,
+  meta,
+  records,
+  relativeAge,
+  statusIcon,
+} from "../lib/data";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const top = [...records].sort((a, b) => (b.downloadsWeekly ?? 0) - (a.downloadsWeekly ?? 0));
+const top100 = top.slice(0, 100);
+const readyTop = top100.filter((record) => record.status === "ready").length;
+const blockers = top.filter((record) => record.status === "blocked" || record.status === "in-progress").slice(0, 6);
+const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
+const statusCounts = meta.counts;
+const percentage = (value: number) => (meta.counts.total === 0 ? 0 : Math.round((value / meta.counts.total) * 100));
+---
+
+<Base title="SolidJS 2 ecosystem readiness">
+  <section class="hero">
+    <div>
+      <span class="pill">Tracking {meta.counts.total} packages · Solid {meta.solid.stable2}</span>
+      <h1>{readyTop} of the top {Math.min(100, top100.length)} libraries are on solid ground.</h1>
+      <p class="lede">
+        Which Solid packages work with <strong>SolidJS 2</strong>, on which version, and how do we know?
+        Every status shows its evidence, the exact Solid version tested and when it was last checked.
+      </p>
+      <p style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px">
+        <a class="btn primary" href={`${base}/check/`}>Check my app</a>
+        <a class="btn" href={`${base}/packages/`}>Browse packages</a>
+        <a class="btn" href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=correct-status.yml">Correct a status</a>
+      </p>
+    </div>
+    <img src={`${base}/assets/hero-blocks.png`} width="456" height="409" alt="Translucent blocks stacked into a stable structure" loading="eager" />
+  </section>
+
+  {stale && (
+    <div class="banner" role="status">
+      The dataset is {relativeAge(meta.generatedAt)} old. Automation may be degraded; statuses are still shown with their last check time.
+    </div>
+  )}
+
+  <h2>Where the ecosystem stands</h2>
+  <div class="grid cols-3">
+    <div class="card">
+      <div class="stat">{statusCounts.ready}</div>
+      <div class="stat-label">Ready ({percentage(statusCounts.ready)}%)</div>
+      <p class="small">A stable release admits Solid 2 and meets the evidence policy.</p>
+    </div>
+    <div class="card">
+      <div class="stat">{statusCounts.prerelease + statusCounts["in-progress"]}</div>
+      <div class="stat-label">Moving</div>
+      <p class="small">Prerelease lines or visible upstream work toward Solid 2.</p>
+    </div>
+    <div class="card">
+      <div class="stat">{statusCounts.blocked}</div>
+      <div class="stat-label">Blocked</div>
+      <p class="small">No Solid 2 support and no visible work yet.</p>
+    </div>
+  </div>
+
+  <h2>Status breakdown</h2>
+  <div class="table-wrap">
+    <table>
+      <caption class="small muted" style="text-align:left;padding:10px 12px">Counts exclude nothing; framework-agnostic packages are shown but excluded from readiness percentages on package pages.</caption>
+      <thead>
+        <tr><th scope="col">Status</th><th scope="col">Packages</th><th scope="col">Share</th></tr>
+      </thead>
+      <tbody>
+        {Object.entries(statusCounts)
+          .filter(([key]) => key !== "total")
+          .map(([status, count]) => (
+            <tr>
+              <td><span class={`status status-${status}`}>{statusIcon(status)} {status}</span></td>
+              <td>{count as number}</td>
+              <td>{percentage(count as number)}%</td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Biggest blockers</h2>
+  {blockers.length === 0 ? (
+    <p>No blockers among tracked packages. <a href={`${base}/packages/`}>See every package</a>.</p>
+  ) : (
+    <div class="grid cols-3">
+      {blockers.map((record) => (
+        <div class="card">
+          <span class={`status status-${record.status}`}>{statusIcon(record.status)} {record.status}</span>
+          <h3 style="margin:12px 0 6px"><a href={`${base}/packages/${record.name.replace(/\//g, "__")}/`}>{record.name}</a></h3>
+          <p class="small">{record.reasons[0]}</p>
+          <p class="small muted">{formatDownloads(record.downloadsWeekly)} weekly downloads · checked {relativeAge(record.checkedAt)}</p>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <h2>All tracked packages</h2>
+  <div class="filters">
+    <label class="small muted" for="search">Search</label>
+    <input id="search" type="search" placeholder="name, family or category" autocomplete="off" />
+    <label class="small muted" for="status">Status</label>
+    <select id="status">
+      <option value="">All</option>
+      {Object.keys(statusCounts).filter((key) => key !== "total").map((status) => <option value={status}>{status}</option>)}
+    </select>
+    <label class="small muted" for="category">Category</label>
+    <select id="category">
+      <option value="">All</option>
+      {[...new Set(records.map((record) => record.category))].sort().map((category) => (
+        <option value={category}>{CATEGORY_LABELS[category] ?? category}</option>
+      ))}
+    </select>
+    <span class="pill" id="count">{records.length} packages</span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="packages">
+      <thead>
+        <tr>
+          <th scope="col">Package</th>
+          <th scope="col">Status</th>
+          <th scope="col">Solid 2 version</th>
+          <th scope="col">Evidence</th>
+          <th scope="col">Downloads</th>
+          <th scope="col">Last checked</th>
+        </tr>
+      </thead>
+      <tbody>
+        {records.map((record) => (
+          <tr data-name={record.name.toLowerCase()} data-status={record.status} data-category={record.category}>
+            <td>
+              <a href={`${base}/packages/${record.name.replace(/\//g, "__")}/`}>{record.name}</a>
+              {record.family && <span class="pill" style="margin-left:6px">{record.family}</span>}
+              <div class="small muted">{CATEGORY_LABELS[record.category] ?? record.category}</div>
+            </td>
+            <td><span class={`status status-${record.status}`}>{statusIcon(record.status)} {record.status}</span></td>
+            <td>{record.solid2Version ? <code>{record.solid2Version}</code> : <span class="muted">—</span>}</td>
+            <td><span class="evidence">{["D", "S", "B", "T", "A", "U"].map((level) => (
+              <span class={record.confidence.includes(level as never) ? "on" : ""}>{level}</span>
+            ))}</span></td>
+            <td>{formatDownloads(record.downloadsWeekly)}</td>
+            <td title={record.checkedAt}>{relativeAge(record.checkedAt)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    Downloads are context, never a quality ranking. Data generated {relativeAge(meta.generatedAt)} · rules {meta.versions.rules} · tested against Solid {meta.solid.stable2}{meta.solid.next ? ` and ${meta.solid.next}` : ""}.
+  </p>
+
+  <script>
+    const search = document.querySelector<HTMLInputElement>("#search");
+    const status = document.querySelector<HTMLSelectElement>("#status");
+    const category = document.querySelector<HTMLSelectElement>("#category");
+    const count = document.querySelector<HTMLElement>("#count");
+    const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>("#packages tbody tr"));
+
+    function apply() {
+      const term = (search?.value ?? "").trim().toLowerCase();
+      let visible = 0;
+      for (const row of rows) {
+        const matchesText = !term || (row.dataset.name ?? "").includes(term) || (row.textContent ?? "").toLowerCase().includes(term);
+        const matchesStatus = !status?.value || row.dataset.status === status.value;
+        const matchesCategory = !category?.value || row.dataset.category === category.value;
+        const show = matchesText && matchesStatus && matchesCategory;
+        row.hidden = !show;
+        if (show) visible += 1;
+      }
+      if (count) count.textContent = `${visible} of ${rows.length} packages`;
+    }
+    search?.addEventListener("input", apply);
+    status?.addEventListener("change", apply);
+    category?.addEventListener("change", apply);
+  </script>
+</Base>

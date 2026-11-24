@@ -1,0 +1,30 @@
+---
+import Base from "../../layouts/Base.astro";
+import { CATEGORY_LABELS, records, statusIcon, formatDownloads } from "../../lib/data";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const groups = new Map<string, typeof records>();
+for (const record of records) {
+  const list = groups.get(record.category) ?? [];
+  list.push(record);
+  groups.set(record.category, list);
+}
+---
+
+<Base title="Packages">
+  <h1>Tracked packages</h1>
+  <p class="lede">Grouped by category. Each package links to its evidence, version lines and upstream work.</p>
+  {[...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([category, list]) => (
+    <section>
+      <h2>{CATEGORY_LABELS[category] ?? category}</h2>
+      <div class="grid cols-3">
+        {list.map((record) => (
+          <div class="card">
+            <span class={`status status-${record.status}`}>{statusIcon(record.status)} {record.status}</span>
+            <h3><a href={`${base}/packages/${record.name.replace(/\//g, "__")}/`}>{record.name}</a></h3>
+            <p class="small muted">{formatDownloads(record.downloadsWeekly)} weekly downloads{record.solid2Version ? ` · first Solid 2: ${record.solid2Version}` : ""}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  ))}
+</Base>

@@ -1,0 +1,10 @@
+---
+import Base from "../layouts/Base.astro";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<Base title="Not found">
+  <h1>That page isn't on solid ground.</h1>
+  <p class="lede">The package may not be tracked yet, or the link may be old.</p>
+  <p><a class="btn primary" href={`${base}/packages/`}>Browse tracked packages</a></p>
+</Base>
