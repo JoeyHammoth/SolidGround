@@ -1,0 +1,29 @@
+# Local environment
+.env
+.env.*
+!.env.example
+.agents/
+.freebuff/
+.DS_Store
+
+# Internal working documents (never published)
+GITHUB_REPO_OPTIMIZATION_PLAYBOOK.md
+
+# Node
+node_modules/
+.pnpm-store/
+npm-debug.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+.astro/
+site/dist/
+coverage/
+*.tsbuildinfo
+
+# Ephemeral pipeline output
+.tmp/
+tmp/
+runs/
+*.log
