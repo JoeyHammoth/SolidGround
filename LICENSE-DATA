@@ -1,0 +1,28 @@
+# Data and documentation licence
+
+The **data** in this repository (the published JSON dataset, the files under
+`registry/` and `rules/`, and the generated badges) and the **documentation**
+(everything under `docs/`, the wiki text, and the prose of `README.md`) are
+licensed under the **Creative Commons Attribution 4.0 International licence
+(CC BY 4.0)**.
+
+You may share and adapt this material for any purpose, including commercially,
+provided you give appropriate credit to the Solid Ground project, link to the
+licence, and indicate whether changes were made.
+
+- Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+- Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+## Attribution example
+
+> Data from [Solid Ground](https://github.com/JoeyHammoth/SolidGround),
+> licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+> Retrieved 2026-11-25. Changes: filtered to the packages I depend on.
+
+## What is not covered
+
+Source code under `packages/`, `site/`, `tools/`, and the workflow definitions
+in `.github/` are licensed under the MIT licence in [`LICENSE`](LICENSE).
+
+The Code of Conduct text is adapted from the Contributor Covenant, which is
+licensed CC BY-SA 4.0; see [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
