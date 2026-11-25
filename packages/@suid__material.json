@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "name": "@suid/material",
+  "family": "suid",
+  "category": "ui-components",
+  "repository": "https://github.com/swordev/suid",
+  "lines": [
+    {
+      "version": "0.19.0",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.9.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": true,
+      "publishedAt": "2025-06-14T17:07:18.788Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.18.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.22",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2024-09-17T18:25:29.835Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.17.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.18",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2024-08-20T18:23:48.894Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.16.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.16",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2024-03-21T19:28:40.716Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.15.1",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-09-27T06:09:31.451Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.15.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-09-24T17:47:16.172Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.14.2",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-07-25T07:33:36.790Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.14.1",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-07-24T08:00:31.321Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.14.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-07-24T07:12:57.638Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.13.2",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.7.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-07-18T07:09:37.096Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:36:50.667Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 3887,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@suid/material",
+    "repository": "https://github.com/swordev/suid",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "blocked",
+  "confidence": [],
+  "verified": false,
+  "reasons": [
+    "The newest stable release 0.19.0 declares `^1.9.7` and does not admit Solid 2."
+  ],
+  "recommendedVersion": null,
+  "solid2Version": null,
+  "solid2Tag": null
+}

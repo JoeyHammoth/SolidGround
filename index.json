@@ -1,0 +1,180 @@
+[
+  {
+    "name": "@astrojs/solid-js",
+    "status": "blocked",
+    "confidence": [],
+    "verified": false,
+    "solid2Version": null,
+    "category": "meta-frameworks",
+    "family": null,
+    "downloadsWeekly": 392384,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@kobalte/core",
+    "status": "prerelease",
+    "confidence": [
+      "D"
+    ],
+    "verified": false,
+    "solid2Version": "2.0.0-alpha.5",
+    "category": "ui-components",
+    "family": null,
+    "downloadsWeekly": 6795719,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solid-primitives/event-listener",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "3.0.0",
+    "category": "primitives",
+    "family": "solid-primitives",
+    "downloadsWeekly": 9132069,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solid-primitives/storage",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "5.0.0",
+    "category": "primitives",
+    "family": "solid-primitives",
+    "downloadsWeekly": 6191405,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solid-primitives/utils",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "7.0.1",
+    "category": "primitives",
+    "family": "solid-primitives",
+    "downloadsWeekly": 9562348,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solidjs/meta",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "2.0.0",
+    "category": "other",
+    "family": null,
+    "downloadsWeekly": 853122,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solidjs/router",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "2.0.1",
+    "category": "routing",
+    "family": null,
+    "downloadsWeekly": 1003938,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solidjs/start",
+    "status": "blocked",
+    "confidence": [],
+    "verified": false,
+    "solid2Version": null,
+    "category": "meta-frameworks",
+    "family": null,
+    "downloadsWeekly": 246355,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solidjs/testing-library",
+    "status": "ready",
+    "confidence": [
+      "D"
+    ],
+    "verified": false,
+    "solid2Version": "0.8.10",
+    "category": "testing",
+    "family": null,
+    "downloadsWeekly": 655032,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@solidjs/vite-plugin",
+    "status": "ready",
+    "confidence": [
+      "D",
+      "S"
+    ],
+    "verified": false,
+    "solid2Version": "3.0.1",
+    "category": "build-tools",
+    "family": null,
+    "downloadsWeekly": 369995,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@suid/material",
+    "status": "blocked",
+    "confidence": [],
+    "verified": false,
+    "solid2Version": null,
+    "category": "ui-components",
+    "family": "suid",
+    "downloadsWeekly": 3887,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@tanstack/solid-query",
+    "status": "prerelease",
+    "confidence": [
+      "D"
+    ],
+    "verified": false,
+    "solid2Version": "6.0.0-rc.6",
+    "category": "data-fetching",
+    "family": "tanstack",
+    "downloadsWeekly": 648659,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "@tanstack/solid-virtual",
+    "status": "blocked",
+    "confidence": [],
+    "verified": false,
+    "solid2Version": null,
+    "category": "other",
+    "family": "tanstack",
+    "downloadsWeekly": 3395133,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  },
+  {
+    "name": "vite-plugin-solid",
+    "status": "blocked",
+    "confidence": [],
+    "verified": false,
+    "solid2Version": null,
+    "category": "build-tools",
+    "family": null,
+    "downloadsWeekly": 2021547,
+    "checkedAt": "2026-11-25T11:36:50.667Z"
+  }
+]

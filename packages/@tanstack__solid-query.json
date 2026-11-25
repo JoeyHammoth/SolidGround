@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "name": "@tanstack/solid-query",
+  "family": "tanstack",
+  "category": "data-fetching",
+  "repository": "https://github.com/TanStack/query",
+  "lines": [
+    {
+      "version": "6.0.0-rc.6",
+      "tag": "rc",
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-18T01:36:15.349Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.5",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.13 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-01T17:08:48.216Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.4",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.6 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-09-17T08:26:02.498Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.3",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.6 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-09-04T22:28:37.972Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.2",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.6 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-09-02T22:20:03.688Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.1",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.4 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-28T23:43:36.492Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-rc.0",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "rc",
+      "solidRange": ">=2.0.0-rc.0 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-12T23:30:13.535Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-beta.8",
+      "tag": "beta",
+      "stability": "prerelease",
+      "phase": "beta",
+      "solidRange": ">=2.0.0-beta.33 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-11T21:42:54.986Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-beta.7",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "beta",
+      "solidRange": ">=2.0.0-beta.0 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-01T15:57:59.941Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-beta.6",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "beta",
+      "solidRange": ">=2.0.0-beta.0 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-07-22T00:54:49.481Z",
+      "deprecated": false
+    },
+    {
+      "version": "6.0.0-alpha.2",
+      "tag": "alpha",
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": ">=2.0.0-beta.0 <3.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-03-23T13:00:22.178Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.108.4",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.0",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": false,
+      "publishedAt": "2026-11-23T13:18:38.473Z",
+      "deprecated": false
+    },
+    {
+      "version": "4.44.0",
+      "tag": "previous",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.5.7",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-04-01T04:11:51.180Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:36:50.667Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 648659,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@tanstack/solid-query",
+    "repository": "https://github.com/TanStack/query",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "prerelease",
+  "confidence": [
+    "D"
+  ],
+  "verified": false,
+  "reasons": [
+    "Only a prerelease line admits Solid 2: 6.0.0-rc.6 (dist-tag rc).",
+    "The newest stable release is 5.108.4 with `^1.6.0`, which does not admit Solid 2."
+  ],
+  "recommendedVersion": "6.0.0-rc.6",
+  "solid2Version": "6.0.0-rc.6",
+  "solid2Tag": "rc"
+}

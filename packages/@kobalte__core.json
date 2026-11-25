@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "name": "@kobalte/core",
+  "family": null,
+  "category": "ui-components",
+  "repository": "https://github.com/kobaltedev/kobalte",
+  "lines": [
+    {
+      "version": "2.0.0-alpha.5",
+      "tag": "alpha",
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-20T14:02:51.529Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-alpha.4",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "2.0.0-rc.16",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-10-20T22:59:45.417Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-alpha.3",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "2.0.0-rc.15",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-10-15T08:00:33.046Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-alpha.2",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "2.0.0-rc.3",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-09-07T09:49:48.811Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-alpha.1",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "2.0.0-rc.3",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-09-01T22:42:13.334Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-alpha.0",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "alpha",
+      "solidRange": "2.0.0-rc.0",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-08-13T12:06:00.475Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.13.14",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.9.8",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": false,
+      "publishedAt": "2026-09-07T11:48:33.650Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.13.13",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.9.8",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-08-10T01:26:50.047Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.13.12",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.15",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-06-30T23:43:36.528Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.13.11",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.15",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2025-07-26T23:33:37.916Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:36:50.667Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 6795719,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@kobalte/core",
+    "repository": "https://github.com/kobaltedev/kobalte",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "prerelease",
+  "confidence": [
+    "D"
+  ],
+  "verified": false,
+  "reasons": [
+    "Only a prerelease line admits Solid 2: 2.0.0-alpha.5 (dist-tag alpha).",
+    "The newest stable release is 0.13.14 with `^1.9.8`, which does not admit Solid 2."
+  ],
+  "recommendedVersion": "2.0.0-alpha.5",
+  "solid2Version": "2.0.0-alpha.5",
+  "solid2Tag": "alpha"
+}
