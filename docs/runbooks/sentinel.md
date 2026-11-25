@@ -14,8 +14,10 @@ stored observation:
 | Latest `solidjs/solid` GitHub release | GitHub releases API | `release` |
 | Migration guide text | `migrationSource` (page source in `solidjs/solid-docs`), falling back to `migration` | `docsHash` (SHA-256 of normalised text) |
 
-Comparison is always against the stored `solid.json`, never "since the last
-run", so a skipped, cancelled or failed run cannot lose a change.
+Comparison is always against the stored state, never "since the last run", so a
+skipped, cancelled or failed run cannot lose a change. The state is read through
+the GitHub contents API rather than `raw.githubusercontent.com`, because raw is
+CDN-cached and a recently written baseline can read back stale.
 
 ## Where state lives
 
