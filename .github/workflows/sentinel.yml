@@ -35,10 +35,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read stored state from the data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/.sentinel/state.json" \
-            -o "$RUNNER_TEMP/solid.json" \
-            || echo "::notice::No state on the data branch yet; every dist-tag counts as new."
+          # The contents API, not raw.githubusercontent.com: raw is CDN-cached, so
+          # a baseline written minutes earlier can read back stale and hide a change.
+          if gh api "repos/${GITHUB_REPOSITORY}/contents/.sentinel/state.json?ref=data" --jq .content \
+              | base64 -d > "$RUNNER_TEMP/solid.json"; then
+            echo "read $(wc -c < "$RUNNER_TEMP/solid.json") bytes of stored state"
+          else
+            echo "::notice::No state on the data branch yet; every dist-tag counts as new."
+          fi
       - id: check
         env:
           GITHUB_TOKEN: ${{ github.token }}
