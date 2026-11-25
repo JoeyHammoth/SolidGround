@@ -36,7 +36,7 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Read stored state from the data branch
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/solid.json" \
+          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/data/.sentinel/state.json" \
             -o "$RUNNER_TEMP/solid.json" \
             || echo "::notice::No state on the data branch yet; every dist-tag counts as new."
       - id: check
@@ -89,9 +89,10 @@ jobs:
       - name: Commit the observation to the data branch
         working-directory: state
         run: |
-          cp ../observed.json solid.json
+          mkdir -p .sentinel
+          cp ../observed.json .sentinel/state.json
           git config user.name "solid-ground-sentinel"
           git config user.email "sentinel@users.noreply.github.com"
-          git add solid.json
+          git add .sentinel/state.json
           git commit -m "chore(sentinel): record observation"
           git push

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   bodyText,
@@ -73,6 +74,33 @@ describe("sentinel observation", () => {
     const watch = await loadWatchList("rules");
     expect(watch.packages).toContain("solid-js");
     expect(watch.docs.migration).toContain("docs.solidjs.com");
+  });
+
+  it("prefers the page source when the rendered docs page refuses CI", async () => {
+    const source = "---\ntitle: From Solid 1.x\n---\nUse @solidjs/web.\n";
+    const fetchImpl = (async (input: string | URL | Request) => {
+      const url = String(input);
+      if (new URL(url).hostname === "registry.npmjs.org") {
+        return new Response(JSON.stringify({ "dist-tags": { latest: "2.0.4" }, versions: { "2.0.4": {} } }), { status: 200 });
+      }
+      if (new URL(url).hostname === "raw.githubusercontent.com") return new Response(source, { status: 200 });
+      return new Response("blocked", { status: 403 });
+    }) as typeof fetch;
+
+    const observed = await fetchObservation(
+      {
+        packages: ["solid-js"],
+        docs: {
+          migration: "https://docs.solidjs.com/migration/from-solid-1",
+          migrationSource: "https://raw.githubusercontent.com/solidjs/solid-docs/v2-rebuild/src/routes/(6)migration/(0)from-solid-1.mdx",
+        },
+      },
+      null,
+      { fetchImpl },
+    );
+
+    const expected = createHash("sha256").update(source.replace(/\s+/g, " ").trim()).digest("hex");
+    expect(observed.docsHash).toBe(expected);
   });
 
   it("authenticates release lookups when a token is available", async () => {

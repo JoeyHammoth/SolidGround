@@ -11,4 +11,7 @@ packages:
 
 docs:
   migration: https://docs.solidjs.com/migration/from-solid-1
+  # The rendered page refuses CI egress with a 403, so the sentinel hashes the
+  # page source instead. Keep the rendered URL: it is what readers are sent to.
+  migrationSource: https://raw.githubusercontent.com/solidjs/solid-docs/v2-rebuild/src/routes/(6)migration/(0)from-solid-1.mdx
   aiTools: https://docs.solidjs.com/guides/ai-tools
