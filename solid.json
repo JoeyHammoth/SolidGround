@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-25T10:35:54.490Z",
+  "stable2": "2.0.4",
+  "next": "2.0.0-rc.23",
+  "distTags": {
+    "solid-js@beta": "1.10.0-beta.0",
+    "solid-js@next": "2.0.0-rc.23",
+    "solid-js@latest": "2.0.4",
+    "solid-js@v1-latest": "1.9.20",
+    "@solidjs/web@next": "2.0.0-rc.23",
+    "@solidjs/web@latest": "2.0.4",
+    "@solidjs/signals@next": "2.0.0-rc.23",
+    "@solidjs/signals@latest": "2.0.4",
+    "@solidjs/vite-plugin@next": "3.0.0-next.35",
+    "@solidjs/vite-plugin@latest": "3.0.1",
+    "babel-preset-solid@beta": "1.10.0-beta.0",
+    "babel-preset-solid@next": "2.0.0-rc.2",
+    "babel-preset-solid@latest": "1.9.19"
+  },
+  "release": "@solidjs/signals@2.0.4",
+  "docsHash": "ba154ed0d66ccad23f15bdde086424fd3ca3522834162f0aeb72a3c6a66b25fb",
+  "surfaceHash": null
+}
