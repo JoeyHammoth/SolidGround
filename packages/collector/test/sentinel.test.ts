@@ -83,7 +83,7 @@ describe("sentinel observation", () => {
       if (new URL(url).hostname === "registry.npmjs.org") {
         return new Response(JSON.stringify({ "dist-tags": { latest: "2.0.4" }, versions: { "2.0.4": {} } }), { status: 200 });
       }
-      if (url.includes("raw.githubusercontent.com")) return new Response(source, { status: 200 });
+      if (new URL(url).hostname === "raw.githubusercontent.com") return new Response(source, { status: 200 });
       return new Response("blocked", { status: 403 });
     }) as typeof fetch;
 
