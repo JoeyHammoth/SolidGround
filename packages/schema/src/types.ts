@@ -176,3 +176,14 @@ export interface SolidFile extends SolidState {
   surfaceHash: string | null;
   docsHash: string | null;
 }
+
+/** One status-change event, derived by diffing two package records. */
+export interface ChangeEvent {
+  schemaVersion: 1;
+  name: string;
+  /** `next.checkedAt` — never a clock read. */
+  at: string;
+  kind: "new" | "status" | "version";
+  from: string | null;
+  to: string;
+}
