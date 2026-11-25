@@ -1,0 +1,73 @@
+name: Collect
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily, after the sentinel has had all day to notice a release.
+    - cron: "17 3 * * *"
+
+permissions: {}
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    name: collect
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Collect live evidence and scan published code
+        run: pnpm run dataset -- --out data --scan
+      - name: Validate the dataset against the schemas
+        run: pnpm run validate data
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dataset
+          path: data
+          retention-days: 7
+
+  publish:
+    name: publish
+    needs: collect
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: data
+          path: publish
+      - uses: actions/download-artifact@v4
+        with:
+          name: dataset
+          path: dataset
+      - name: Commit the dataset to the data branch
+        working-directory: publish
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .sentinel -exec rm -rf {} +
+          cp -R ../dataset/. .
+          git config user.name "solid-ground-collector"
+          git config user.email "collector@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::Dataset unchanged; nothing to publish."
+            exit 0
+          fi
+          git commit -m "chore(data): collect $(date -u +%FT%TZ)"
+          git push
