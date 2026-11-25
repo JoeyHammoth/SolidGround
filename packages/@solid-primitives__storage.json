@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "name": "@solid-primitives/storage",
+  "family": "solid-primitives",
+  "category": "primitives",
+  "repository": "https://github.com/solidjs-community/solid-primitives",
+  "lines": [
+    {
+      "version": "5.0.0",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": true,
+      "publishedAt": "2026-11-17T17:14:48.030Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.8",
+      "tag": "next",
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "2.0.0-rc.21",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-11-11T17:17:52.912Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.7",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.14",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-15T00:53:00.889Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.6",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.14",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-14T03:24:58.183Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.4",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-12T22:58:49.445Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.3",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-beta.20",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-07-22T01:42:52.233Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.1",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-beta.20",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-07-18T15:41:51.634Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0-next.0",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-beta.15",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-06-26T03:59:36.705Z",
+      "deprecated": false
+    },
+    {
+      "version": "4.4.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-07-11T01:23:04.676Z",
+      "deprecated": false
+    },
+    {
+      "version": "4.3.5",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-07-04T20:38:43.631Z",
+      "deprecated": false
+    },
+    {
+      "version": "3.8.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2024-07-14T16:52:04.599Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.1.4",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2024-03-05T20:04:28.631Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.3.11",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.6.12",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-05-19T07:14:35.241Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.3.7-beta.0",
+      "tag": "beta",
+      "stability": "prerelease",
+      "phase": "beta",
+      "solidRange": "^1.6.0",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-03-03T08:49:21.800Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.0.106",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.1.5",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2021-09-29T19:11:57.658Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:31:23.825Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 6191405,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@solid-primitives/storage",
+    "repository": "https://github.com/solidjs-community/solid-primitives",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "ready",
+  "confidence": [
+    "D",
+    "S"
+  ],
+  "verified": false,
+  "reasons": [
+    "Stable release 5.0.0 admits Solid 2 (`^2.0.0`).",
+    "Static scan of the published code found no removed Solid 1 APIs."
+  ],
+  "recommendedVersion": "5.0.0",
+  "solid2Version": "5.0.0",
+  "solid2Tag": "latest"
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-25T11:31:23.825Z",
+  "lastSuccessfulCollect": "2026-11-25T11:31:23.825Z",
+  "lastSuccessfulVerify": null,
+  "solid": {
+    "stable2": "2.0.4",
+    "next": "2.0.0-rc.23",
+    "observedAt": "2026-11-25T11:31:23.824Z"
+  },
+  "counts": {
+    "ready": 7,
+    "prerelease": 2,
+    "in-progress": 0,
+    "blocked": 5,
+    "unmaintained": 0,
+    "agnostic": 0,
+    "unknown": 0,
+    "total": 14
+  },
+  "versions": {
+    "rules": "2026.11.1",
+    "tool": "0.1.0",
+    "schema": 1
+  },
+  "coverage": {
+    "tracked": 14,
+    "curated": 14,
+    "candidates": 0
+  },
+  "anomaly": {
+    "held": false,
+    "reasons": []
+  }
+}

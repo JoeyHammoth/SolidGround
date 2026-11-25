@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "name": "@solidjs/router",
+  "family": null,
+  "category": "routing",
+  "repository": "https://github.com/solidjs/solid-router",
+  "lines": [
+    {
+      "version": "2.0.1",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": true,
+      "publishedAt": "2026-11-20T03:04:37.403Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-17T07:10:35.186Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.44",
+      "tag": "next",
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-11-04T06:11:06.246Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.43",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.19",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-28T05:43:13.921Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.42",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.17",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-22T08:54:23.312Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.41",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.15",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-20T18:00:57.390Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.40",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.15",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-14T20:24:11.570Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.39",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.15",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-13T21:44:52.151Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.38",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.14",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-08T22:36:08.952Z",
+      "deprecated": false
+    },
+    {
+      "version": "2.0.0-next.37",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.14",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-10-08T06:37:19.568Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.0.3",
+      "tag": "v1-latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.6",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-11-11T00:10:22.998Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.16.3",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.6",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-07-27T16:44:00.498Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.10.0-beta.9",
+      "tag": "beta",
+      "stability": "prerelease",
+      "phase": "beta",
+      "solidRange": "^1.8.6",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2023-12-06T20:21:26.352Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:31:23.825Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 1003938,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@solidjs/router",
+    "repository": "https://github.com/solidjs/solid-router",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "ready",
+  "confidence": [
+    "D",
+    "S"
+  ],
+  "verified": false,
+  "reasons": [
+    "Stable release 2.0.1 admits Solid 2 (`^2.0.0`).",
+    "Static scan of the published code found no removed Solid 1 APIs."
+  ],
+  "recommendedVersion": "2.0.1",
+  "solid2Version": "2.0.1",
+  "solid2Tag": "latest"
+}

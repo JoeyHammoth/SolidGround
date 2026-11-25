@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "name": "@solidjs/meta",
+  "family": null,
+  "category": "other",
+  "repository": "https://github.com/solidjs/solid-meta",
+  "lines": [
+    {
+      "version": "2.0.0",
+      "tag": "latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": true,
+      "publishedAt": "2026-11-17T08:21:40.155Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.0.0-next.2",
+      "tag": "next",
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": "^2.0.0-rc.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-13T04:23:51.608Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.0.0-next.1",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": ">=2.0.0-beta.30 <2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-07T20:24:30.275Z",
+      "deprecated": false
+    },
+    {
+      "version": "1.0.0-next.0",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": ">=2.0.0-beta.30 <2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-08-05T08:37:53.374Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.30.0-next.0",
+      "tag": null,
+      "stability": "prerelease",
+      "phase": "next",
+      "solidRange": ">=2.0.0-beta.0 <2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2026-03-17T19:41:58.977Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.29.8",
+      "tag": "v1-latest",
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^1.8.4",
+      "parsed": true,
+      "admitsSolid2": false,
+      "clean": null,
+      "publishedAt": "2026-11-02T23:38:27.431Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.29.4",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": ">=1.8.4",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2024-05-15T15:14:56.977Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.29.3",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": ">=1.8.4",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2023-12-13T16:41:02.959Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.29.1",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": ">=1.8.4",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2023-10-27T15:59:08.248Z",
+      "deprecated": false
+    },
+    {
+      "version": "0.29.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": ">=1.8.4",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
+      "publishedAt": "2023-10-26T22:28:04.156Z",
+      "deprecated": false
+    }
+  ],
+  "upstream": {
+    "hasSolid2Work": false,
+    "isArchived": false,
+    "links": []
+  },
+  "attestations": [],
+  "smoke": {
+    "import": null,
+    "build": null,
+    "types": null
+  },
+  "shipsTypes": true,
+  "checkedAt": "2026-11-25T11:31:23.825Z",
+  "tested": {
+    "solid": "2.0.4",
+    "solidNext": "2.0.0-rc.23",
+    "rules": "2026.11.1",
+    "tool": "0.1.0"
+  },
+  "downloadsWeekly": 853122,
+  "links": {
+    "npm": "https://www.npmjs.com/package/@solidjs/meta",
+    "repository": "https://github.com/solidjs/solid-meta",
+    "migration": "https://docs.solidjs.com/migration/from-solid-1"
+  },
+  "status": "ready",
+  "confidence": [
+    "D",
+    "S"
+  ],
+  "verified": false,
+  "reasons": [
+    "Stable release 2.0.0 admits Solid 2 (`^2.0.0`).",
+    "Static scan of the published code found no removed Solid 1 APIs."
+  ],
+  "recommendedVersion": "2.0.0",
+  "solid2Version": "2.0.0",
+  "solid2Tag": "latest"
+}
