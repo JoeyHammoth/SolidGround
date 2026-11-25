@@ -44,6 +44,8 @@ export interface BuildOptions {
   entries: RegistryEntry[];
   policy: Policy;
   solid: SolidState;
+  /** Optional static scan. Missing versions keep `clean: null`. */
+  scan?: (name: string, versions: string[]) => Promise<Record<string, boolean>>;
   fetchImpl?: typeof fetch;
   cache?: PackumentCache;
   now?: Date;
@@ -81,6 +83,7 @@ export async function collectPackage(
     fetchImpl?: typeof fetch;
     now: Date;
     includeDownloads?: boolean;
+    scan?: (name: string, versions: string[]) => Promise<Record<string, boolean>>;
   },
 ): Promise<PackageRecord> {
   const fetchOptions = options.fetchImpl ? { fetchImpl: options.fetchImpl } : {};
@@ -89,9 +92,26 @@ export async function collectPackage(
     ? await fetchWeeklyDownloads(entry.name, fetchOptions)
     : null;
   const evidence = toEvidence(entry, packument, downloads);
+  if (options.scan) {
+    const stable = evidence.lines.filter((line) => line.stability === "stable");
+    const targets = (stable.length > 0 ? stable : evidence.lines).slice(0, 1).map((line) => line.version);
+    const results = await options.scan(evidence.name, targets);
+    evidence.lines = applyScan(evidence.lines, results);
+  }
   const verdict = evaluate(evidence, options.solid, options.policy, options.now);
   const checkedAt = options.now.toISOString();
   return toRecord(evidence, verdict, options.solid, options.policy, checkedAt, TOOL_VERSION);
+}
+
+export function applyScan(
+  lines: PackageRecord["lines"],
+  results: Record<string, boolean>,
+): PackageRecord["lines"] {
+  return lines.map((line) =>
+    Object.hasOwn(results, line.version)
+      ? { ...line, clean: results[line.version] ?? line.clean }
+      : line,
+  );
 }
 
 export function buildIndex(records: PackageRecord[]): IndexRow[] {
@@ -142,6 +162,7 @@ export async function buildDataset(options: BuildOptions): Promise<Dataset> {
         solid: options.solid,
         now,
         includeDownloads: options.includeDownloads ?? true,
+        ...(options.scan ? { scan: options.scan } : {}),
         ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
       });
     } catch (error) {

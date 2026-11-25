@@ -95,10 +95,15 @@ The scan parses files; it never executes them. It resolves entry points from
 | `type-ownership` | `JSX` or `ComponentProps` is imported from `solid-js` rather than `@solidjs/web`. |
 | `jsx-removed-syntax` | Shipped JSX uses `classList`, `use:`, `on:`, `attr:` or `bool:` (a Solid 2 compile error). |
 
-Detection is **dynamic**: the export surface is derived by installing Solid 1.x
-and 2.x and reading their entry points, so a new Solid release updates the rule
-set without a hand-maintained list. Replacement hints in
-[`rules/removed-apis.yml`](../rules/removed-apis.yml) are human-curated.
+Detection is **dynamic**: the export surface is extracted from the published
+tarballs of `solid-js`, `@solidjs/web` and `@solidjs/signals`, by parsing their
+root entry points — nothing is installed and no package code runs. The result
+is committed to [`rules/solid2-surface.json`](../rules/solid2-surface.json) with
+the versions it was built from, so a new Solid release updates the rule set
+without a hand-maintained list and every finding is attributable to a surface
+version. Regenerate it with `pnpm --filter @solid-ground/scanner surface`.
+Replacement hints in [`rules/removed-apis.yml`](../rules/removed-apis.yml) are
+human-curated.
 
 ### Known limits
 

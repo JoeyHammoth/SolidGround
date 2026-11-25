@@ -23,6 +23,7 @@
     "site:build": "pnpm --filter @solid-ground/site build",
     "check:app": "tsx packages/cli/src/index.ts check",
     "sentinel": "tsx packages/collector/src/sentinel.ts",
+    "scan": "tsx packages/scanner/src/cli.ts",
     "ci": "pnpm run lint && pnpm run test && pnpm run validate registry fixtures && pnpm run site:build"
   },
   "devDependencies": {

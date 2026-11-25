@@ -1,0 +1,21 @@
+{
+  "name": "@solid-ground/scanner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static scan of published Solid packages. Parses code, never executes it.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "surface": "tsx src/build-surface.ts",
+    "scan": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@solid-ground/schema": "workspace:*",
+    "es-module-lexer": "^1.5.4",
+    "tar": "^7.4.3",
+    "yaml": "^2.6.1"
+  }
+}
