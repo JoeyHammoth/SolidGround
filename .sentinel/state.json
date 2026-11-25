@@ -19,6 +19,6 @@
     "babel-preset-solid@latest": "1.9.19"
   },
   "release": "@solidjs/signals@2.0.4",
-  "docsHash": "2c4da33eced597ec5b09b21023a55f7a75ecb8c3b3942c56757e62438617419c",
+  "docsHash": "0000000000000000000000000000000000000000000000000000000000000000",
   "surfaceHash": null
 }
