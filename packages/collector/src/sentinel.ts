@@ -106,13 +106,22 @@ export function detectChanges(stored: SentinelState | null, observed: SentinelSt
   return reasons;
 }
 
-async function getJson(url: string, fetchImpl: typeof fetch): Promise<unknown> {
+async function getJson(
+  url: string,
+  fetchImpl: typeof fetch,
+  headers: Record<string, string> = {},
+): Promise<unknown> {
   const response = await fetchImpl(url, {
-    headers: { "user-agent": SENTINEL_UA, accept: "application/json" },
+    headers: { "user-agent": SENTINEL_UA, accept: "application/json", ...headers },
     signal: AbortSignal.timeout(20_000),
   });
   if (!response.ok) throw new Error(`${url} returned ${response.status}`);
   return response.json();
+}
+
+/** GitHub renders these as run annotations, so a degraded signal is visible. */
+function warn(message: string): void {
+  console.warn(`::warning::${message}`);
 }
 
 /**
@@ -123,7 +132,7 @@ async function getJson(url: string, fetchImpl: typeof fetch): Promise<unknown> {
 export async function fetchObservation(
   watch: WatchList,
   previous: SentinelState | null,
-  options: { fetchImpl?: typeof fetch; now?: Date } = {},
+  options: { fetchImpl?: typeof fetch; now?: Date; githubToken?: string | null } = {},
 ): Promise<SentinelState> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const observedAt = (options.now ?? new Date()).toISOString();
@@ -139,10 +148,15 @@ export async function fetchObservation(
 
   let release = previous?.release ?? null;
   try {
-    const body = (await getJson(RELEASE_URL, fetchImpl)) as { tag_name?: unknown };
+    const token = options.githubToken;
+    const body = (await getJson(
+      RELEASE_URL,
+      fetchImpl,
+      token ? { authorization: `Bearer ${token}` } : {},
+    )) as { tag_name?: unknown };
     if (typeof body.tag_name === "string") release = body.tag_name;
   } catch (error) {
-    console.warn(`release lookup failed, keeping ${release ?? "none"}: ${(error as Error).message}`);
+    warn(`release lookup failed, keeping ${release ?? "none"}: ${(error as Error).message}`);
   }
 
   let docsHash = previous?.docsHash ?? null;
@@ -154,9 +168,9 @@ export async function fetchObservation(
         signal: AbortSignal.timeout(20_000),
       });
       if (response.ok) docsHash = hashText(bodyText(await response.text()));
-      else console.warn(`migration page returned ${response.status}, keeping ${short(docsHash)}`);
+      else warn(`migration page returned ${response.status}, keeping ${short(docsHash)}`);
     } catch (error) {
-      console.warn(`migration page failed, keeping ${short(docsHash)}: ${(error as Error).message}`);
+      warn(`migration page failed, keeping ${short(docsHash)}: ${(error as Error).message}`);
     }
   }
 
@@ -196,7 +210,9 @@ async function main(): Promise<void> {
 
   const watch = await loadWatchList(rulesDir);
   const stored = await readState(statePath);
-  const observed = await fetchObservation(watch, stored);
+  const observed = await fetchObservation(watch, stored, {
+    githubToken: process.env.GITHUB_TOKEN ?? null,
+  });
   const reasons = detectChanges(stored, observed);
 
   if (reasons.length === 0) {

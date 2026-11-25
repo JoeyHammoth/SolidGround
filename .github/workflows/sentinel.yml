@@ -40,6 +40,8 @@ jobs:
             -o "$RUNNER_TEMP/solid.json" \
             || echo "::notice::No state on the data branch yet; every dist-tag counts as new."
       - id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           pnpm run sentinel -- \
             --state "$RUNNER_TEMP/solid.json" \

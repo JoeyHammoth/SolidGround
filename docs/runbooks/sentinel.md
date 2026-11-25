@@ -40,8 +40,12 @@ runs after a change, can write, and it writes to that branch alone. This keeps
   workflows after 60 days of repository inactivity — see #11) and that
   `rules/solid-packages.yml` still lists the packages you expect.
 - **Release or docs lookups warn.** The run keeps the previous value rather than
-  reporting a false change; a persistent warning means rate limiting or a moved
-  URL. Update `rules/solid-packages.yml` if the docs path changed.
+  reporting a false change. Release lookups are authenticated with
+  `GITHUB_TOKEN`; a 403 there means the token was not passed to the step. A
+  persistent `migration page returned 403` means the docs host is refusing
+  runner traffic — dist-tags and releases still work, so the run stays useful,
+  but the docs signal is degraded until the fetch succeeds again. Update
+  `rules/solid-packages.yml` if the docs path moved.
 - **`data` branch is missing.** Recreate it from `main`; the next changed run
   seeds it. Until then every run dispatches, which is noisy but harmless.
 
