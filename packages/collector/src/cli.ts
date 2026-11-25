@@ -1,6 +1,7 @@
 import path from "node:path";
 import { buildDataset, detectSolidState, loadPolicy, loadRegistry, writeDataset } from "./index.js";
 import { fetchPackument } from "./npm.js";
+import { createScanner } from "./scan.js";
 
 function arg(name: string, fallback: string): string {
   const index = process.argv.indexOf(`--${name}`);
@@ -12,6 +13,7 @@ const registryDir = path.resolve(arg("registry", "registry"));
 const rulesDir = path.resolve(arg("rules", "rules"));
 const outDir = path.resolve(arg("out", "data"));
 const noDownloads = process.argv.includes("--no-downloads");
+const withScan = process.argv.includes("--scan");
 
 const [entries, policy] = await Promise.all([loadRegistry(registryDir), loadPolicy(rulesDir)]);
 console.log(`collecting ${entries.length} tracked packages into ${outDir}`);
@@ -26,6 +28,7 @@ const dataset = await buildDataset({
   policy,
   solid: { stable2: solid.stable2, next: solid.next, observedAt },
   includeDownloads: !noDownloads,
+  ...(withScan ? { scan: createScanner() } : {}),
   onProgress: (message) => console.log(`  ${message}`),
 });
 

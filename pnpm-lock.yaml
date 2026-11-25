@@ -56,6 +56,9 @@ importers:
       '@solid-ground/engine':
         specifier: workspace:*
         version: link:../engine
+      '@solid-ground/scanner':
+        specifier: workspace:*
+        version: link:../scanner
       '@solid-ground/schema':
         specifier: workspace:*
         version: link:../schema
@@ -74,6 +77,21 @@ importers:
       semver:
         specifier: ^7.6.3
         version: 7.8.6
+
+  packages/scanner:
+    dependencies:
+      '@solid-ground/schema':
+        specifier: workspace:*
+        version: link:../schema
+      es-module-lexer:
+        specifier: ^1.5.4
+        version: 1.7.0
+      tar:
+        specifier: ^7.4.3
+        version: 7.5.23
+      yaml:
+        specifier: ^2.6.1
+        version: 2.9.1
 
   packages/schema: {}
 
