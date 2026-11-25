@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "observedAt": "2026-11-25T11:12:57.387Z",
+  "observedAt": "2026-11-25T11:36:34.689Z",
   "stable2": "2.0.4",
   "next": "2.0.0-rc.23",
   "distTags": {
@@ -19,6 +19,6 @@
     "babel-preset-solid@latest": "1.9.19"
   },
   "release": "@solidjs/signals@2.0.4",
-  "docsHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "docsHash": "2c4da33eced597ec5b09b21023a55f7a75ecb8c3b3942c56757e62438617419c",
   "surfaceHash": null
 }
