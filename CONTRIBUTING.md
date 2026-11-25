@@ -68,6 +68,23 @@ Commits use [Conventional Commits](https://www.conventionalcommits.org/)
 (`feat:`, `fix:`, `docs:`, `chore:`). We use the **Developer Certificate of
 Origin** rather than a CLA: sign off your commits with `git commit -s`.
 
+## Claiming an issue
+
+Small tasks carry the [`good first issue`](https://github.com/JoeyHammoth/SolidGround/labels/good%20first%20issue)
+label and are deliberately left unassigned so anyone can take one.
+
+1. Comment on the issue saying you intend to work on it, and roughly when.
+2. A maintainer assigns it to you, normally within two business days. Start
+   reading the code once you have commented; do not wait for the assignment.
+3. Open a pull request within seven days. If you need longer, say so in the
+   issue and it stays yours.
+4. With no pull request or update after seven days, we unassign the issue and
+   return it to the pool, so the next person is not blocked.
+
+Ask your questions in the issue before writing code — a five-minute answer is
+cheaper than a rewrite. If you decide not to continue, say so and we will
+release the issue.
+
 ## Changing the methodology
 
 Statuses alter what maintainers and users see, so changes to
