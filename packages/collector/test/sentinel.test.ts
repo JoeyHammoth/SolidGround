@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  bodyText,
   detectChanges,
   fetchObservation,
   flattenDistTags,
   loadWatchList,
-  normalizeHtml,
   type SentinelState,
 } from "../src/sentinel.js";
 
@@ -61,10 +61,10 @@ describe("sentinel change detection", () => {
     ).toEqual({ "solid-js@latest": "2.0.4" });
   });
 
-  it("normalises markup so a docs redeploy alone is not a change", () => {
-    expect(normalizeHtml("<main><h1>Migrate</h1> <script>x()</script> to 2.0</main>")).toBe(
-      "Migrate to 2.0",
-    );
+  it("ignores the document head so asset hashes alone are not a change", () => {
+    expect(
+      bodyText("<head><script src=\"/app.9f2c.js\"></script></head><body><h1>Migrate</h1></body>"),
+    ).toBe("<body><h1>Migrate</h1></body>");
   });
 });
 
@@ -77,8 +77,8 @@ describe("sentinel observation", () => {
 
   it("keeps the previous release and docs hash when a source fails", async () => {
     const fetchImpl = (async (input: string | URL | Request) => {
-      const url = String(input);
-      if (url.includes("registry.npmjs.org")) {
+      const host = new URL(String(input)).hostname;
+      if (host === "registry.npmjs.org") {
         return new Response(JSON.stringify({ "dist-tags": { latest: "2.0.4", next: "2.0.0-rc.23" }, versions: { "2.0.4": {}, "2.0.0-rc.23": {} } }), { status: 200 });
       }
       return new Response("denied", { status: 403 });

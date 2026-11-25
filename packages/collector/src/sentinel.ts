@@ -65,14 +65,14 @@ export function flattenDistTags(
   return out;
 }
 
-/** Strip markup, scripts and whitespace so a docs redeploy alone is not a change. */
-export function normalizeHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+/**
+ * Keep only the document body and collapse whitespace, so a rebuild that only
+ * changes asset hashes in the head does not look like an edited page.
+ */
+export function bodyText(html: string): string {
+  const start = html.indexOf("<body");
+  const body = start >= 0 ? html.slice(start) : html;
+  return body.replace(/\s+/g, " ").trim();
 }
 
 function hashText(text: string): string {
@@ -153,7 +153,7 @@ export async function fetchObservation(
         headers: { "user-agent": SENTINEL_UA },
         signal: AbortSignal.timeout(20_000),
       });
-      if (response.ok) docsHash = hashText(normalizeHtml(await response.text()));
+      if (response.ok) docsHash = hashText(bodyText(await response.text()));
       else console.warn(`migration page returned ${response.status}, keeping ${short(docsHash)}`);
     } catch (error) {
       console.warn(`migration page failed, keeping ${short(docsHash)}: ${(error as Error).message}`);
