@@ -75,6 +75,26 @@ describe("sentinel observation", () => {
     expect(watch.docs.migration).toContain("docs.solidjs.com");
   });
 
+  it("authenticates release lookups when a token is available", async () => {
+    let authorization: string | undefined;
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      if (new URL(String(input)).hostname === "registry.npmjs.org") {
+        return new Response(JSON.stringify({ "dist-tags": { latest: "2.0.4" }, versions: { "2.0.4": {} } }), { status: 200 });
+      }
+      authorization = (init?.headers as Record<string, string> | undefined)?.authorization;
+      return new Response(JSON.stringify({ tag_name: "v2.0.4" }), { status: 200 });
+    }) as typeof fetch;
+
+    const observed = await fetchObservation(
+      { packages: ["solid-js"], docs: {} },
+      stored,
+      { fetchImpl, githubToken: "t0ken" },
+    );
+
+    expect(authorization).toBe("Bearer t0ken");
+    expect(observed.release).toBe("v2.0.4");
+  });
+
   it("keeps the previous release and docs hash when a source fails", async () => {
     const fetchImpl = (async (input: string | URL | Request) => {
       const host = new URL(String(input)).hostname;
