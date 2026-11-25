@@ -183,7 +183,7 @@ describe("scanPackage", () => {
 
     const fetchImpl = (async (input: string | URL | Request) => {
       const url = String(input);
-      if (url.includes("registry.npmjs.org")) {
+      if (new URL(url).hostname === "registry.npmjs.org") {
         return new Response(
           JSON.stringify({
             dist: { tarball: "https://example.test/lib.tgz", integrity: `sha512-${digest}` },
@@ -220,7 +220,7 @@ describe("scanPackage", () => {
     const buffer = await tarball({ "package/package.json": JSON.stringify({ name: "x", main: "./index.js" }) });
     const fetchImpl = (async (input: string | URL | Request) => {
       const url = String(input);
-      if (url.includes("registry.npmjs.org")) {
+      if (new URL(url).hostname === "registry.npmjs.org") {
         return new Response(
           JSON.stringify({ dist: { tarball: "https://example.test/x.tgz", integrity: `sha512-${"A".repeat(64)}` } }),
           { status: 200 },
