@@ -174,7 +174,7 @@
     "types": null
   },
   "shipsTypes": true,
-  "checkedAt": "2026-11-25T11:36:50.667Z",
+  "checkedAt": "2026-11-26T10:04:44.845Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",

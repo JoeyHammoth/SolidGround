@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-25T11:36:50.667Z",
-  "lastSuccessfulCollect": "2026-11-25T11:36:50.667Z",
+  "generatedAt": "2026-11-26T10:04:44.845Z",
+  "lastSuccessfulCollect": "2026-11-26T10:04:44.845Z",
   "lastSuccessfulVerify": null,
   "solid": {
     "stable2": "2.0.4",
     "next": "2.0.0-rc.23",
-    "observedAt": "2026-11-25T11:36:50.666Z"
+    "observedAt": "2026-11-26T10:04:44.844Z"
   },
   "counts": {
     "ready": 7,
