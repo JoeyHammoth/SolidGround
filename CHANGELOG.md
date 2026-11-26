@@ -8,6 +8,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Change events: `diffRecords` emits one event per new package, status change,
+  Solid 2 version change or expired override, and collect appends them to
+  `events.ndjson` on the `data` branch by diffing the edition already published
+  there. Events older than twelve months are compacted into monthly summaries.
+- `/changes/` lists every event newest first with filters by transition and
+  category, `/feed.xml` is an Atom feed of the same events, and
+  `/api/v1/events.json` exposes them as JSON.
 - Freshness watchdog: an hourly check of `meta.json` that opens, updates and
   closes a `pipeline-stale` issue, with a recovery runbook.
 - Scanner accuracy harness: 25 pinned packages compared against an independent
@@ -33,7 +40,7 @@ All notable changes to this project are documented here. The format follows
 
 - Static scanner against the real Solid 2 export surface (`removed-subpath`,
   `missing-export`, `type-ownership`, `jsx-removed-syntax`).
-- Hourly Solid sentinel, rules-drift review and Atom feed.
+- Hourly Solid sentinel and rules-drift review.
 - Sandboxed import/build/types verification matrix and a `next` canary channel.
 
 ## [0.1.0] - 2026-11-25

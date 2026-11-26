@@ -1,5 +1,10 @@
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { applyScan } from "../src/index.js";
+import type { DatasetMeta, PackageRecord } from "@solid-ground/schema";
+import { applyScan, writeDataset, type Dataset } from "../src/index.js";
+import { fileSlug } from "../src/npm.js";
 import {
   detectSolidState,
   highestStable2,
@@ -94,6 +99,61 @@ describe("static scan enrichment", () => {
   it("leaves every line untouched when nothing was scanned", () => {
     const lines = [{ version: "2.0.4", clean: false }] as unknown as Parameters<typeof applyScan>[0];
     expect(applyScan(lines, {})).toEqual(lines);
+  });
+});
+
+describe("dataset events", () => {
+  function record(overrides: Partial<PackageRecord> = {}): PackageRecord {
+    return {
+      name: "@example/lib",
+      status: "ready",
+      checkedAt: "2026-11-25T06:00:00Z",
+      solid2Version: "2.0.1",
+      attestations: [],
+      ...overrides,
+    } as PackageRecord;
+  }
+
+  function dataset(records: PackageRecord[], generatedAt: string): Dataset {
+    return {
+      records,
+      index: [],
+      meta: { generatedAt } as DatasetMeta,
+      solid: { schemaVersion: 1 } as Dataset["solid"],
+    };
+  }
+
+  it("appends one event per change and nothing for an unchanged rerun", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "solid-ground-events-"));
+    try {
+      const previous = record({ status: "in-progress", checkedAt: "2026-11-24T06:00:00Z" });
+      await mkdir(path.join(dir, "packages"), { recursive: true });
+      await writeFile(
+        path.join(dir, "packages", `${fileSlug(previous.name)}.json`),
+        JSON.stringify(previous),
+      );
+
+      const next = record({ status: "ready", checkedAt: "2026-11-25T06:00:00Z" });
+      const added = await writeDataset(dir, dataset([next], next.checkedAt));
+      expect(added).toEqual([
+        {
+          schemaVersion: 1,
+          name: "@example/lib",
+          at: "2026-11-25T06:00:00Z",
+          kind: "status",
+          from: "in-progress",
+          to: "ready",
+        },
+      ]);
+      const first = await readFile(path.join(dir, "events.ndjson"), "utf8");
+      expect(first.trim().split("\n")).toHaveLength(1);
+
+      const rerun = record({ status: "ready", checkedAt: "2026-11-26T06:00:00Z" });
+      expect(await writeDataset(dir, dataset([rerun], rerun.checkedAt))).toEqual([]);
+      expect(await readFile(path.join(dir, "events.ndjson"), "utf8")).toBe(first);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });
 

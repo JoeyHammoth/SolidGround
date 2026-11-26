@@ -1,0 +1,4 @@
+{"schemaVersion":1,"name":"@kobalte/core","at":"2026-11-24T16:47:41.644Z","kind":"new","from":null,"to":"prerelease"}
+{"schemaVersion":1,"name":"@astrojs/solid-js","at":"2026-11-21T16:47:41.644Z","kind":"status","from":"in-progress","to":"blocked"}
+{"schemaVersion":1,"name":"@solidjs/router","at":"2026-11-18T16:47:41.644Z","kind":"version","from":"2.0.0","to":"2.0.1"}
+{"schemaVersion":1,"name":"@tanstack/solid-virtual","at":"2026-11-10T16:47:41.644Z","kind":"attestation","from":"ready","to":"expired"}

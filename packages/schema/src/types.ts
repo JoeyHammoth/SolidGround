@@ -177,13 +177,18 @@ export interface SolidFile extends SolidState {
   docsHash: string | null;
 }
 
-/** One status-change event, derived by diffing two package records. */
+/**
+ * One change event, derived by diffing two package records. `summary` replaces
+ * events older than the retention window: one line per calendar month.
+ */
 export interface ChangeEvent {
   schemaVersion: 1;
   name: string;
-  /** `next.checkedAt` — never a clock read. */
+  /** `next.checkedAt` — never a clock read. For a summary, the month's last event. */
   at: string;
-  kind: "new" | "status" | "version";
+  kind: "new" | "status" | "version" | "attestation" | "summary";
   from: string | null;
   to: string;
+  /** For `summary` only: how many events the summary stands in for. */
+  count?: number;
 }

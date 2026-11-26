@@ -1,0 +1,148 @@
+---
+import Base from "../../layouts/Base.astro";
+import { CATEGORY_LABELS } from "../../lib/data";
+import {
+  categoryOf,
+  eventDate,
+  eventSlug,
+  eventTitle,
+  events,
+  monthLabel,
+  transitionOf,
+} from "../../lib/events";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const transitions = [...new Set(events.map(transitionOf))].sort();
+const categories = [
+  ...new Set(events.filter((event) => event.kind !== "summary").map((event) => categoryOf(event.name))),
+].sort();
+const transitionLabel = (value: string) => {
+  if (value.startsWith("became-")) return `became ${value.slice("became-".length)}`;
+  if (value === "new") return "new packages";
+  if (value === "attestation") return "expired overrides";
+  return value;
+};
+---
+
+<Base
+  title="Changes"
+  description="Every status change in the SolidJS 2 readiness dataset, newest first, with an Atom feed."
+>
+  <h1>Changes</h1>
+  <p class="lede">
+    Every status change, new package and expired override in the dataset, newest first. Generated
+    from the published records, not retyped by hand.
+  </p>
+  <p class="small muted">
+    Follow along with the <a href={`${base}/feed.xml`}>Atom feed</a> or read
+    <a href={`${base}/api/v1/events.json`}>events.json</a>.
+  </p>
+
+  {
+    events.length === 0 ? (
+      <div class="banner" role="status">
+        No events have been published yet. They appear as soon as a collect run changes a record.
+      </div>
+    ) : (
+      <>
+        <div class="filters">
+          <label class="small muted" for="transition">
+            Transition
+          </label>
+          <select id="transition">
+            <option value="">All</option>
+            {transitions.map((value) => (
+              <option value={value}>{transitionLabel(value)}</option>
+            ))}
+          </select>
+          <label class="small muted" for="category">
+            Category
+          </label>
+          <select id="category">
+            <option value="">All</option>
+            {categories.map((value) => (
+              <option value={value}>{CATEGORY_LABELS[value] ?? value}</option>
+            ))}
+          </select>
+          <span class="pill" id="count">
+            {events.length} events
+          </span>
+        </div>
+
+        <div class="table-wrap">
+          <table id="events">
+            <thead>
+              <tr>
+                <th scope="col">When</th>
+                <th scope="col">Package</th>
+                <th scope="col">Change</th>
+                <th scope="col">Category</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr
+                  data-transition={transitionOf(event)}
+                  data-category={event.kind === "summary" ? "summary" : categoryOf(event.name)}
+                >
+                  <td title={event.at}>
+                    {event.kind === "summary" ? monthLabel(event.to) : eventDate(event.at)}
+                  </td>
+                  <td>
+                    {event.kind === "summary" ? (
+                      <span class="muted">all packages</span>
+                    ) : (
+                      <a href={`${base}/packages/${eventSlug(event.name)}/`}>{event.name}</a>
+                    )}
+                  </td>
+                  <td>{eventTitle(event)}</td>
+                  <td class="small muted">
+                    {event.kind === "summary"
+                      ? "summary"
+                      : (CATEGORY_LABELS[categoryOf(event.name)] ?? categoryOf(event.name))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="small muted">
+          Events older than twelve months are compacted into one summary per month; the underlying
+          record history stays in the <code>data</code> branch.
+        </p>
+      </>
+    )
+  }
+
+  <script>
+    const transition = document.querySelector<HTMLSelectElement>("#transition");
+    const category = document.querySelector<HTMLSelectElement>("#category");
+    const count = document.querySelector<HTMLElement>("#count");
+    const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>("#events tbody tr"));
+
+    function apply(updateUrl: boolean) {
+      let visible = 0;
+      for (const row of rows) {
+        const matchesTransition = !transition?.value || row.dataset.transition === transition.value;
+        const matchesCategory = !category?.value || row.dataset.category === category.value;
+        row.hidden = !(matchesTransition && matchesCategory);
+        if (!row.hidden) visible += 1;
+      }
+      if (count) count.textContent = `${visible} of ${rows.length} events`;
+      if (!updateUrl) return;
+      const params = new URLSearchParams();
+      if (transition?.value) params.set("transition", transition.value);
+      if (category?.value) params.set("category", category.value);
+      const query = params.toString();
+      history.replaceState(null, "", query ? `?${query}` : location.pathname);
+    }
+
+    const initial = new URLSearchParams(location.search);
+    if (transition && initial.get("transition")) transition.value = initial.get("transition") ?? "";
+    if (category && initial.get("category")) category.value = initial.get("category") ?? "";
+
+    transition?.addEventListener("change", () => apply(true));
+    category?.addEventListener("change", () => apply(true));
+    apply(false);
+  </script>
+</Base>
