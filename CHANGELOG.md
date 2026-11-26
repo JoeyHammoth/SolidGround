@@ -6,11 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Freshness watchdog: an hourly check of `meta.json` that opens, updates and
+  closes a `pipeline-stale` issue, with a recovery runbook.
+
 ### Planned
 
 - Static scanner against the real Solid 2 export surface (`removed-subpath`,
   `missing-export`, `type-ownership`, `jsx-removed-syntax`).
-- Hourly Solid sentinel, rules-drift review, watchdog and Atom feed.
+- Hourly Solid sentinel, rules-drift review and Atom feed.
 - Sandboxed import/build/types verification matrix and a `next` canary channel.
 
 ## [0.1.0] - 2026-11-25
