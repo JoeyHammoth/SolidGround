@@ -1,6 +1,6 @@
 import semver from "semver";
 import type {
-  EvidenceLevel,
+  ChangeEvent, EvidenceLevel,
   PackageEvidence,
   PackageRecord,
   Phase,
@@ -289,4 +289,28 @@ export function toRecord(
     },
     ...verdictResult,
   };
+}
+
+/**
+ * Compare two package records and report the status-change events between
+ * them. Pure: reads only the records it is given, never the clock or the
+ * filesystem. At most one event is emitted: a new package, a status change,
+ * or — when the status is unchanged — a Solid 2 version change. When both
+ * the status and the version change, only the status event is emitted.
+ */
+export function diffRecords(previous: PackageRecord | null, next: PackageRecord): ChangeEvent[] {
+  if (previous === null) {
+    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "new", from: null, to: next.status }];
+  }
+  if (previous.status !== next.status) {
+    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "status", from: previous.status, to: next.status }];
+  }
+  if (previous.solid2Version !== next.solid2Version) {
+    // A version event needs a new version to report; when the Solid 2 line
+    // disappears the status change above already carries the news.
+    const to = next.solid2Version;
+    if (to === null) return [];
+    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "version", from: previous.solid2Version, to }];
+  }
+  return [];
 }
