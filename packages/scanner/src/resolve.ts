@@ -16,10 +16,32 @@ export interface PackageJson {
   browser?: unknown;
 }
 
+/**
+ * `exports` targets must start with `./`, but `main` and `module` conventionally
+ * do not (`"main": "index.jsx"`), so a leading `./` is optional here.
+ */
 function normalize(target: string): string | null {
-  if (!target.startsWith("./")) return null;
   const cleaned = target.replace(/^\.\//, "").replace(/\\/g, "/");
-  return cleaned.length > 0 ? cleaned : null;
+  if (cleaned.length === 0 || cleaned.startsWith("/")) return null;
+  if (cleaned.split("/").includes("..")) return null;
+  return cleaned;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * A pattern target such as `./dist/* /index.js` cannot be resolved without the
+ * archive listing. `*` matches one path segment, which keeps a `./src/*` export
+ * from pulling every nested source file into the scan.
+ */
+function expandPattern(target: string, archiveFiles: readonly string[]): string[] {
+  const normalized = normalize(target);
+  if (!normalized) return [];
+  if (!normalized.includes("*")) return [normalized];
+  const pattern = new RegExp(`^${normalized.split("*").map(escapeRegExp).join("[^/]+")}$`);
+  return archiveFiles.filter((file) => pattern.test(file));
 }
 
 function walkExports(value: unknown, depth = 0): string[] {
@@ -42,11 +64,14 @@ function walkExports(value: unknown, depth = 0): string[] {
 }
 
 /**
- * All candidate entry files for the root export, plus `main`/`module`/`browser`
- * fallbacks. Only paths present in the archive should survive, which the caller
- * enforces.
+ * Every exported entry point, not just `.`: packages that publish `./client`,
+ * `./server` or one subpath per component ship code that is reached by nothing
+ * else. `main`/`module`/`browser` are included as fallbacks.
+ *
+ * `archiveFiles` is needed only to expand wildcard export targets; without it a
+ * `./*` key resolves to nothing and the root export is still scanned.
  */
-export function resolveEntrypoints(pkg: PackageJson): string[] {
+export function resolveEntrypoints(pkg: PackageJson, archiveFiles: readonly string[] = []): string[] {
   const found: string[] = [];
 
   const exportsField = pkg.exports;
@@ -54,16 +79,27 @@ export function resolveEntrypoints(pkg: PackageJson): string[] {
     found.push(...walkExports(exportsField));
   } else if (exportsField && typeof exportsField === "object") {
     const record = exportsField as Record<string, unknown>;
-    const hasSubpaths = Object.keys(record).some((key) => key.startsWith("."));
-    if (hasSubpaths) found.push(...walkExports(record["."]));
-    else found.push(...walkExports(record));
+    const subpaths = Object.entries(record).filter(([key]) => key.startsWith("."));
+    if (subpaths.length === 0) {
+      found.push(...walkExports(record));
+    } else {
+      for (const [key, value] of subpaths) {
+        if (!key.includes("*")) {
+          found.push(...walkExports(value));
+          continue;
+        }
+        for (const target of walkExports(value)) found.push(...expandPattern(target, archiveFiles));
+      }
+    }
   }
 
   if (typeof pkg.module === "string") found.push(...walkExports(pkg.module));
   if (typeof pkg.main === "string") found.push(...walkExports(pkg.main));
   if (typeof pkg.browser === "string") found.push(...walkExports(pkg.browser));
 
-  return [...new Set(found.filter((file) => ANALYSABLE.test(file)))];
+  // The analysis loop caps itself, so a generous entry list only costs a few
+  // stat calls; a wildcard export over a large package can otherwise be huge.
+  return [...new Set(found.filter((file) => ANALYSABLE.test(file)))].slice(0, 400);
 }
 
 /** Resolve a relative import from one file to another, inside the archive. */

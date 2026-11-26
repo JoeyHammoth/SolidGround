@@ -1,0 +1,31 @@
+{
+  "capturedAt": "2026-11-26",
+  "note": "Pinned versions: a measurement must be reproducible, so the corpus never resolves `latest` at run time. Regenerate deliberately, never automatically.",
+  "packages": [
+    { "name": "@astrojs/solid-js", "version": "7.1.6", "note": "Solid 1 peer range" },
+    { "name": "@kobalte/core", "version": "0.13.14", "note": "Solid 1 peer range, large entry graph" },
+    { "name": "@solid-primitives/event-listener", "version": "3.0.0", "note": "Solid 2 peer range" },
+    { "name": "@solid-primitives/storage", "version": "5.0.0", "note": "Solid 2 peer range" },
+    { "name": "@solid-primitives/utils", "version": "7.0.1", "note": "Solid 2 peer range" },
+    { "name": "@solidjs/meta", "version": "2.0.0", "note": "Solid 2 peer range" },
+    { "name": "@solidjs/router", "version": "2.0.1", "note": "Solid 2 peer range" },
+    { "name": "@solidjs/start", "version": "2.2.3", "note": "Solid 1 peer range, meta-framework" },
+    { "name": "@solidjs/testing-library", "version": "0.8.10", "note": "open peer range" },
+    { "name": "@solidjs/vite-plugin", "version": "3.0.1", "note": "Solid 2 peer range" },
+    { "name": "@suid/material", "version": "0.19.0", "note": "Solid 1 peer range" },
+    { "name": "@tanstack/solid-query", "version": "5.108.4", "note": "Solid 1 peer range" },
+    { "name": "@tanstack/solid-virtual", "version": "3.13.55", "note": "Solid 1 peer range" },
+    { "name": "vite-plugin-solid", "version": "2.11.17", "note": "Solid 1 peer range" },
+    { "name": "solid-start", "version": "0.3.11", "note": "superseded, Solid 1 peer range" },
+    { "name": "@solid-primitives/media", "version": "4.0.0", "note": "Solid 2 peer range" },
+    { "name": "@solid-primitives/scheduled", "version": "2.0.0", "note": "Solid 2 peer range" },
+    { "name": "@solid-primitives/resize-observer", "version": "4.0.0", "note": "Solid 2 peer range" },
+    { "name": "solid-toast", "version": "0.5.0", "note": "Solid 1 peer range" },
+    { "name": "@thisbeyond/solid-select", "version": "0.16.0", "note": "Solid 1 peer range" },
+    { "name": "@felte/solid", "version": "1.2.14", "note": "Solid 1 peer range" },
+    { "name": "solid-icons", "version": "2.0.0", "note": "dual 1 || 2 peer range" },
+    { "name": "@modular-forms/solid", "version": "0.25.1", "note": "Solid 1 peer range" },
+    { "name": "solid-devtools", "version": "0.34.5", "note": "Solid 1 peer range" },
+    { "name": "solid-markdown", "version": "2.1.1", "note": "Solid 1 peer range" }
+  ]
+}

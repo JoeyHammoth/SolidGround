@@ -101,8 +101,16 @@ export async function scanPackage(
   try {
     const prefix = archive.files.some((file) => file === "package/package.json") ? "package/" : "";
     const packageJson = JSON.parse(await readArchiveFile(archive, `${prefix}package.json`, limits)) as PackageJson;
-    const declared = resolveEntrypoints(packageJson);
+    const archiveFiles = archive.files
+      .filter((file) => file.startsWith(prefix))
+      .map((file) => file.slice(prefix.length));
+    const declared = resolveEntrypoints(packageJson, archiveFiles);
     const entrypoints = declared.filter((file) => archive.files.includes(`${prefix}${file}`));
+    if (entrypoints.length === 0) {
+      // Nothing to read is not the same as nothing to find: the caller stores
+      // `clean: null` and the package loses `S` evidence instead of gaining it.
+      throw new Error(`${name}@${version} publishes no analysable entry point`);
+    }
 
     const pending = [...entrypoints];
     const seen = new Set<string>();
@@ -141,6 +149,10 @@ export async function scanPackage(
           }
         }
       }
+    }
+
+    if (analysed.length === 0) {
+      throw new Error(`${name}@${version} entry points could not be read`);
     }
 
     const runtime = findings.filter((finding) => finding.runtime);

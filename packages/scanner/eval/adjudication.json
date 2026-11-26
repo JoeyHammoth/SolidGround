@@ -1,0 +1,4 @@
+{
+  "notes": "Every scanner-only finding and every oracle-only finding must be judged here before the numbers in docs/METHODOLOGY.md are updated. `confirmed` and `rejected` apply to scanner-only findings; `missed` and `not-an-issue` apply to oracle-only findings. Each verdict names the evidence it was based on.",
+  "entries": []
+}

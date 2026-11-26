@@ -105,11 +105,53 @@ version. Regenerate it with `pnpm --filter @solid-ground/scanner surface`.
 Replacement hints in [`rules/removed-apis.yml`](../rules/removed-apis.yml) are
 human-curated.
 
+### Measured accuracy
+
+Measured on 2026-11-26 against 25 pinned published versions
+([`packages/scanner/eval/corpus.json`](../packages/scanner/eval/corpus.json)),
+mixing Solid 2-ready packages with Solid 1-era ones. Every finding was compared,
+file by file, with an independent regular-expression detector over the same
+files, and each disagreement had to be adjudicated by hand. There were none.
+
+| Metric | Result |
+|---|---|
+| Packages measured | 25, of which 11 published findings |
+| Findings compared | 439 raw, 320 unique `(file, code, import)` tuples |
+| Agreement with the independent detector | 320 / 320 |
+| Disagreements | 0 |
+| Findings checked against the published source by hand | 30, all confirmed |
+| Precision / recall | 100% / 100% on this corpus, relative to that detector |
+
+What that does and does not establish:
+
+- **It does not remove the shared blind spot.** The detector compares against
+  the same generated surface and the same curated removal list, so a mistake in
+  either would be invisible here. It is an independent *implementation*, not an
+  independent *definition*.
+- **It is not a random sample of npm.** 25 packages were chosen to cover both
+  sides of the migration; the number is a floor for the claim, not an estimate
+  for the ecosystem.
+- **Recall is recall within the analysed files.** 765 findings the detector sees
+  in files outside the entry-point graph are not counted as misses, but they do
+  bound coverage: bundled chunks reachable only through exports the resolver
+  cannot enumerate are not read.
+- **The JSX check is not independently verified.** Its detector and the
+  scanner's use the same regular expressions; one finding came from it.
+- **Declaration files never count as runtime breaks.** A `.d.ts` is read by the
+  type checker, so its findings are evidence of a type-level break only.
+
+Reproduce with `pnpm eval:scanner`. The run needs network access, writes
+`packages/scanner/eval/results.json`, and exits non-zero while any disagreement
+lacks a verdict in `adjudication.json`.
+
 ### Known limits
 
 - Dead code and optional dual-support imports can produce false positives.
 - Semantic runtime changes (batching, effect timing, async hold behaviour)
   cannot be detected statically.
+- Files that no entry point reaches — including chunks behind export patterns
+  the resolver cannot expand — are not scanned, so "clean" means "nothing found
+  in what was read", not "nothing exists".
 - Static findings therefore never make a package "verified" on their own.
 
 ## 6. Freshness and staleness
