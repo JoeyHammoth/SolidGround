@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { init as initLexer, parse as parseModule } from "es-module-lexer";
 import { create as createTar } from "tar";
 import { afterEach, describe, expect, it } from "vitest";
 import { analyzeSource, namedImports, scanJsx } from "../src/analyze.js";
@@ -58,9 +59,26 @@ describe("entry resolution", () => {
     expect(entries).toEqual(expect.arrayContaining(["src/index.jsx", "dist/index.mjs", "dist/index.cjs"]));
   });
 
-  it("keeps only the root export when subpaths are present", () => {
+  it("accepts main without a leading ./ and reads subpath exports", () => {
+    expect(resolveEntrypoints({ main: "index.jsx" })).toEqual(["index.jsx"]);
+    const entries = resolveEntrypoints({
+      exports: { ".": "./dist/index.js", "./client": "./dist/client.js" },
+    });
+    expect(entries).toEqual(expect.arrayContaining(["dist/index.js", "dist/client.js"]));
+  });
+
+  it("expands a wildcard export against the archive listing", () => {
+    const entries = resolveEntrypoints(
+      { exports: { "./*": { solid: "./dist/*/index.jsx", default: "./dist/*/index.js" } } },
+      ["dist/button/index.jsx", "dist/button/index.js", "dist/chunk/a.js"],
+    );
+    expect(entries).toEqual(["dist/button/index.jsx", "dist/button/index.js"]);
+  });
+
+  it("reads every subpath export, not just the root", () => {
     expect(resolveEntrypoints({ exports: { ".": "./dist/index.js", "./web": "./dist/web.js" } })).toEqual([
       "dist/index.js",
+      "dist/web.js",
     ]);
   });
 
@@ -156,6 +174,37 @@ describe("import classification", () => {
     expect(scanJsx("dist/index.js", "const a = 'classList=';")).toEqual([]);
   });
 
+  it("keeps findings when the lexer rejects shipped JSX", async () => {
+    const code = [
+      'import { Portal } from "solid-js/web";',
+      'import { mergeProps } from "solid-js";',
+      // Nested JSX children are enough to make the lexer throw on a real build.
+      "function P(props) { return <Show when={props.a()}><Portal {...props} /></Show>; }",
+    ].join("\n");
+    await initLexer();
+    // The spread props are enough to make the lexer throw on a real .jsx build.
+    expect(() => parseModule(code)).toThrow();
+
+    const findings = await analyzeSource("dist/chunk.jsx", code, () => surface, rules);
+    expect(findings.map((finding) => `${finding.code}:${finding.name ?? finding.specifier}`)).toEqual([
+      "removed-subpath:solid-js/web",
+      "missing-export:mergeProps",
+    ]);
+  });
+
+  it("does not treat a declaration file as a runtime break", async () => {
+    const code = 'import { JSX, mergeProps } from "solid-js";';
+    const findings = await analyzeSource("dist/index.d.ts", code, () => surface, rules);
+    expect(findings.map((finding) => finding.code)).toEqual(["unknown-export", "missing-export"]);
+    expect(findings.every((finding) => finding.runtime === false)).toBe(true);
+  });
+
+  it("reads require() as an import of a removed subpath", async () => {
+    const code = 'const web = require("solid-js/web"); const solid = require("solid-js");';
+    const findings = await analyzeSource("dist/index.cjs", code, () => surface, rules);
+    expect(findings.map((finding) => finding.code)).toEqual(["removed-subpath"]);
+  });
+
   it("tolerates invalid UTF-8", async () => {
     const findings = await analyzeSource(
       "index.js",
@@ -246,5 +295,39 @@ describe("scanPackage", () => {
         surfacePath: path.join(surfaceDir, "solid2-surface.json"),
       }),
     ).rejects.toThrow(/integrity/);
+  });
+
+  it("refuses to call a package with no readable entry point clean", async () => {
+    const rulesDir = await fixtureTree({ "removed-apis.yml": "subpaths: []\nexports: []\n" });
+    const surfaceDir = await fixtureTree({
+      "solid2-surface.json": JSON.stringify({
+        schemaVersion: 1,
+        generatedAt: "2026-11-25T00:00:00.000Z",
+        versions: { "solid-js": "2.0.4" },
+        exports: { "solid-js": ["createSignal"] },
+      }),
+    });
+    const buffer = await tarball({
+      "package/package.json": JSON.stringify({ name: "x", main: "index.js" }),
+    });
+    const digest = createHash("sha512").update(buffer).digest("base64");
+    const fetchImpl = (async (input: string | URL | Request) => {
+      const url = String(input);
+      if (new URL(url).hostname === "registry.npmjs.org") {
+        return new Response(
+          JSON.stringify({ dist: { tarball: "https://example.test/x.tgz", integrity: `sha512-${digest}` } }),
+          { status: 200 },
+        );
+      }
+      return new Response(new Uint8Array(buffer), { status: 200 });
+    }) as typeof fetch;
+
+    await expect(
+      scanPackage("x", "1.0.0", {
+        fetchImpl,
+        rulesDir,
+        surfacePath: path.join(surfaceDir, "solid2-surface.json"),
+      }),
+    ).rejects.toThrow(/no analysable entry point/);
   });
 });
