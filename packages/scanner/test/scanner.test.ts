@@ -141,6 +141,16 @@ describe("import classification", () => {
     expect(findings[2]?.runtime).toBe(false);
   });
 
+  it("flags a removed subpath however it is reached", async () => {
+    const code = ['const web = import("solid-js/web");', 'export * from "solid-js/web";'].join("\n");
+    const findings = await analyzeSource("index.js", code, () => surface, rules);
+    expect(findings.map((finding) => finding.code)).toEqual(["removed-subpath", "removed-subpath"]);
+  });
+
+  it("does not read a star re-export as named imports", async () => {
+    expect(await analyzeSource("index.js", 'export * from "solid-js";', () => surface, rules)).toEqual([]);
+  });
+
   it("finds removed JSX syntax only in shipped JSX", () => {
     expect(scanJsx("src/App.jsx", "<div classList={{ a: true }} />")).toHaveLength(1);
     expect(scanJsx("dist/index.js", "const a = 'classList=';")).toEqual([]);

@@ -35,7 +35,7 @@ export interface RemovedRules {
 let initialised: Promise<void> | null = null;
 
 async function ensureParser(): Promise<void> {
-  initialised ??= init.then(() => undefined);
+  initialised ??= init();
   await initialised;
 }
 
@@ -84,7 +84,9 @@ export async function analyzeSource(
   }
 
   for (const entry of imports) {
-    const specifier = entry.n;
+    // A computed dynamic import has no specifier and `import.meta` names no
+    // module, so both drop out here.
+    const specifier = entry.specifier;
     if (!specifier) continue;
 
     const removedSubpath = rules.subpaths.find((rule) => rule.from === specifier);
@@ -102,9 +104,12 @@ export async function analyzeSource(
     }
 
     if (!SOLID_ENTRIES.has(specifier)) continue;
+    // Only a static import statement binds local names; a dynamic import or an
+    // `export *` request names a module but nothing to classify here.
+    if (entry.type !== "static") continue;
     const surface = surfaceFor(specifier);
-    const statement = entry.ss >= 0 ? code.slice(entry.ss, entry.se) : "";
-    const typeOnly = /^import\s+type\b/.test(statement);
+    const statement = code.slice(entry.importStart, entry.importEnd);
+    const typeOnly = entry.typeOnly;
 
     for (const name of namedImports(statement)) {
       if (typeOnly && TYPE_OWNERSHIP.has(name) && specifier === "solid-js") {
