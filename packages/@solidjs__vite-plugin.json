@@ -150,14 +150,14 @@
     "types": null
   },
   "shipsTypes": true,
-  "checkedAt": "2026-11-26T10:04:44.845Z",
+  "checkedAt": "2026-11-26T11:41:17.260Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",
     "rules": "2026.11.1",
     "tool": "0.1.0"
   },
-  "downloadsWeekly": 369995,
+  "downloadsWeekly": 395328,
   "links": {
     "npm": "https://www.npmjs.com/package/@solidjs/vite-plugin",
     "repository": "https://github.com/solidjs/solid-vite-plugin",

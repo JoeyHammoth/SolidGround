@@ -7,8 +7,8 @@
     "solid2Version": null,
     "category": "meta-frameworks",
     "family": null,
-    "downloadsWeekly": 392384,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 390593,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@kobalte/core",
@@ -20,8 +20,8 @@
     "solid2Version": "2.0.0-alpha.5",
     "category": "ui-components",
     "family": null,
-    "downloadsWeekly": 6795719,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 6796727,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solid-primitives/event-listener",
@@ -34,8 +34,8 @@
     "solid2Version": "3.0.0",
     "category": "primitives",
     "family": "solid-primitives",
-    "downloadsWeekly": 9132069,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 9110042,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solid-primitives/storage",
@@ -48,8 +48,8 @@
     "solid2Version": "5.0.0",
     "category": "primitives",
     "family": "solid-primitives",
-    "downloadsWeekly": 6191405,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 6196464,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solid-primitives/utils",
@@ -62,8 +62,8 @@
     "solid2Version": "7.0.1",
     "category": "primitives",
     "family": "solid-primitives",
-    "downloadsWeekly": 9562348,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 9530801,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solidjs/meta",
@@ -76,8 +76,8 @@
     "solid2Version": "2.0.0",
     "category": "other",
     "family": null,
-    "downloadsWeekly": 853122,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 849120,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solidjs/router",
@@ -90,8 +90,8 @@
     "solid2Version": "2.0.1",
     "category": "routing",
     "family": null,
-    "downloadsWeekly": 1003938,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 1019535,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solidjs/start",
@@ -101,8 +101,8 @@
     "solid2Version": null,
     "category": "meta-frameworks",
     "family": null,
-    "downloadsWeekly": 246355,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 245467,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solidjs/testing-library",
@@ -114,8 +114,8 @@
     "solid2Version": "0.8.10",
     "category": "testing",
     "family": null,
-    "downloadsWeekly": 655032,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 654924,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@solidjs/vite-plugin",
@@ -128,8 +128,8 @@
     "solid2Version": "3.0.1",
     "category": "build-tools",
     "family": null,
-    "downloadsWeekly": 369995,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 395328,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@suid/material",
@@ -139,8 +139,8 @@
     "solid2Version": null,
     "category": "ui-components",
     "family": "suid",
-    "downloadsWeekly": 3887,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 3985,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@tanstack/solid-query",
@@ -152,8 +152,8 @@
     "solid2Version": "6.0.0-rc.6",
     "category": "data-fetching",
     "family": "tanstack",
-    "downloadsWeekly": 648659,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 638184,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "@tanstack/solid-virtual",
@@ -163,8 +163,8 @@
     "solid2Version": null,
     "category": "other",
     "family": "tanstack",
-    "downloadsWeekly": 3395133,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 3473388,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   },
   {
     "name": "vite-plugin-solid",
@@ -174,7 +174,7 @@
     "solid2Version": null,
     "category": "build-tools",
     "family": null,
-    "downloadsWeekly": 2021547,
-    "checkedAt": "2026-11-26T10:04:44.845Z"
+    "downloadsWeekly": 2025479,
+    "checkedAt": "2026-11-26T11:41:17.260Z"
   }
 ]
