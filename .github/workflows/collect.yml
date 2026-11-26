@@ -48,6 +48,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -59,6 +60,8 @@ jobs:
           path: dataset
       - name: Commit the dataset to the data branch
         working-directory: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .sentinel -exec rm -rf {} +
           cp -R ../dataset/. .
@@ -71,3 +74,7 @@ jobs:
           fi
           git commit -m "chore(data): collect $(date -u +%FT%TZ)"
           git push
+          # The site is a pure function of main plus data, so a fresh dataset
+          # is only visible once the deploy workflow rebuilds from it. A push
+          # made with GITHUB_TOKEN does not trigger other workflows.
+          gh workflow run deploy.yml --ref main
