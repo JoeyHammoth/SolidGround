@@ -11,6 +11,7 @@ const nav = [
   { href: "/packages/", label: "Packages" },
   { href: "/check/", label: "Check my app" },
   { href: "/health/", label: "Health" },
+  { href: "/changes/", label: "Changes" },
   { href: "/methodology/", label: "Methodology" },
 ];
 ---
@@ -23,6 +24,12 @@ const nav = [
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#0b1020" />
     <link rel="icon" type="image/svg+xml" href={`${base}/assets/logo.svg`} />
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      title="Solid Ground — changes"
+      href={`${base}/feed.xml`}
+    />
     <title>{title} · Solid Ground</title>
     <style is:global>
       :root {

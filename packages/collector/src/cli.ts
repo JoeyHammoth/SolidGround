@@ -32,7 +32,7 @@ const dataset = await buildDataset({
   onProgress: (message) => console.log(`  ${message}`),
 });
 
-await writeDataset(outDir, dataset);
+const added = await writeDataset(outDir, dataset);
 console.log(
-  `wrote ${dataset.records.length} records; statuses: ${JSON.stringify(dataset.meta.counts)}`,
+  `wrote ${dataset.records.length} records and ${added.length} event(s); statuses: ${JSON.stringify(dataset.meta.counts)}`,
 );

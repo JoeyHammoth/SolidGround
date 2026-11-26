@@ -70,7 +70,12 @@ contents never hold a write token.
 | `index.json` | engine | table, search, CLI |
 | `meta.json` | engine | banner, health page, third parties |
 | `solid.json` | sentinel/collector | engine, site |
-| `events.ndjson` | engine | changes feed, Atom feed |
+| `events.ndjson` | engine, appended by collect | changes feed, Atom feed |
+
+Events are derived by diffing a record against the edition already published on
+the `data` branch, so history is never re-derived from scratch. Each line is one
+change (`new`, `status`, `version`, an expired `attestation`) and events older
+than twelve months are compacted into one `summary` per calendar month.
 
 The dataset is normalised (sorted keys, stable formatting), so a git diff shows
 exactly which facts changed.
@@ -91,8 +96,9 @@ exactly which facts changed.
 ## Current slice (v0.1)
 
 Implemented now: schema + validator, engine + golden tests, npm collector and
-dataset builder, CLI checker, Astro dashboard, CI, Pages deploy.
+dataset builder, CLI checker, Astro dashboard, CI, Pages deploy, and the change
+events pipeline behind `/changes/`, `/feed.xml` and `/api/v1/events.json`.
 
-Next: static scanner against the real Solid 2 export surface (M3), sentinel and
-watchdog workflows, sandboxed smoke matrix (M4), events feed and Atom output.
-See the [roadmap](ROADMAP.md) and the issues on the project board.
+Next: static scanner against the real Solid 2 export surface (M3), sandboxed
+smoke matrix (M4), rules-drift review. See the [roadmap](ROADMAP.md) and the
+issues on the project board.

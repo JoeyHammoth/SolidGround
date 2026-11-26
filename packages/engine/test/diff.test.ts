@@ -70,4 +70,32 @@ describe("diffRecords", () => {
     const next = record({ status: "ready", solid2Version: "2.0.1", checkedAt: "2026-11-25T07:00:00Z" });
     expect(diffRecords(previous, next)).toEqual([]);
   });
+
+  it("reports an attestation that expired between the two checks", () => {
+    const attestation = {
+      claim: "ready" as const,
+      version: "2.0.1",
+      evidence: "https://example.com/run/1",
+      attestedBy: "github:someone",
+      expires: "2026-11-25T12:00:00Z",
+    };
+    const previous = record({ checkedAt: "2026-11-25T06:00:00Z", attestations: [attestation] });
+    const next = record({ checkedAt: "2026-11-26T06:00:00Z", attestations: [attestation] });
+    expect(diffRecords(previous, next)).toEqual([
+      { schemaVersion: 1, name: "@example/lib", at: "2026-11-26T06:00:00Z", kind: "attestation", from: "ready", to: "expired" },
+    ]);
+  });
+
+  it("does not repeat an expiry that had already passed at the previous check", () => {
+    const attestation = {
+      claim: "ready" as const,
+      version: "2.0.1",
+      evidence: "https://example.com/run/1",
+      attestedBy: "github:someone",
+      expires: "2026-11-20T12:00:00Z",
+    };
+    const previous = record({ checkedAt: "2026-11-25T06:00:00Z", attestations: [attestation] });
+    const next = record({ checkedAt: "2026-11-26T06:00:00Z", attestations: [attestation] });
+    expect(diffRecords(previous, next)).toEqual([]);
+  });
 });

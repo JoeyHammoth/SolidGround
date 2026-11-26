@@ -31,6 +31,18 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check out the previously published dataset
+        uses: actions/checkout@v7
+        # Events are a diff against the published records, so the previous
+        # edition has to be present. Without a data branch the first run reports
+        # every package as new, which is the honest bootstrap answer.
+        continue-on-error: true
+        with:
+          ref: data
+          path: data
+          persist-credentials: false
+      - name: Keep the dataset files, not the checkout metadata
+        run: rm -rf data/.git
       - name: Collect live evidence and scan published code
         run: pnpm run dataset -- --out data --scan
       - name: Validate the dataset against the schemas

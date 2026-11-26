@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import type {
+  ChangeEvent,
   DatasetMeta,
   IndexRow,
   PackageRecord,
@@ -11,7 +12,7 @@ import type {
   Status,
 } from "@solid-ground/schema";
 import { STATUSES } from "@solid-ground/schema";
-import { evaluate, toRecord } from "@solid-ground/engine";
+import { compactEvents, diffRecords, evaluate, toRecord } from "@solid-ground/engine";
 import {
   fetchPackument,
   fetchWeeklyDownloads,
@@ -184,7 +185,71 @@ export async function buildDataset(options: BuildOptions): Promise<Dataset> {
   };
 }
 
-export async function writeDataset(outDir: string, dataset: Dataset): Promise<void> {
+/** The records already published in `outDir`; anything unreadable is ignored. */
+async function readPreviousRecords(outDir: string): Promise<Map<string, PackageRecord>> {
+  const previous = new Map<string, PackageRecord>();
+  let files: string[];
+  try {
+    files = await readdir(path.join(outDir, "packages"));
+  } catch {
+    return previous;
+  }
+  for (const file of files) {
+    if (!file.endsWith(".json")) continue;
+    try {
+      const record = JSON.parse(
+        await readFile(path.join(outDir, "packages", file), "utf8"),
+      ) as PackageRecord;
+      if (record?.name) previous.set(record.name, record);
+    } catch {
+      // A damaged record cannot be diffed; its package is reported as new.
+    }
+  }
+  return previous;
+}
+
+async function readEvents(file: string): Promise<ChangeEvent[]> {
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch {
+    return [];
+  }
+  const events: ChangeEvent[] = [];
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    try {
+      events.push(JSON.parse(trimmed) as ChangeEvent);
+    } catch {
+      // Skip a damaged line rather than fail the run.
+    }
+  }
+  return events;
+}
+
+/**
+ * Write the dataset, appending change events first: events are a diff against
+ * the records already in `outDir`, never a re-derivation of history. Returns the
+ * events added by this run.
+ */
+export async function writeDataset(
+  outDir: string,
+  dataset: Dataset,
+  options: { compactAfterMonths?: number } = {},
+): Promise<ChangeEvent[]> {
+  const previous = await readPreviousRecords(outDir);
+  const eventsFile = path.join(outDir, "events.ndjson");
+  const previousEvents = await readEvents(eventsFile);
+  const added = dataset.records.flatMap((record) =>
+    diffRecords(previous.get(record.name) ?? null, record),
+  );
+  const events = compactEvents(
+    [...previousEvents, ...added],
+    dataset.meta.generatedAt,
+    options.compactAfterMonths ?? 12,
+  );
+
   const packagesDir = path.join(outDir, "packages");
   await mkdir(packagesDir, { recursive: true });
   const writes: Promise<void>[] = [];
@@ -200,7 +265,15 @@ export async function writeDataset(outDir: string, dataset: Dataset): Promise<vo
   writes.push(writeFile(path.join(outDir, "index.json"), `${JSON.stringify(dataset.index, null, 2)}\n`));
   writes.push(writeFile(path.join(outDir, "meta.json"), `${JSON.stringify(dataset.meta, null, 2)}\n`));
   writes.push(writeFile(path.join(outDir, "solid.json"), `${JSON.stringify(dataset.solid, null, 2)}\n`));
+  writes.push(
+    writeFile(
+      eventsFile,
+      events.length > 0 ? `${events.map((item) => JSON.stringify(item)).join("\n")}\n` : "",
+      "utf8",
+    ),
+  );
   await Promise.all(writes);
+  return added;
 }
 
 export { detectSolidState, fetchPackument, toEvidence };

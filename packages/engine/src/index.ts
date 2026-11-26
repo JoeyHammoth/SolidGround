@@ -291,26 +291,109 @@ export function toRecord(
   };
 }
 
+function changeEvent(
+  record: PackageRecord,
+  kind: ChangeEvent["kind"],
+  from: string | null,
+  to: string,
+): ChangeEvent {
+  return { schemaVersion: 1, name: record.name, at: record.checkedAt, kind, from, to };
+}
+
 /**
- * Compare two package records and report the status-change events between
- * them. Pure: reads only the records it is given, never the clock or the
- * filesystem. At most one event is emitted: a new package, a status change,
- * or — when the status is unchanged — a Solid 2 version change. When both
- * the status and the version change, only the status event is emitted.
+ * Compare two package records and report the events between them. Pure: reads
+ * only the records it is given, never the clock or the filesystem. A status
+ * change supersedes a Solid 2 version change, so only the status is reported;
+ * an attestation that crossed its expiry between the two checks is reported on
+ * its own line.
  */
 export function diffRecords(previous: PackageRecord | null, next: PackageRecord): ChangeEvent[] {
-  if (previous === null) {
-    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "new", from: null, to: next.status }];
-  }
+  if (previous === null) return [changeEvent(next, "new", null, next.status)];
+
+  const events: ChangeEvent[] = [];
   if (previous.status !== next.status) {
-    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "status", from: previous.status, to: next.status }];
-  }
-  if (previous.solid2Version !== next.solid2Version) {
+    events.push(changeEvent(next, "status", previous.status, next.status));
+  } else if (previous.solid2Version !== next.solid2Version && next.solid2Version !== null) {
     // A version event needs a new version to report; when the Solid 2 line
     // disappears the status change above already carries the news.
-    const to = next.solid2Version;
-    if (to === null) return [];
-    return [{ schemaVersion: 1, name: next.name, at: next.checkedAt, kind: "version", from: previous.solid2Version, to }];
+    events.push(changeEvent(next, "version", previous.solid2Version, next.solid2Version));
   }
-  return [];
+
+  const checkedBefore = new Date(previous.checkedAt).getTime();
+  const checkedNow = new Date(next.checkedAt).getTime();
+  const expired = previous.attestations
+    .filter((attestation) => {
+      const expires = new Date(attestation.expires).getTime();
+      return !Number.isNaN(expires) && expires > checkedBefore && expires <= checkedNow;
+    })
+    .sort((a, b) => a.expires.localeCompare(b.expires));
+  for (const attestation of expired) {
+    events.push(changeEvent(next, "attestation", attestation.claim, "expired"));
+  }
+
+  return events;
+}
+
+/** Newest first, then by name and kind, so the feed is stable across runs. */
+export function compareEvents(a: ChangeEvent, b: ChangeEvent): number {
+  if (a.at !== b.at) return a.at < b.at ? 1 : -1;
+  if (a.name !== b.name) return a.name.localeCompare(b.name);
+  return a.kind.localeCompare(b.kind);
+}
+
+export function sortEvents(events: ChangeEvent[]): ChangeEvent[] {
+  return [...events].sort(compareEvents);
+}
+
+/**
+ * Collapse events older than `months` into one summary per calendar month, so
+ * the file stays small without losing the shape of history. Pure: the cut-off
+ * comes from `now`, never from the system clock. A month that already has a
+ * summary keeps it rather than recomputing from the remaining lines.
+ */
+export function compactEvents(
+  events: ChangeEvent[],
+  now: string | Date,
+  months = 12,
+): ChangeEvent[] {
+  const reference = typeof now === "string" ? new Date(now) : now;
+  const cutoff = new Date(reference.getTime());
+  cutoff.setUTCMonth(cutoff.getUTCMonth() - months);
+
+  const recent: ChangeEvent[] = [];
+  const older: ChangeEvent[] = [];
+  for (const item of events) {
+    const at = new Date(item.at).getTime();
+    if (Number.isNaN(at) || at >= cutoff.getTime()) recent.push(item);
+    else older.push(item);
+  }
+
+  const summaries = new Map<string, ChangeEvent>();
+  for (const item of older) {
+    const month = item.at.slice(0, 7);
+    if (item.kind === "summary") {
+      summaries.set(month, item);
+      continue;
+    }
+    const existing = summaries.get(month);
+    if (!existing) {
+      summaries.set(month, {
+        schemaVersion: 1,
+        name: "",
+        at: item.at,
+        kind: "summary",
+        from: null,
+        to: month,
+        count: 1,
+      });
+      continue;
+    }
+    summaries.set(month, {
+      ...existing,
+      at: item.at > existing.at ? item.at : existing.at,
+      count: (existing.count ?? 0) + 1,
+    });
+  }
+
+  return sortEvents([...recent, ...summaries.values()]);
 }
