@@ -16,6 +16,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- The deployed site is built from the `data` branch rather than the committed
+  fixtures. If that branch cannot be read the deploy falls back to the fixtures
+  with a warning instead of failing, and a successful collect dispatches a
+  redeploy so new data appears without waiting for the next push to `main`.
 - The scanner no longer loses every finding in a file the lexer rejects: shipped
   JSX with nested tags falls back to a conservative text read.
 - CJS builds are scanned: `require("solid-js/web")` is reported as a removed

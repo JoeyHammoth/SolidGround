@@ -21,6 +21,16 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Check out the published dataset
+        id: dataset
+        uses: actions/checkout@v7
+        # A missing or unreadable data branch must degrade to the committed
+        # fixtures, never fail the deploy: a stale site beats no site.
+        continue-on-error: true
+        with:
+          ref: data
+          path: data
+          persist-credentials: false
       - uses: pnpm/action-setup@v6
         with:
           version: 9.15.4
@@ -29,8 +39,19 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Choose the dataset to build from
+        run: |
+          rm -rf data/.git
+          if [ -f data/index.json ]; then
+            echo "DATA_DIR=$PWD/data" >> "$GITHUB_ENV"
+            echo "Building from the \`data\` branch." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "DATA_DIR=$PWD/fixtures/dataset" >> "$GITHUB_ENV"
+            echo "::warning::The data branch is unavailable; building from fixtures/dataset."
+            echo "The \`data\` branch was unavailable, so this deploy used the fixtures in \`fixtures/dataset\`." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Validate the dataset before publishing a site from it
-        run: pnpm run validate fixtures
+        run: pnpm run validate "$DATA_DIR"
       - name: Build
         run: pnpm run site:build
         env:
