@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@solid-ground/schema": "workspace:*",
-    "es-module-lexer": "^1.5.4",
+    "es-module-lexer": "^3.0.4",
     "tar": "^7.4.3",
     "yaml": "^2.6.1"
   }
