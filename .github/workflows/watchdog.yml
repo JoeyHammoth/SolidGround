@@ -1,0 +1,104 @@
+name: Watchdog
+
+on:
+  schedule:
+    # Hourly, staggered after the sentinel (:07) and collect (03:17). The design
+    # called for a daily run; hourly keeps detection inside the 72-hour promise
+    # instead of allowing up to 96 hours, and the job costs seconds.
+    - cron: "43 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      STALE_AFTER_HOURS: "72"
+    steps:
+      - name: Read the dataset timestamp from the data branch
+        id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          stale() {
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            echo "reason=$1" >> "$GITHUB_OUTPUT"
+            echo "::warning::$1"
+          }
+
+          # The contents API, not raw.githubusercontent.com: raw is CDN-cached and
+          # can serve a dataset hours old, which is exactly what this check measures.
+          if ! gh api "repos/${GITHUB_REPOSITORY}/contents/meta.json?ref=data" --jq .content \
+              | base64 -d > "$RUNNER_TEMP/meta.json"; then
+            stale "there is no readable meta.json on the data branch"
+            exit 0
+          fi
+
+          generated=$(jq -r '.lastSuccessfulCollect // .generatedAt // empty' "$RUNNER_TEMP/meta.json")
+          if [ -z "$generated" ]; then
+            stale "meta.json carries no lastSuccessfulCollect or generatedAt"
+            exit 0
+          fi
+
+          if ! collected=$(date -u -d "$generated" +%s 2>/dev/null); then
+            stale "meta.json carries an unparseable timestamp: $generated"
+            exit 0
+          fi
+
+          age=$(( ( $(date -u +%s) - collected ) / 3600 ))
+          echo "Last successful collect: ${generated} (${age}h ago); threshold ${STALE_AFTER_HOURS}h."
+
+          if [ "$age" -ge "$STALE_AFTER_HOURS" ]; then
+            stale "the last successful collect was ${age}h ago (${generated})"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+            echo "reason=the last successful collect was ${age}h ago (${generated})" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the pipeline-stale issue
+        if: steps.read.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REASON: ${{ steps.read.outputs.reason }}
+        run: |
+          set -euo pipefail
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "The dataset on the data branch has not been refreshed: ${REASON}." \
+            "The threshold is 72 hours. Usually one of:
+          - GitHub disabled a scheduled workflow after 60 days without repository activity.
+          - collect.yml has been failing since the last good run.
+          - Actions are disabled on the repository, or the data branch was deleted." \
+            "Triage with docs/runbooks/watchdog.md: gh workflow list, then gh workflow enable collect.yml (or sentinel.yml), then gh workflow run sentinel.yml. The site shows its own banner after 72 hours without a successful run; this issue is the durable record.")
+
+          number=$(gh issue list --label pipeline-stale --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create \
+              --title "pipeline: the dataset has not been refreshed" \
+              --label pipeline-stale \
+              --body "$body"
+          fi
+
+      - name: Close the issue once the dataset is fresh
+        if: steps.read.outputs.stale != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REASON: ${{ steps.read.outputs.reason }}
+        run: |
+          set -euo pipefail
+          for number in $(gh issue list --label pipeline-stale --state open --limit 10 --json number --jq '.[].number'); do
+            gh issue close "$number" \
+              --comment "The watchdog is reading a fresh dataset again: ${REASON}. Closing."
+          done

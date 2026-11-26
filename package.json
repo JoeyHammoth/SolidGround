@@ -23,6 +23,8 @@
     "site:build": "pnpm --filter @solid-ground/site build",
     "check:app": "tsx packages/cli/src/index.ts check",
     "sentinel": "tsx packages/collector/src/sentinel.ts",
+    "scan": "tsx packages/scanner/src/cli.ts",
+    "eval:scanner": "tsx packages/scanner/eval/run.ts",
     "ci": "pnpm run lint && pnpm run test && pnpm run validate registry fixtures && pnpm run site:build"
   },
   "devDependencies": {
@@ -30,12 +32,12 @@
     "@types/semver": "^7.5.8",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "es-module-lexer": "^1.5.4",
+    "es-module-lexer": "^3.0.5",
     "prettier": "^3.4.2",
     "semver": "^7.6.3",
     "tar": "^7.4.3",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
+    "typescript": "^7.0.2",
     "vitest": "^5.1.1",
     "yaml": "^2.6.1"
   }

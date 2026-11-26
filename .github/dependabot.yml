@@ -9,6 +9,11 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
+    ignore:
+      # @types/node majors describe the Node major they type. Taking one ahead of
+      # .nvmrc means typecheck validates against a runtime we do not run.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       dev-dependencies:
         dependency-type: "development"

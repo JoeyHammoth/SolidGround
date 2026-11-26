@@ -160,17 +160,24 @@ export async function fetchObservation(
   }
 
   let docsHash = previous?.docsHash ?? null;
-  const migration = watch.docs.migration;
+  // The rendered docs page is behind a WAF that refuses CI egress, so the
+  // versioned page source is preferred when the rules file names one.
+  const migration = watch.docs.migrationSource ?? watch.docs.migration;
   if (migration) {
     try {
       const response = await fetchImpl(migration, {
         headers: { "user-agent": SENTINEL_UA },
         signal: AbortSignal.timeout(20_000),
       });
-      if (response.ok) docsHash = hashText(bodyText(await response.text()));
-      else warn(`migration page returned ${response.status}, keeping ${short(docsHash)}`);
+      if (response.ok) {
+        const text = await response.text();
+        const isSource = /\.(?:md|mdx)$/i.test(new URL(migration).pathname);
+        docsHash = hashText(isSource ? text.replace(/\s+/g, " ").trim() : bodyText(text));
+      } else {
+        warn(`migration docs returned ${response.status}, keeping ${short(docsHash)}`);
+      }
     } catch (error) {
-      warn(`migration page failed, keeping ${short(docsHash)}: ${(error as Error).message}`);
+      warn(`migration docs failed, keeping ${short(docsHash)}: ${(error as Error).message}`);
     }
   }
 
@@ -204,7 +211,7 @@ async function readState(file: string): Promise<SentinelState | null> {
 
 async function main(): Promise<void> {
   const rulesDir = path.resolve(arg("rules", "rules"));
-  const statePath = path.resolve(arg("state", "data/solid.json"));
+  const statePath = path.resolve(arg("state", "data/.sentinel/state.json"));
   const writePath = process.argv.includes("--write") ? path.resolve(arg("write", statePath)) : null;
   const reportPath = arg("report", "");
 

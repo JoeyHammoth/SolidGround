@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { applyScan } from "../src/index.js";
 import {
   detectSolidState,
   highestStable2,
@@ -76,6 +77,23 @@ describe("packument normalisation", () => {
       null,
     );
     expect(evidence.dependsOnSolid).toBe(false);
+  });
+});
+
+describe("static scan enrichment", () => {
+  it("applies a verdict only to the line that was scanned", () => {
+    const lines = [
+      { version: "2.0.4", clean: null },
+      { version: "1.9.20", clean: null },
+    ] as unknown as Parameters<typeof applyScan>[0];
+    const scanned = applyScan(lines, { "2.0.4": true });
+    expect(scanned[0]?.clean).toBe(true);
+    expect(scanned[1]?.clean).toBeNull();
+  });
+
+  it("leaves every line untouched when nothing was scanned", () => {
+    const lines = [{ version: "2.0.4", clean: false }] as unknown as Parameters<typeof applyScan>[0];
+    expect(applyScan(lines, {})).toEqual(lines);
   });
 });
 

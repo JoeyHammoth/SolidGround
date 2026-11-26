@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@solid-ground/engine": "workspace:*",
+    "@solid-ground/scanner": "workspace:*",
     "@solid-ground/schema": "workspace:*",
     "semver": "^7.6.3",
     "yaml": "^2.6.1"
