@@ -43,12 +43,15 @@ async function surfaceFor(name: string): Promise<{ version: string; names: strin
     const pkg = JSON.parse(await readArchiveFile(archive, `${prefix}package.json`)) as Parameters<typeof resolveEntrypoints>[0];
     const entries = resolveEntrypoints(pkg).filter((file) => archive.files.includes(`${prefix}${file}`));
     const names = new Set<string>();
-    await init;
+    await init();
     for (const entry of entries.slice(0, 4)) {
       const code = await readArchiveFile(archive, `${prefix}${entry}`);
       try {
         const [, exports] = parse(code);
-        for (const item of exports) names.add(item.n);
+        for (const item of exports) {
+          // `export * from` names nothing itself; its names belong to the target.
+          if (item.type !== "reexport-all") names.add(item.name);
+        }
       } catch {
         // An unparsable build simply contributes no names.
       }

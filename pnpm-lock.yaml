@@ -21,8 +21,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
       es-module-lexer:
-        specifier: ^1.5.4
-        version: 1.7.0
+        specifier: ^3.0.5
+        version: 3.0.5
       prettier:
         specifier: ^3.4.2
         version: 3.10.1
@@ -84,8 +84,8 @@ importers:
         specifier: workspace:*
         version: link:../schema
       es-module-lexer:
-        specifier: ^1.5.4
-        version: 1.7.0
+        specifier: ^3.0.5
+        version: 3.0.5
       tar:
         specifier: ^7.4.3
         version: 7.5.23
@@ -1200,9 +1200,6 @@ packages:
   entities@4.5.0:
     resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
     engines: {node: '>=0.12'}
-
-  es-module-lexer@1.7.0:
-    resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
 
   es-module-lexer@2.3.2:
     resolution: {integrity: sha512-poHGpORABojJJucnV9KbOavETW8lBVnphkW77ER5/BQ5Fz7oXSoCNek7IH3vR5nRjdsEz926ibFYX8KtLQmdyw==}
@@ -2783,8 +2780,6 @@ snapshots:
   dset@3.1.4: {}
 
   entities@4.5.0: {}
-
-  es-module-lexer@1.7.0: {}
 
   es-module-lexer@2.3.2: {}
 
