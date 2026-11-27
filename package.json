@@ -28,6 +28,7 @@
     "smoke:publish": "tsx packages/smoke/src/cli.ts publish",
     "smoke:status": "tsx packages/smoke/src/cli.ts status",
     "smoke:compact": "tsx packages/smoke/src/cli.ts compact",
+    "smoke:gate": "tsx packages/smoke/src/cli.ts gate",
     "smoke:run": "tsx packages/smoke/src/runner.ts",
     "audit:blocked": "tsx packages/cli/src/blocked.ts",
     "audit:issue": "tsx packages/cli/src/audit-issue.ts",

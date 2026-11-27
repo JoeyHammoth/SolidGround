@@ -215,8 +215,8 @@ verify.yml  (workflow_dispatch, nightly 04:10 UTC)
   smoke   contents: read   -> one job per cell, uploads one result artifact
   report  contents: read   -> merge + validate + controls -> smoke/ artifact
   history contents: write  -> append + compact the control log on data (always, on main)
-  publish contents: write  -> manual only: fold a trusted batch into data
-  audit   issues: write    -> check the generated blocked-package note, own an issue
+  publish contents: write  -> manual only: fold a trusted batch into data, close the gate issue
+  audit   issues: write    -> check the generated blocked-package note, announce a met gate
 ```
 
 Both jobs write the audit trail to the run's step summary as well, so a passing
@@ -225,7 +225,12 @@ or failing control day is visible without downloading an artifact. A separate
 and opens (or updates) an issue when it does not, then fails itself. That keeps
 a stale note visible without blocking the control runs the two-week gate depends
 on. The issue lifecycle is `pnpm audit:issue --stale|--clean`, whose
-create/comment/close branches are unit-tested against a fake `gh`. A scheduled
+create/comment/close branches are unit-tested against a fake `gh`. The same job
+runs `pnpm smoke:gate --notify` against the control log: once fourteen clean
+days are on record it opens one "the two-week control gate is met" issue with
+the publish command, and later runs leave it alone. The publish job runs
+`pnpm smoke:gate --close` after committing, so the reminder does not outlive
+the first batch. A scheduled
 run stops after `history`: it records the control verdicts — the failures too —
 but cannot change a record. `publish` needs the manual input, so
 promoting a batch is a deliberate act rather than a cron side effect. Both write
@@ -254,6 +259,7 @@ pnpm smoke:publish --data data --results smoke/results.ndjson
 # The audit trail and the generated blocked-package note.
 pnpm smoke:status --file data/smoke/controls.jsonl
 pnpm smoke:compact --file data/smoke/controls.jsonl  # archive months past the window
+pnpm smoke:gate --file data/smoke/controls.jsonl    # gate state; --notify opens the reminder
 pnpm audit:blocked --data data          # writes docs/research/2026-11-blocked-packages.md
 pnpm audit:blocked --data data --check  # exits 1 when the committed note is stale
 ```

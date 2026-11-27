@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- A publish-gate reminder: `pnpm smoke:gate` reports the clean-day count, and
+  `--notify` opens one issue when the fourteen-day gate is met, with the
+  `publish=true` dispatch to run. The publish job closes it after committing,
+  so the notification is neither missed nor left behind.
+- `pnpm check` prints a `Probed` column beside each package, naming the subpath
+  the sandbox imported so the CLI report matches the site.
+- A workflow test reads `verify.yml` and fails if the audit job stops calling
+  `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,
   Solid 2 version change or expired override, and collect appends them to
   `events.ndjson` on the `data` branch by diffing the edition already published
