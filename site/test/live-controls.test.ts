@@ -38,7 +38,7 @@ describe("deployed /api/v1/controls.json", () => {
     const failed = body.days.find((day) => !day.clean);
 
     expect(failed?.day).toBe("2026-11-27");
-    expect(failed?.runs).toBe(25);
+    expect(failed?.runs).toBe(28);
     expect(failed?.failures).toBe(3);
     expect(failed?.groups).toEqual([
       {
@@ -51,6 +51,6 @@ describe("deployed /api/v1/controls.json", () => {
       },
     ]);
     expect(body.streak).toBe(0);
-    expect(body.lastRun).toBe("2026-11-27T12:57:23.519Z");
+    expect(body.lastRun).toBe("2026-11-27T15:20:56.245Z");
   });
 });
