@@ -7,10 +7,12 @@ import type {
   SolidState,
 } from "@solid-ground/schema";
 import { checkControls, controlCells, isControlResult } from "./controls.js";
+import { announceGate, closeGateIssue } from "./gate.js";
 import { artifactId, cellId, planBatch } from "./plan.js";
 import type { CellSource, SmokeCell, SmokeSteps } from "./plan.js";
 import { CONTROL_HISTORY_FILE, loadPolicy, publishBatch } from "./publish.js";
 import {
+  AUDIT_DAYS,
   DEFAULT_RETENTION_DAYS,
   compactControlLog,
   describeControls,
@@ -314,6 +316,28 @@ async function statusCommand(args: string[]): Promise<number> {
   return 0;
 }
 
+async function gateCommand(args: string[]): Promise<number> {
+  if (args.includes("--close")) {
+    console.log(`gate issue: ${closeGateIssue()}`);
+    return 0;
+  }
+  const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
+  const { results } = await readControlLog(file);
+  const history = summarizeControls(results);
+  console.log(
+    `${history.streak} clean control day(s) in a row; ${AUDIT_DAYS} required; ` +
+      `two-week gate ${history.auditMet ? "met" : "not met"}`,
+  );
+  if (!args.includes("--notify")) {
+    if (history.auditMet) console.log("run with --notify to open the publish reminder issue");
+    return 0;
+  }
+  console.log(
+    `gate issue: ${announceGate({ ready: history.auditMet, streak: history.streak })}`,
+  );
+  return 0;
+}
+
 async function compactCommand(args: string[]): Promise<number> {
   const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
   const retentionDays = Number(
@@ -347,7 +371,8 @@ export async function main(argv: string[]): Promise<number> {
   if (command === "publish") return publishCommand(args);
   if (command === "status") return statusCommand(args);
   if (command === "compact") return compactCommand(args);
-  console.error("usage: cli.ts <plan|report|publish|status|compact> [options]");
+  if (command === "gate") return gateCommand(args);
+  console.error("usage: cli.ts <plan|report|publish|status|compact|gate> [options]");
   return 2;
 }
 

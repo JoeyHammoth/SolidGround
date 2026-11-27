@@ -49,7 +49,8 @@ function statusLabel(row: IndexRow | undefined): string {
 
 function markdownRow(name: string, range: string, row: IndexRow | undefined): string {
   const fix = row?.solid2Version ? `\`${row.solid2Version}\`` : "-";
-  return `| \`${name}\` | \`${range}\` | ${statusLabel(row)} | ${fix} |`;
+  const probed = row?.smokeTarget ? `\`${row.smokeTarget}\`` : "—";
+  return `| \`${name}\` | \`${range}\` | ${statusLabel(row)} | ${fix} | ${probed} |`;
 }
 
 async function main(): Promise<void> {
@@ -87,20 +88,26 @@ async function main(): Promise<void> {
   const ready = tracked.filter(([name]) => byName.get(name)?.status === "ready");
   if (ready.length > 0) {
     console.log("## Ready\n");
-    console.log("| Package | Declared | Status | Solid 2 version |");
-    console.log("| --- | --- | --- | --- |");
+    console.log("| Package | Declared | Status | Solid 2 version | Probed |");
+    console.log("| --- | --- | --- | --- | --- |");
     for (const [name, range] of ready) console.log(markdownRow(name, range, byName.get(name)));
     console.log("");
   }
 
   if (blocking.length > 0) {
     console.log("## Blocking the upgrade\n");
-    console.log("| Package | Declared | Status | Solid 2 version |");
-    console.log("| --- | --- | --- | --- |");
+    console.log("| Package | Declared | Status | Solid 2 version | Probed |");
+    console.log("| --- | --- | --- | --- | --- |");
     for (const [name, range] of blocking) console.log(markdownRow(name, range, byName.get(name)));
     console.log("");
     console.log(
       `Upgrade order: build tooling first, then ready libraries, then prerelease lines. See https://docs.solidjs.com/migration/from-solid-1`,
+    );
+  }
+
+  if (tracked.length > 0) {
+    console.log(
+      "`Probed` is the subpath the sandbox imported; — means no sandboxed pass or the package root.",
     );
   }
 

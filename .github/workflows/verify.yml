@@ -193,6 +193,7 @@ jobs:
     permissions:
       contents: write
       actions: write
+      issues: write
     concurrency:
       group: data-write
       cancel-in-progress: false
@@ -238,6 +239,10 @@ jobs:
           git push
           # A push made with GITHUB_TOKEN does not trigger other workflows.
           gh workflow run deploy.yml --ref main
+      - name: Close the gate notification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm run smoke:gate --close
 
   history:
     name: control history
@@ -365,3 +370,10 @@ jobs:
               echo "::notice::Audit check skipped; no issue to sync."
               ;;
           esac
+      - name: Announce the publish gate
+        # Runs even when the audit step failed: the control log is independent
+        # of the note, and a met gate must not wait for a doc fix.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm run smoke:gate --file data/smoke/controls.jsonl --notify
