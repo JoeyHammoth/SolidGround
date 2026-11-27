@@ -61,6 +61,11 @@ jobs:
     permissions:
       contents: write
       actions: write
+    concurrency:
+      # Shared with verify.yml: both jobs rewrite the data branch, and a
+      # non-fast-forward push would throw away a clean batch.
+      group: data-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
@@ -75,7 +80,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .sentinel -exec rm -rf {} +
+          # `smoke/` holds the verify matrix's control log, which collect does
+          # not produce and must not delete.
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .sentinel ! -name smoke -exec rm -rf {} +
           cp -R ../dataset/. .
           git config user.name "solid-ground-collector"
           git config user.email "collector@users.noreply.github.com"

@@ -1,8 +1,9 @@
 name: Verify
 
 # Phase 0 of the sandboxed matrix (issue #4): harness plus controls, three
-# hand-picked packages, Harden-Runner in audit mode, and no publish. Nothing
-# here can change a record until the controls have run clean for two weeks.
+# hand-picked packages, Harden-Runner in audit mode. A scheduled run cannot
+# change a record: folding a batch into the dataset needs the manual `publish`
+# input, and only after the controls have run clean for two weeks.
 
 on:
   workflow_dispatch:
@@ -19,6 +20,10 @@ on:
         description: Cap on package cells per batch
         type: string
         default: "3"
+      publish:
+        description: Fold this batch into the data branch (only after the two-week gate)
+        type: boolean
+        default: false
   schedule:
     # Nightly, after collect has refreshed the dataset at 03:17.
     - cron: "10 4 * * *"
@@ -164,7 +169,7 @@ jobs:
           path: results
           merge-multiple: true
       - name: Validate the artifacts and the controls
-        run: pnpm run smoke:report --dir results --out smoke/results.ndjson
+        run: pnpm run smoke:report --dir results --out smoke/results.ndjson --controls-out smoke/controls.jsonl
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -172,3 +177,110 @@ jobs:
           path: smoke
           if-no-files-found: ignore
           retention-days: 7
+
+  publish:
+    name: publish
+    needs: [plan, report]
+    # The only path that changes a record. It is manual on purpose: phase 0
+    # requires two weeks of clean controls first, and a schedule must never be
+    # able to publish by itself. This job runs no package code.
+    if: github.event_name == 'workflow_dispatch' && inputs.publish == true && needs.report.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    concurrency:
+      group: data-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/checkout@v7
+        with:
+          ref: data
+          path: data
+      - uses: actions/download-artifact@v8
+        with:
+          name: smoke
+          path: smoke
+      - name: Fold the batch into the published edition
+        run: pnpm run smoke:publish --data data --results smoke/results.ndjson
+      - name: Validate the folded dataset
+        run: pnpm run validate data
+      - name: Commit the dataset to the data branch
+        working-directory: data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "solid-ground-verify"
+          git config user.email "verify@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "::notice::No record changed; nothing to publish."
+            exit 0
+          fi
+          git commit -m "chore(data): fold smoke batch $(date -u +%FT%TZ)"
+          git push
+          # A push made with GITHUB_TOKEN does not trigger other workflows.
+          gh workflow run deploy.yml --ref main
+
+  history:
+    name: control history
+    needs: [plan, report]
+    # Every batch, including a discarded one: the two-week audit is only
+    # meaningful if the failures are on record too. Writes one log file and
+    # never a record, and runs no package code.
+    if: always() && needs.plan.result == 'success' && needs.plan.outputs.count != '0' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    concurrency:
+      group: data-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: data
+          path: data
+      - uses: actions/download-artifact@v8
+        with:
+          name: smoke
+          path: smoke
+      - name: Append this batch's control verdicts
+        working-directory: data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ ! -f ../smoke/controls.jsonl ]; then
+            echo "::notice::This batch carries no control results; nothing to record."
+            exit 0
+          fi
+          mkdir -p smoke
+          touch smoke/controls.jsonl
+          # Keep the log append-only and replayable: a line already on record is
+          # not written twice.
+          awk '!seen[$0]++' smoke/controls.jsonl ../smoke/controls.jsonl > smoke/controls.tmp
+          mv smoke/controls.tmp smoke/controls.jsonl
+          git config user.name "solid-ground-verify"
+          git config user.email "verify@users.noreply.github.com"
+          git add smoke/controls.jsonl
+          if git diff --cached --quiet; then
+            echo "::notice::Control log unchanged; nothing to record."
+            exit 0
+          fi
+          git commit -m "chore(data): record smoke controls $(date -u +%FT%TZ)"
+          git push
+          gh workflow run deploy.yml --ref main
