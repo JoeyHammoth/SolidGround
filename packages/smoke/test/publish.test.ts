@@ -176,6 +176,7 @@ describe("publishBatch", () => {
     const index = JSON.parse(await readFile(path.join(dir, "index.json"), "utf8"));
     expect(index[0].verified).toBe(true);
     expect(index[0].smokeTarget).toBe("@example/lib/widget");
+    expect(index[0].smokeAt).toBe("2026-11-26T00:00:00Z");
 
     const meta = JSON.parse(await readFile(path.join(dir, "meta.json"), "utf8"));
     expect(meta.lastSuccessfulVerify).toBe(NOW.toISOString());

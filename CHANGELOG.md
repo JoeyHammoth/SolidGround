@@ -13,7 +13,10 @@ All notable changes to this project are documented here. The format follows
   `publish=true` dispatch to run. The publish job closes it after committing,
   so the notification is neither missed nor left behind.
 - `pnpm check` prints a `Probed` column beside each package, naming the subpath
-  the sandbox imported so the CLI report matches the site.
+  the sandbox imported (`root` for a root pass) so the CLI report matches the
+  site. Index rows carry `smokeAt` so the two can be told apart after a publish.
+- The health page counts down the clean days still needed for the publish gate,
+  instead of only saying whether it is met.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

@@ -198,6 +198,12 @@ export interface IndexRow {
   checkedAt: string;
   /** The subpath the folded pass probed; null for a root pass or no pass. */
   smokeTarget?: string | null;
+  /**
+   * When that pass finished, or null when none stands behind the row. Absent
+   * on rows published before the field existed, which also cannot tell a root
+   * pass from no pass.
+   */
+  smokeAt?: string | null;
 }
 
 export interface DatasetMeta {
