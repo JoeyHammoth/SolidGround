@@ -1,6 +1,8 @@
 # Plan: sandboxed import/build/types matrix (issue #4)
 
-- **Status:** proposed, not started
+- **Status:** phase 0 implemented — runner, controls and `verify.yml` run in
+  audit mode with no publish; two weeks of clean control runs before the matrix
+  may change a record
 - **Owner:** maintainers ([#4](https://github.com/JoeyHammoth/SolidGround/issues/4))
 - **Depends on:** [ADR 0005](../adr/0005-sandbox-trust-boundary.md), the static
   scanner (M3), `SmokeResults` in `@solid-ground/schema`
@@ -40,10 +42,16 @@ evidence to build evidence, and to light up `verified`.
 packages/smoke/
   src/index.ts        # pure: plan a batch, fold results into records
   src/plan.ts         # matrix selection + the per-cell spec
+  src/controls.ts     # the two fixtures' expectations + the discard rule
   src/runner.ts       # child-process install/import/build in a throwaway dir
   src/report.ts       # results -> schema-validated JSON artifact
+  src/cli.ts          # plan and report, used by verify.yml and locally
+  fixtures/control-good/  # must import, build and typecheck
+  fixtures/control-bad/   # imports an API Solid 2 removed; must fail import
   test/plan.test.ts   # selection and folding, no network
   test/report.test.ts # artifact round-trip
+  test/runner.test.ts # spec parsing, entry choice, manifest and file layout
+  test/controls.test.ts # expectations and the discard rule
 ```
 
 Everything except `runner.ts` is pure and unit-tested. `runner.ts` is the only
@@ -68,10 +76,10 @@ cell and runs all three steps in sequence. A failure in `import` still attempts
 1. **import** — `node --input-type=module -e "await import('<name>')"` in a
    project whose only `solid-js` is the version under test. For a package with no
    ESM entry, fall back to `createRequire` and record which entry was used.
-2. **build** — a minimal Vite + `vite-plugin-solid` app that imports the package's
-   default export and runs `vite build`. This is the step that catches the real
-   world: JSX transforms, peer-range mismatches, subpath exports that only fail
-   under bundling.
+2. **build** — a minimal Vite + `@solidjs/vite-plugin` app that imports the
+   package and runs `vite build`. This is the step that catches the real world:
+   JSX transforms, peer-range mismatches, subpath exports that only fail under
+   bundling.
 3. **types** — `tsc --noEmit` on a three-line `import` of the package's types,
    only when the record has `shipsTypes: true`. A package without types is
    `null`, never `false`.
@@ -159,8 +167,8 @@ Two fixtures ship with the harness and run in **every** batch:
 
 - **known-good:** a two-line Solid 2 component that must return
   `{ import: true, build: true, types: true }`.
-- **known-bad:** the same component with `createEffect` imported from
-  `solid-js` under a `2.0` install in a way Solid 2 removed, which must return
+- **known-bad:** the same component importing `batch` from `solid-js`, which
+  Solid 2 removed, and calling it at module scope, which must return
   `import: false`.
 
 If either control returns the wrong verdict, the whole batch is discarded as an
@@ -171,11 +179,34 @@ broken sandbox quietly marks packages as failing.
 
 ```text
 verify.yml  (workflow_dispatch, nightly 04:10 UTC)
-  plan   contents: read  -> matrix JSON (packages x cells), cap 20 cells
-  smoke  contents: read  -> one job per package, uploads cell artifacts
-  report contents: read  -> merge + validate -> smoke/ artifact
-  publish (reuse collect.yml's publish logic)
+  plan   contents: read  -> matrix JSON (packages x cells + both controls)
+  smoke  contents: read  -> one job per cell, uploads one result artifact
+  report contents: read  -> merge + validate + controls -> smoke/ artifact
 ```
+
+Phase 0 stops after `report`: there is no publish job, so a run can be read and
+discarded but can never change a record. The next slice reuses collect's publish
+logic once the controls are clean. `verify.yml` attaches
+`step-security/harden-runner` in `audit` mode to the job that runs package code.
+
+### Running it
+
+```bash
+# Plan three packages plus both controls from the published edition.
+pnpm smoke:plan --data data \
+  --packages "@solid-primitives/storage,@solidjs/meta,@kobalte/core" \
+  --max-cells 3 --out smoke-plan.json
+
+# One cell, reading a spec from stdin (this is what a matrix job does).
+printf '%s' "$SPEC" | pnpm smoke:run
+
+# Merge the artifacts, validate them and check the controls.
+pnpm smoke:report --dir results --out smoke/results.ndjson
+```
+
+`smoke:report` exits non-zero and writes nothing when a cell is malformed or a
+control answers wrongly: a batch without trustworthy controls must not be able
+to change a record, so the failure has to be visible.
 
 `plan` reads the `data` branch edition so it only re-tests what is missing or
 stale: an unchanged package with a fresh pass is not re-run. A `--force` input
@@ -228,7 +259,7 @@ and drops `next` to weekly once the canary channel is stable.
 - [x] `smoke-result.schema.json` + validator wiring
 - [x] `packages/smoke` plan/report/fold with unit tests, no network
 - [x] `smokeAt` on the record, so a pass on an unchanged Solid release can age out
-- [ ] `runner.ts` with the three steps and the temp-dir discipline
-- [ ] control fixtures and the discard-on-bad-control rule
-- [ ] `verify.yml` in `audit` mode, three packages, no publish
+- [x] `runner.ts` with the three steps and the temp-dir discipline
+- [x] control fixtures and the discard-on-bad-control rule
+- [x] `verify.yml` in `audit` mode, three packages, no publish
 - [ ] two weeks of clean control runs, then promote to nightly
