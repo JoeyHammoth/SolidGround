@@ -1,0 +1,108 @@
+import { describe, expect, it } from "vitest";
+import { checkLiveEndpoints, schemaFileName, type FetchJson } from "../src/live-api.js";
+
+const GATE = {
+  $schema: "https://example.test/schemas/gate.schema.json",
+  streak: 0,
+  required: 14,
+  remaining: 14,
+  ready: false,
+  lastRun: null,
+};
+
+const CONTROLS = {
+  $schema: "https://example.test/schemas/controls.schema.json",
+  schemaVersion: 1,
+  streak: 1,
+  required: 14,
+  remaining: 13,
+  auditMet: false,
+  lastRun: "2026-11-28T04:11:00Z",
+  days: [
+    {
+      day: "2026-11-28",
+      clean: false,
+      runs: 2,
+      at: "2026-11-28T04:11:00Z",
+      failures: 1,
+      groups: [{ subject: "control-subpath", details: ["no result in the batch"] }],
+    },
+  ],
+};
+
+function fetchMap(bodies: Record<string, unknown>, failing: string[] = []): FetchJson {
+  return async (url) => {
+    for (const path of failing) {
+      if (url.endsWith(path)) throw new Error("HTTP 404");
+    }
+    const match = Object.entries(bodies).find(([path]) => url.endsWith(path));
+    if (!match) throw new Error("HTTP 404");
+    return match[1];
+  };
+}
+
+describe("schemaFileName", () => {
+  it("maps an endpoint to the schema that describes it", () => {
+    expect(schemaFileName("/api/v1/gate.json")).toBe("gate.schema.json");
+    expect(schemaFileName("/api/v1/controls.json")).toBe("controls.schema.json");
+  });
+});
+
+describe("checkLiveEndpoints", () => {
+  it("reports only the endpoints whose bodies were supplied and validated", async () => {
+    const report = await checkLiveEndpoints({
+      base: "https://example.test/",
+      fetchJson: fetchMap({
+        "/api/v1/gate.json": GATE,
+        "/api/v1/controls.json": CONTROLS,
+      }),
+    });
+
+    expect(report.valid).toEqual(["/api/v1/gate.json", "/api/v1/controls.json"]);
+    expect(report.problems).toHaveLength(4);
+    expect(report.problems[0]).toContain("/api/v1/index.json: unreachable");
+  });
+
+  it("fails a response whose $schema names another document", async () => {
+    const report = await checkLiveEndpoints({
+      base: "https://example.test",
+      fetchJson: fetchMap({
+        "/api/v1/gate.json": {
+          ...GATE,
+          $schema: "https://example.test/schemas/validation.schema.json",
+        },
+        "/api/v1/controls.json": CONTROLS,
+      }),
+    });
+
+    expect(report.valid).toEqual(["/api/v1/controls.json"]);
+    expect(report.problems).toContainEqual(
+      expect.stringContaining("/api/v1/gate.json: $schema is"),
+    );
+  });
+
+  it("fails a control day that drifted from the schema", async () => {
+    const report = await checkLiveEndpoints({
+      base: "https://example.test",
+      fetchJson: fetchMap({
+        "/api/v1/controls.json": {
+          ...CONTROLS,
+          days: [{ ...CONTROLS.days[0], groups: "none" }],
+        },
+      }),
+    });
+
+    expect(report.valid).toEqual([]);
+    expect(report.problems.join("\n")).toContain("/api/v1/controls.json: /days/0/groups");
+  });
+
+  it("names an unreachable endpoint and keeps checking the rest", async () => {
+    const report = await checkLiveEndpoints({
+      base: "https://example.test",
+      fetchJson: fetchMap({ "/api/v1/gate.json": GATE }, ["/api/v1/meta.json"]),
+    });
+
+    expect(report.problems).toContain("/api/v1/meta.json: unreachable (HTTP 404)");
+    expect(report.valid).toEqual(["/api/v1/gate.json"]);
+  });
+});

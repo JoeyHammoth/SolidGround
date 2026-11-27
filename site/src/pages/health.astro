@@ -127,6 +127,10 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
           </ul>
         </details>
       )}
+      <p class="small muted">
+        Machine-readable: <a href={`${base}/api/v1/controls.json`}><code>controls.json</code></a> —
+        the same days, run counts and grouped reasons.
+      </p>
     </>
   ) : (
     <p class="muted">No control runs recorded yet; {AUDIT_DAYS} clean days are needed before the matrix can change a record.</p>
@@ -147,5 +151,5 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     <a href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=add-package.yml">Request an addition</a>.
   </p>
 
-  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a> · <a href={`${base}/api/v1/gate.json`}><code>gate.json</code></a> · <a href={`${base}/api/v1/validation.json`}><code>validation.json</code></a></p>
+  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a> · <a href={`${base}/api/v1/gate.json`}><code>gate.json</code></a> · <a href={`${base}/api/v1/controls.json`}><code>controls.json</code></a> · <a href={`${base}/api/v1/validation.json`}><code>validation.json</code></a></p>
 </Base>
