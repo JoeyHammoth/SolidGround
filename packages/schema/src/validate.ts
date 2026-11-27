@@ -12,9 +12,11 @@ function createValidator() {
   addFormats(ajv);
   const recordSchema = require("../schemas/package-record.schema.json");
   const registrySchema = require("../schemas/registry-entry.schema.json");
+  const eventSchema = require("../schemas/change-event.schema.json");
   return {
     record: ajv.compile(recordSchema),
     registry: ajv.compile(registrySchema),
+    event: ajv.compile(eventSchema),
   };
 }
 
@@ -37,7 +39,35 @@ export function validateDataset(value: unknown): string[] {
   return [formatValidationErrors(validators.record.errors)];
 }
 
-async function collectJsonFiles(dir: string): Promise<string[]> {
+export function validateChangeEvent(value: unknown): string[] {
+  if (validators.event(value)) return [];
+  return [formatValidationErrors(validators.event.errors)];
+}
+
+/**
+ * Validate an NDJSON document: every non-empty line must be one change event.
+ * Failures carry the 1-based line number, because a line has no other identity.
+ */
+export function validateEvents(text: string): string[] {
+  const failures: string[] = [];
+  text.split("\n").forEach((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (error) {
+      failures.push(`line ${index + 1}: invalid JSON (${(error as Error).message})`);
+      return;
+    }
+    for (const message of validateChangeEvent(parsed)) {
+      failures.push(`line ${index + 1}: ${message}`);
+    }
+  });
+  return failures;
+}
+
+async function collectDataFiles(dir: string): Promise<string[]> {
   let entries: string[];
   try {
     entries = await readdir(dir);
@@ -49,8 +79,8 @@ async function collectJsonFiles(dir: string): Promise<string[]> {
     const full = path.join(dir, entry);
     const info = await stat(full);
     if (info.isDirectory()) {
-      files.push(...(await collectJsonFiles(full)));
-    } else if (entry.endsWith(".json")) {
+      files.push(...(await collectDataFiles(full)));
+    } else if (entry.endsWith(".json") || entry.endsWith(".ndjson")) {
       files.push(full);
     }
   }
@@ -58,9 +88,9 @@ async function collectJsonFiles(dir: string): Promise<string[]> {
 }
 
 /**
- * Validate a directory tree. Files under a `packages/` directory are records;
- * YAML files under `registry/` are registry entries; everything else is parsed
- * as JSON only to prove it is well formed.
+ * Validate a directory tree. YAML files under `registry/` are registry entries;
+ * `.ndjson` files are change events; every other JSON file is validated as a
+ * record when it looks like one and merely parsed otherwise.
  */
 export async function validatePaths(paths: string[]): Promise<string[]> {
   const failures: string[] = [];
@@ -78,12 +108,16 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         const parsed = parseYaml(await readFile(target, "utf8"));
         const errors = validateRegistryEntry(parsed);
         for (const error of errors) failures.push(`${target}: ${error}`);
+      } else if (target.endsWith(".ndjson")) {
+        for (const message of validateEvents(await readFile(target, "utf8"))) {
+          failures.push(`${target}: ${message}`);
+        }
       }
       continue;
     }
 
     const registryDir = path.join(target, "registry");
-    const registryFiles = await collectJsonFiles(registryDir);
+    const registryFiles = await collectDataFiles(registryDir);
     const yamlFiles = (await readdir(registryDir).catch(() => [] as string[]))
       .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
       .map((name) => path.join(registryDir, name));
@@ -94,13 +128,19 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
       for (const error of validateRegistryEntry(parsed)) failures.push(`${file}: ${error}`);
     }
 
-    for (const file of await collectJsonFiles(path.join(target, "registry", "packages"))) {
+    for (const file of await collectDataFiles(path.join(target, "registry", "packages"))) {
       const parsed = parseYaml(await readFile(file, "utf8"));
       for (const error of validateRegistryEntry(parsed)) failures.push(`${file}: ${error}`);
     }
 
-    for (const file of await collectJsonFiles(target)) {
+    for (const file of await collectDataFiles(target)) {
       if (file.includes(`${path.sep}registry${path.sep}`)) continue;
+      if (file.endsWith(".ndjson")) {
+        for (const message of validateEvents(await readFile(file, "utf8"))) {
+          failures.push(`${file}: ${message}`);
+        }
+        continue;
+      }
       let parsed: unknown;
       try {
         parsed = JSON.parse(await readFile(file, "utf8"));

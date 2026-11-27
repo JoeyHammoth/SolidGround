@@ -10,7 +10,7 @@
 - Per-package records: /api/v1/packages/<name>.json (scoped names use "__", e.g. @kobalte__core.json)
 - Dataset metadata and counts: /api/v1/meta.json
 - Solid versions under test: /api/v1/solid.json
-- Recent changes (new packages, status and version changes, expired overrides): /api/v1/events.json
+- Recent changes (new packages, status and version changes, expired overrides, Solid releases, rules changes, anomaly holds): /api/v1/events.json
 - Changes page and Atom feed: /changes/ and /feed.xml
 - Shields badge endpoint: /badges/<name>.json
 - Methodology and status definitions: /methodology/

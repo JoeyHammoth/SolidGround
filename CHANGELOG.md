@@ -12,6 +12,11 @@ All notable changes to this project are documented here. The format follows
   Solid 2 version change or expired override, and collect appends them to
   `events.ndjson` on the `data` branch by diffing the edition already published
   there. Events older than twelve months are compacted into monthly summaries.
+- `diffMeta` adds dataset events from `meta.json`: a new Solid stable release, a
+  move on the `next` line, a rules version change, and the anomaly hold
+  appearing, changing or clearing.
+- `events.ndjson` is schema-validated line by line, so a malformed event fails
+  collect and deploy with its line number instead of disappearing at read time.
 - `/changes/` lists every event newest first with filters by transition and
   category, `/feed.xml` is an Atom feed of the same events, and
   `/api/v1/events.json` exposes them as JSON.

@@ -12,7 +12,7 @@ import type {
   Status,
 } from "@solid-ground/schema";
 import { STATUSES } from "@solid-ground/schema";
-import { compactEvents, diffRecords, evaluate, toRecord } from "@solid-ground/engine";
+import { compactEvents, diffMeta, diffRecords, evaluate, toRecord } from "@solid-ground/engine";
 import {
   fetchPackument,
   fetchWeeklyDownloads,
@@ -208,6 +208,29 @@ async function readPreviousRecords(outDir: string): Promise<Map<string, PackageR
   return previous;
 }
 
+/**
+ * The `meta.json` already published in `outDir`. A partial or damaged file is
+ * treated as absent, so the first run reports no dataset events rather than
+ * inventing them from a half-read edition.
+ */
+async function readPreviousMeta(outDir: string): Promise<DatasetMeta | null> {
+  let parsed: DatasetMeta;
+  try {
+    parsed = JSON.parse(await readFile(path.join(outDir, "meta.json"), "utf8")) as DatasetMeta;
+  } catch {
+    return null;
+  }
+  const usable =
+    typeof parsed === "object" &&
+    parsed !== null &&
+    typeof parsed.generatedAt === "string" &&
+    typeof parsed.solid?.stable2 === "string" &&
+    typeof parsed.versions?.rules === "string" &&
+    typeof parsed.anomaly?.held === "boolean" &&
+    Array.isArray(parsed.anomaly.reasons);
+  return usable ? parsed : null;
+}
+
 async function readEvents(file: string): Promise<ChangeEvent[]> {
   let text: string;
   try {
@@ -239,11 +262,15 @@ export async function writeDataset(
   options: { compactAfterMonths?: number } = {},
 ): Promise<ChangeEvent[]> {
   const previous = await readPreviousRecords(outDir);
+  const previousMeta = await readPreviousMeta(outDir);
   const eventsFile = path.join(outDir, "events.ndjson");
   const previousEvents = await readEvents(eventsFile);
-  const added = dataset.records.flatMap((record) =>
-    diffRecords(previous.get(record.name) ?? null, record),
-  );
+  const added = [
+    ...dataset.records.flatMap((record) =>
+      diffRecords(previous.get(record.name) ?? null, record),
+    ),
+    ...diffMeta(previousMeta, dataset.meta),
+  ];
   const events = compactEvents(
     [...previousEvents, ...added],
     dataset.meta.generatedAt,

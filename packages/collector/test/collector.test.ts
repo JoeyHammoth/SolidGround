@@ -123,6 +123,30 @@ describe("dataset events", () => {
     };
   }
 
+  function meta(overrides: Partial<DatasetMeta> = {}): DatasetMeta {
+    return {
+      schemaVersion: 1,
+      generatedAt: "2026-11-25T06:00:00Z",
+      lastSuccessfulCollect: "2026-11-25T06:00:00Z",
+      lastSuccessfulVerify: null,
+      solid: { stable2: "2.0.3", next: null, observedAt: "2026-11-25T06:00:00Z" },
+      counts: {
+        ready: 0,
+        prerelease: 0,
+        "in-progress": 0,
+        blocked: 0,
+        unmaintained: 0,
+        agnostic: 0,
+        unknown: 0,
+        total: 0,
+      },
+      versions: { rules: "2026.11.1", tool: "0.1.0", schema: 1 },
+      coverage: { tracked: 0, curated: 0, candidates: 0 },
+      anomaly: { held: false, reasons: [] },
+      ...overrides,
+    };
+  }
+
   it("appends one event per change and nothing for an unchanged rerun", async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "solid-ground-events-"));
     try {
@@ -151,6 +175,53 @@ describe("dataset events", () => {
       const rerun = record({ status: "ready", checkedAt: "2026-11-26T06:00:00Z" });
       expect(await writeDataset(dir, dataset([rerun], rerun.checkedAt))).toEqual([]);
       expect(await readFile(path.join(dir, "events.ndjson"), "utf8")).toBe(first);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("appends dataset events from the published meta.json", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "solid-ground-meta-"));
+    try {
+      await writeFile(
+        path.join(dir, "meta.json"),
+        JSON.stringify(
+          meta({
+            generatedAt: "2026-11-24T06:00:00Z",
+            solid: { stable2: "2.0.3", next: null, observedAt: "2026-11-24T06:00:00Z" },
+            versions: { rules: "2026.10.1", tool: "0.1.0", schema: 1 },
+          }),
+        ),
+      );
+
+      const nextMeta = meta({
+        generatedAt: "2026-11-25T06:00:00Z",
+        solid: { stable2: "2.0.4", next: null, observedAt: "2026-11-25T06:00:00Z" },
+      });
+      const added = await writeDataset(dir, {
+        records: [],
+        index: [],
+        meta: nextMeta,
+        solid: { schemaVersion: 1 } as Dataset["solid"],
+      });
+      expect(added).toEqual([
+        {
+          schemaVersion: 1,
+          name: "solid-js",
+          at: "2026-11-25T06:00:00Z",
+          kind: "solid",
+          from: "2.0.3",
+          to: "2.0.4",
+        },
+        {
+          schemaVersion: 1,
+          name: "rules",
+          at: "2026-11-25T06:00:00Z",
+          kind: "rules",
+          from: "2026.10.1",
+          to: "2026.11.1",
+        },
+      ]);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

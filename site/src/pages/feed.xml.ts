@@ -1,7 +1,15 @@
 /// <reference types="astro/client" />
 import type { APIRoute } from "astro";
 import { meta } from "../lib/data";
-import { categoryOf, eventSlug, eventTitle, eventDate, events, transitionOf } from "../lib/events";
+import {
+  categoryValueOf,
+  eventSlug,
+  eventTitle,
+  eventDate,
+  events,
+  isDatasetEvent,
+  transitionOf,
+} from "../lib/events";
 
 const SITE = "https://joeyhammoth.github.io";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -26,12 +34,11 @@ export const GET: APIRoute = () => {
   const entries = items
     .map((event) => {
       const link =
-        event.kind === "summary"
+        event.kind === "summary" || isDatasetEvent(event)
           ? `${home}/changes/`
           : `${home}/packages/${eventSlug(event.name)}/`;
       const id = `tag:solid-ground,${event.at.slice(0, 4)}:${event.kind}/${eventSlug(event.name)}/${event.from ?? "none"}/${event.at}`;
-      const category =
-        event.kind === "summary" ? "summary" : categoryOf(event.name);
+      const category = categoryValueOf(event);
       const summary =
         event.kind === "summary"
           ? `${event.count ?? 1} changes were compacted into this month's summary.`

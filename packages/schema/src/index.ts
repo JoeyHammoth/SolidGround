@@ -1,2 +1,8 @@
 export * from "./types.js";
-export { validateDataset, validateRegistryEntry, formatValidationErrors } from "./validate.js";
+export {
+  validateChangeEvent,
+  validateDataset,
+  validateEvents,
+  validateRegistryEntry,
+  formatValidationErrors,
+} from "./validate.js";

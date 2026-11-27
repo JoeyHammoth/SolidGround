@@ -72,10 +72,12 @@ contents never hold a write token.
 | `solid.json` | sentinel/collector | engine, site |
 | `events.ndjson` | engine, appended by collect | changes feed, Atom feed |
 
-Events are derived by diffing a record against the edition already published on
-the `data` branch, so history is never re-derived from scratch. Each line is one
-change (`new`, `status`, `version`, an expired `attestation`) and events older
-than twelve months are compacted into one `summary` per calendar month.
+Events are derived by diffing an edition against the one already published on
+the `data` branch, so history is never re-derived from scratch. Package events
+(`new`, `status`, `version`, an expired `attestation`) come from `diffRecords`;
+dataset events (`solid`, `rules`, `anomaly`) come from diffing `meta.json`. Every
+line is validated against `change-event.schema.json`, and events older than
+twelve months are compacted into one `summary` per calendar month.
 
 The dataset is normalised (sorted keys, stable formatting), so a git diff shows
 exactly which facts changed.
