@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { DatasetMeta, PackageRecord } from "@solid-ground/schema";
-import { applyScan, writeDataset, type Dataset } from "../src/index.js";
+import { applyScan, buildIndex, writeDataset, type Dataset } from "../src/index.js";
 import { fileSlug } from "../src/npm.js";
 import {
   detectSolidState,
@@ -99,6 +99,43 @@ describe("static scan enrichment", () => {
   it("leaves every line untouched when nothing was scanned", () => {
     const lines = [{ version: "2.0.4", clean: false }] as unknown as Parameters<typeof applyScan>[0];
     expect(applyScan(lines, {})).toEqual(lines);
+  });
+});
+
+describe("buildIndex", () => {
+  it("carries every smoke evidence field into the index row", () => {
+    const record = {
+      name: "@example/lib",
+      status: "ready",
+      confidence: ["D", "B"],
+      verified: true,
+      solid2Version: "2.0.4",
+      category: "state",
+      family: null,
+      downloadsWeekly: 1200,
+      checkedAt: "2026-11-26T00:00:00Z",
+      smokeAt: "2026-11-26T00:00:00Z",
+      smokeTarget: null,
+    } as PackageRecord;
+    expect(buildIndex([record])[0]).toMatchObject({
+      smokeAt: "2026-11-26T00:00:00Z",
+      smokeTarget: null,
+    });
+  });
+
+  it("writes null smoke fields for a record with no pass", () => {
+    const record = {
+      name: "@example/lib",
+      status: "blocked",
+      confidence: [],
+      verified: false,
+      solid2Version: null,
+      category: "state",
+      family: null,
+      downloadsWeekly: null,
+      checkedAt: "2026-11-26T00:00:00Z",
+    } as unknown as PackageRecord;
+    expect(buildIndex([record])[0]).toMatchObject({ smokeAt: null, smokeTarget: null });
   });
 });
 

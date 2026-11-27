@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/index-row.schema.json",
+  "title": "Solid Ground index row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "status",
+    "confidence",
+    "verified",
+    "solid2Version",
+    "category",
+    "family",
+    "downloadsWeekly",
+    "checkedAt"
+  ],
+  "properties": {
+    "name": { "type": "string", "minLength": 1, "maxLength": 214 },
+    "status": {
+      "enum": [
+        "ready",
+        "prerelease",
+        "in-progress",
+        "blocked",
+        "unmaintained",
+        "agnostic",
+        "unknown"
+      ]
+    },
+    "confidence": {
+      "type": "array",
+      "items": { "enum": ["D", "S", "B", "T", "A", "U"] },
+      "uniqueItems": true
+    },
+    "verified": { "type": "boolean" },
+    "solid2Version": { "type": ["string", "null"], "maxLength": 120 },
+    "category": { "type": "string", "minLength": 1, "maxLength": 60 },
+    "family": { "type": ["string", "null"], "maxLength": 100 },
+    "downloadsWeekly": { "type": ["number", "null"], "minimum": 0 },
+    "checkedAt": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "smokeTarget": { "type": ["string", "null"], "maxLength": 500 },
+    "smokeAt": { "type": ["string", "null"], "format": "date-time", "maxLength": 40 }
+  }
+}

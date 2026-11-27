@@ -14,8 +14,10 @@ function createValidator() {
   const registrySchema = require("../schemas/registry-entry.schema.json");
   const eventSchema = require("../schemas/change-event.schema.json");
   const smokeSchema = require("../schemas/smoke-result.schema.json");
+  const indexSchema = require("../schemas/index-row.schema.json");
   return {
     record: ajv.compile(recordSchema),
+    indexRow: ajv.compile(indexSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -39,6 +41,23 @@ export function validateRegistryEntry(value: unknown): string[] {
 export function validateDataset(value: unknown): string[] {
   if (validators.record(value)) return [];
   return [formatValidationErrors(validators.record.errors)];
+}
+
+export function validateIndexRow(value: unknown): string[] {
+  if (validators.indexRow(value)) return [];
+  return [formatValidationErrors(validators.indexRow.errors)];
+}
+
+/** Validate a whole `index.json`; a row without its position has no identity. */
+export function validateIndexRows(value: unknown, label = "index.json"): string[] {
+  if (!Array.isArray(value)) return [`${label}: must be an array of index rows`];
+  const failures: string[] = [];
+  value.forEach((row, index) => {
+    for (const message of validateIndexRow(row)) {
+      failures.push(`${label}[${index}]: ${message}`);
+    }
+  });
+  return failures;
 }
 
 export function validateChangeEvent(value: unknown): string[] {
@@ -119,6 +138,14 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         for (const message of validateEvents(await readFile(target, "utf8"))) {
           failures.push(`${target}: ${message}`);
         }
+      } else if (path.basename(target) === "index.json") {
+        try {
+          failures.push(
+            ...validateIndexRows(JSON.parse(await readFile(target, "utf8")), target),
+          );
+        } catch (error) {
+          failures.push(`${target}: invalid JSON (${(error as Error).message})`);
+        }
       }
       continue;
     }
@@ -153,6 +180,10 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         parsed = JSON.parse(await readFile(file, "utf8"));
       } catch (error) {
         failures.push(`${file}: invalid JSON (${(error as Error).message})`);
+        continue;
+      }
+      if (path.basename(file) === "index.json") {
+        for (const message of validateIndexRows(parsed, file)) failures.push(message);
         continue;
       }
       const isRecord =
