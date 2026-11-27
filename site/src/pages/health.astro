@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import { AUDIT_DAYS } from "@solid-ground/smoke/status";
-import { controls, meta, relativeAge, records } from "../lib/data";
+import { consistencyProblems, controls, index, meta, records, relativeAge } from "../lib/data";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
 const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
@@ -31,6 +31,20 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     <li>Last successful collect: <code>{meta.lastSuccessfulCollect ?? "never"}</code></li>
     <li>Last successful verify: <code>{meta.lastSuccessfulVerify ?? "not run yet"}</code></li>
   </ul>
+
+  <h2>Dataset validation</h2>
+  <p>
+    Consistency checks at build over {records.length} records, {index.length} index rows and {controls.days.length} control day(s):
+    <strong>{consistencyProblems.length === 0 ? "valid" : `${consistencyProblems.length} problem(s)`}</strong>.
+    The deploy runs the full JSON-schema validation before building this page, so an invalid
+    edition cannot reach it.
+  </p>
+  {consistencyProblems.length > 0 && (
+    <ul>
+      {consistencyProblems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}
+      {consistencyProblems.length > 8 && <li>…and {consistencyProblems.length - 8} more</li>}
+    </ul>
+  )}
 
   <h2>Smoke controls</h2>
   <p>
