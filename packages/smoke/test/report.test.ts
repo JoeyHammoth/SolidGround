@@ -97,6 +97,45 @@ describe("foldSmoke", () => {
     expect(folded.confidence).toEqual(["D", "S", "B", "T", "U"]);
   });
 
+  it("stamps the record with when the folded pass finished", () => {
+    const folded = foldSmoke(record(), [result()], POLICY, SOLID, NOW);
+    expect(folded.smokeAt).toBe("2026-11-26T00:00:00Z");
+  });
+
+  it("ages a pass out while Solid stands still", () => {
+    const aged = record({
+      verified: true,
+      confidence: ["D", "S", "B"],
+      smokeAt: "2026-09-01T00:00:00Z",
+      smoke: { import: true, build: true, types: null },
+    });
+    const folded = foldSmoke(aged, [], POLICY, SOLID, NOW);
+    expect(folded.verified).toBe(false);
+    expect(folded.smokeAt).toBeNull();
+    expect(folded.confidence).toEqual(["D", "S"]);
+  });
+
+  it("keeps a pass inside the policy window", () => {
+    const freshPass = record({
+      verified: true,
+      confidence: ["D", "S", "B"],
+      smokeAt: "2026-11-20T00:00:00Z",
+      smoke: { import: true, build: true, types: null },
+    });
+    expect(foldSmoke(freshPass, [], POLICY, SOLID, NOW)).toBe(freshPass);
+  });
+
+  it("leaves an edition published before smokeAt existed alone", () => {
+    const legacy = record({
+      verified: true,
+      confidence: ["D", "S", "B"],
+      tested: { solid: "2.0.4", solidNext: null, rules: "2026.10.1", tool: "0.1.0" },
+      smoke: { import: true, build: true, types: null },
+    });
+    delete (legacy as { smokeAt?: string | null }).smokeAt;
+    expect(foldSmoke(legacy, [], POLICY, SOLID, NOW)).toBe(legacy);
+  });
+
   it("withholds T when the package does not ship types", () => {
     const folded = foldSmoke(record({ shipsTypes: false }), [result()], POLICY, SOLID, NOW);
     expect(folded.confidence).toEqual(["D", "S", "B", "U"]);
