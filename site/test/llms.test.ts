@@ -14,5 +14,7 @@ describe("GET /llms.txt", () => {
     expect(text).toContain(`${controls.streak} clean day(s) in a row`);
     expect(text).toContain("/api/v1/gate.json");
     expect(text).toContain("/api/v1/validation.json");
+    expect(text).toContain("gate.schema.json");
+    expect(text).toContain("validation.schema.json");
   });
 });

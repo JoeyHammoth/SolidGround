@@ -58,6 +58,8 @@ Last control run: ${gate.lastRun ?? "never"}.
 Machine-readable gate state: /api/v1/gate.json.
 Dataset schema validation: ${validation}.
 Machine-readable validation summary: /api/v1/validation.json.
+Response schemas: https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/gate.schema.json
+and https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/validation.schema.json.
 
 ## Attribution
 

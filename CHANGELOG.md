@@ -56,7 +56,9 @@ All notable changes to this project are documented here. The format follows
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
 - `pnpm smoke:status` renders the same grouped failure reasons as `/health/`,
-  so the terminal no longer repeats a control id on every line.
+  so the terminal no longer repeats a control id on every line. `--json` emits
+  the same grouped report for monitors, and a test pins both formats.
+- `llms.txt` links the gate and validation response schemas.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,
