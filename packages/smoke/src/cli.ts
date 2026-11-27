@@ -15,6 +15,7 @@ import {
   AUDIT_DAYS,
   DEFAULT_RETENTION_DAYS,
   compactControlLog,
+  controlsResponse,
   describeControls,
   groupControlFailures,
   readControlLog,
@@ -369,6 +370,28 @@ async function gateCommand(args: string[]): Promise<number> {
   return 0;
 }
 
+/**
+ * Write the fixture the offline API test validates. The control log is the only
+ * input, so the recorded answer is exactly what the next deploy will serve —
+ * which is what keeps `pnpm check:live --strict` meaningful.
+ */
+async function fixtureCommand(args: string[]): Promise<number> {
+  const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
+  const out = flagValue(args, "--out") ?? path.join("fixtures", "live", "controls.json");
+  const { results } = await readControlLog(file);
+  const history = summarizeControls(results);
+  await mkdir(path.dirname(out), { recursive: true });
+  await writeFile(
+    out,
+    `${JSON.stringify(controlsResponse(history), null, 2)}\n`,
+    "utf8",
+  );
+  console.log(
+    `wrote ${out}: ${history.days.length} day(s), ${history.streak} clean in a row`,
+  );
+  return 0;
+}
+
 async function compactCommand(args: string[]): Promise<number> {
   const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
   const retentionDays = Number(
@@ -402,8 +425,11 @@ export async function main(argv: string[]): Promise<number> {
   if (command === "publish") return publishCommand(args);
   if (command === "status") return statusCommand(args);
   if (command === "compact") return compactCommand(args);
+  if (command === "fixture") return fixtureCommand(args);
   if (command === "gate") return gateCommand(args);
-  console.error("usage: cli.ts <plan|report|publish|status|compact|gate> [options]");
+  console.error(
+    "usage: cli.ts <plan|report|publish|status|compact|gate|fixture> [options]",
+  );
   return 2;
 }
 

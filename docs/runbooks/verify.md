@@ -31,9 +31,9 @@ so the page never hides a bad result behind the issue.
 
 `fixtures/live/controls.json` is a captured answer from the deployed
 `/api/v1/controls.json`, kept so the offline suite validates the shape a
-consumer actually receives. Every control batch moves the deployed `lastRun`, so
-refresh the file after a batch lands and before opening a PR that touches the
-control code:
+consumer actually receives. The `history` job writes it from the control log it
+just committed (`pnpm smoke:fixture`), so it tracks every batch without a manual
+step. Refresh it by hand when you need it before a batch lands:
 
 ```bash
 curl -fsS https://joeyhammoth.github.io/SolidGround/api/v1/controls.json \
@@ -42,8 +42,8 @@ pnpm check:live --strict   # fails while the fixture is behind
 ```
 
 A scheduled run that finds the fixture behind prints a warning with the same
-command and puts it in the job summary; it does not open an issue, because the
-fixture is refreshed by whoever next touches the control path.
+command instead of failing, because a fixture refresh is not an API problem. If
+the warning persists, the `history` job's refresh step is the thing to look at.
 
 ## When a batch is discarded
 

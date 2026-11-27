@@ -55,6 +55,16 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
+- `fixtures/live/controls.json` now refreshes itself: the Verify `history` job
+  writes it from the control log it just committed, using `pnpm smoke:fixture`
+  and the same `controlsResponse` builder the endpoint serves, so the recorded
+  answer cannot drift from `/api/v1/controls.json` without a visible commit.
+- The site header's smoke badge carries the deployed API check in its tooltip
+  (`API check passed <time>`), so a drift is visible from any page instead of
+  only `/health/`.
+- ADR 0006 records why `$schema` points at the raw schema files rather than the
+  `$id` domain: `solid-ground.dev` does not resolve, so the canonical URL would
+  be a dead link. It also names the one-line switch for when it does.
 - `/health/` reports the last deployed API check: pass or fail, when it ran,
   how many endpoints answered and the problems behind a failure. The Verify
   `live API` job records the result as `api-check.json` on the `data` branch,
