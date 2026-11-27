@@ -13,6 +13,8 @@ export {
   CONTROLS,
   checkControls,
   controlCells,
+  controlFailures,
+  isControlResult,
   type Control,
 } from "./controls.js";
 export {
@@ -34,3 +36,20 @@ export {
   smokeResult,
   type SmokeRun,
 } from "./report.js";
+export {
+  CONTROL_HISTORY_FILE,
+  foldBatch,
+  loadPolicy,
+  publishBatch,
+  type PublishOptions,
+  type PublishOutcome,
+} from "./publish.js";
+export {
+  AUDIT_DAYS,
+  describeControls,
+  parseControlHistory,
+  readControlHistory,
+  summarizeControls,
+  type ControlDay,
+  type ControlHistory,
+} from "./status.js";

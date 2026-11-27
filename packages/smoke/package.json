@@ -5,9 +5,11 @@
   "description": "Batch planning, result folding and reporting for the sandboxed smoke matrix.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./status": "./src/status.ts"
   },
   "dependencies": {
-    "@solid-ground/schema": "workspace:*"
+    "@solid-ground/schema": "workspace:*",
+    "yaml": "^2.6.1"
   }
 }

@@ -25,6 +25,8 @@
     "sentinel": "tsx packages/collector/src/sentinel.ts",
     "smoke:plan": "tsx packages/smoke/src/cli.ts plan",
     "smoke:report": "tsx packages/smoke/src/cli.ts report",
+    "smoke:publish": "tsx packages/smoke/src/cli.ts publish",
+    "smoke:status": "tsx packages/smoke/src/cli.ts status",
     "smoke:run": "tsx packages/smoke/src/runner.ts",
     "scan": "tsx packages/scanner/src/cli.ts",
     "eval:scanner": "tsx packages/scanner/eval/run.ts",
