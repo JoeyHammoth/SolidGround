@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "recorded", "ok", "checkedAt", "targets", "problems"],
   "properties": {
+    "$schema": { "type": "string", "format": "uri", "maxLength": 200 },
     "schemaVersion": { "const": 1 },
     "recorded": { "type": "boolean" },
     "ok": { "type": ["boolean", "null"] },

@@ -55,6 +55,15 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
+- `/api/v1/gate.json`, `/api/v1/validation.json` and the new `/api/v1/controls.json`
+  carry a `$schema` field naming their JSON Schema, so a consumer can validate a
+  response without hard-coding the repository path.
+- `/api/v1/controls.json` publishes the control-day audit trail: the streak and
+  remaining days, plus one entry per day with its run count, failure count and
+  failures grouped by control id. `controls.schema.json` describes it.
+- `pnpm smoke:status --strict` becomes a usable CI gate: two new tests pin that
+  it exits 1 when the newest control day is not clean and 0 when it is, so the
+  command's exit code is now part of the contract.
 - `pnpm smoke:status` renders the same grouped failure reasons as `/health/`,
   so the terminal no longer repeats a control id on every line. `--json` emits
   the same grouped report for monitors, and a test pins both formats.

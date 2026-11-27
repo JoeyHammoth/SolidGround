@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { deployValidation } from "../../../lib/data";
+import { VALIDATION_SCHEMA_URL } from "../../../lib/schema-urls";
 import { validationTargetLabels } from "../../../lib/validation.js";
 
 export const GET: APIRoute = () =>
@@ -7,12 +8,14 @@ export const GET: APIRoute = () =>
     JSON.stringify(
       deployValidation
         ? {
+            $schema: VALIDATION_SCHEMA_URL,
             schemaVersion: 1,
             recorded: true,
             ...deployValidation,
             targets: validationTargetLabels(deployValidation.targets),
           }
         : {
+            $schema: VALIDATION_SCHEMA_URL,
             schemaVersion: 1,
             recorded: false,
             ok: null,

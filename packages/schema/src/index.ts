@@ -3,6 +3,7 @@ export {
   validateChangeEvent,
   validateControlLog,
   validateControlSummary,
+  validateControls,
   validateDataset,
   validateEvents,
   validateGateState,

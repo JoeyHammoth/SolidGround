@@ -165,11 +165,14 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/solid.json` | Solid dist-tags and surface hashes |
 | `/api/v1/events.json` | Recent new-package, status, version and dataset events |
 | `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness |
+| `/api/v1/controls.json` | Control-day history with grouped failure reasons and audit state |
 | `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
 
-`gate.json` and `validation.json` are described by
-[`gate.schema.json`](packages/schema/schemas/gate.schema.json) and
-[`validation.schema.json`](packages/schema/schemas/validation.schema.json).
+`gate.json`, `controls.json` and `validation.json` are described by
+[`gate.schema.json`](packages/schema/schemas/gate.schema.json),
+[`controls.schema.json`](packages/schema/schemas/controls.schema.json) and
+[`validation.schema.json`](packages/schema/schemas/validation.schema.json);
+each response names its schema in a `$schema` field.
 
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
 [`LICENSE-DATA`](LICENSE-DATA).

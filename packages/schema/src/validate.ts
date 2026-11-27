@@ -20,6 +20,7 @@ function createValidator() {
   const controlSummarySchema = require("../schemas/control-summary.schema.json");
   const gateSchema = require("../schemas/gate.schema.json");
   const validationSchema = require("../schemas/validation.schema.json");
+  const controlsSchema = require("../schemas/controls.schema.json");
   return {
     record: ajv.compile(recordSchema),
     indexRow: ajv.compile(indexSchema),
@@ -28,6 +29,7 @@ function createValidator() {
     controlSummary: ajv.compile(controlSummarySchema),
     gate: ajv.compile(gateSchema),
     validation: ajv.compile(validationSchema),
+    controls: ajv.compile(controlsSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -93,6 +95,11 @@ export function validateGateState(value: unknown): string[] {
 export function validateValidationSummary(value: unknown): string[] {
   if (validators.validation(value)) return [];
   return [formatValidationErrors(validators.validation.errors)];
+}
+
+export function validateControls(value: unknown): string[] {
+  if (validators.controls(value)) return [];
+  return [formatValidationErrors(validators.controls.errors)];
 }
 
 /**
