@@ -22,7 +22,13 @@ All notable changes to this project are documented here. The format follows
   the failing row by position. `meta.json` and `solid.json` gain their own
   schemas, so every published dataset file is checked.
 - The site header carries a smoke-gate badge (`Smoke gate 0/14`) linking to the
-  health page, with the remaining clean days in its tooltip.
+  health page, with the remaining clean days in its tooltip; waiting and met
+  states are styled differently.
+- The control log is schema-validated: each line must be a smoke result or an
+  archived `control-summary`, and `pnpm validate` reports the failing line.
+- Verify validates the checked-out data branch on every scheduled run, so a
+  malformed `index`, `meta`, `solid`, record, event or control-log file turns
+  the audit job red before the next publish.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

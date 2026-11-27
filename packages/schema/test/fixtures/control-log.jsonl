@@ -1,0 +1,2 @@
+{"schemaVersion":1,"name":"@solid-ground/control-good","version":"0.0.0","solid":"2.0.4","channel":"stable","smoke":{"import":true,"build":true,"types":true},"entry":"esm","durationMs":3832,"error":null,"at":"2026-11-27T10:49:00.389Z"}
+{"schemaVersion":1,"kind":"control-summary","month":"2026-11","days":1,"cleanDays":1,"results":3}

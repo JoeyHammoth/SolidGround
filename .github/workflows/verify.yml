@@ -337,6 +337,16 @@ jobs:
           ref: data
           path: data
           persist-credentials: false
+      - name: Validate the published dataset
+        # Every scheduled run checks the edition itself, so a hand edit or a bad
+        # write surfaces here instead of at the next publish.
+        run: |
+          set -euo pipefail
+          if [ ! -f data/index.json ]; then
+            echo "::notice::No dataset checkout; skipping dataset validation."
+            exit 0
+          fi
+          pnpm run validate data
       - name: Compare the committed audit with the published edition
         id: audit
         run: |

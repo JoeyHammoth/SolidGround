@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/control-summary.schema.json",
+  "title": "Solid Ground control-history month summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "month", "days", "cleanDays", "results"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "control-summary" },
+    "month": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "days": { "type": "integer", "minimum": 0 },
+    "cleanDays": { "type": "integer", "minimum": 0 },
+    "results": { "type": "integer", "minimum": 0 }
+  }
+}
