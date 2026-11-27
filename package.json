@@ -28,6 +28,7 @@
     "smoke:publish": "tsx packages/smoke/src/cli.ts publish",
     "smoke:status": "tsx packages/smoke/src/cli.ts status",
     "smoke:run": "tsx packages/smoke/src/runner.ts",
+    "audit:blocked": "tsx packages/cli/src/blocked.ts",
     "scan": "tsx packages/scanner/src/cli.ts",
     "eval:scanner": "tsx packages/scanner/eval/run.ts",
     "ci": "pnpm run lint && pnpm run test && pnpm run validate registry fixtures && pnpm run site:build"

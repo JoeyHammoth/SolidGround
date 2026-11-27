@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@solid-ground/schema": "workspace:*"
+    "@solid-ground/schema": "workspace:*",
+    "yaml": "^2.6.1"
   }
 }
