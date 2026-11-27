@@ -6,7 +6,7 @@
   "repository": "https://github.com/solidjs-community/solid-primitives",
   "lines": [
     {
-      "version": "5.0.0",
+      "version": "5.0.1",
       "tag": "latest",
       "stability": "stable",
       "phase": "stable",
@@ -14,6 +14,18 @@
       "parsed": true,
       "admitsSolid2": true,
       "clean": true,
+      "publishedAt": "2026-11-26T18:19:25.530Z",
+      "deprecated": false
+    },
+    {
+      "version": "5.0.0",
+      "tag": null,
+      "stability": "stable",
+      "phase": "stable",
+      "solidRange": "^2.0.0",
+      "parsed": true,
+      "admitsSolid2": true,
+      "clean": null,
       "publishedAt": "2026-11-17T17:14:48.030Z",
       "deprecated": false
     },
@@ -114,18 +126,6 @@
       "deprecated": false
     },
     {
-      "version": "4.3.5",
-      "tag": null,
-      "stability": "stable",
-      "phase": "stable",
-      "solidRange": "^1.6.12",
-      "parsed": true,
-      "admitsSolid2": false,
-      "clean": null,
-      "publishedAt": "2026-07-04T20:38:43.631Z",
-      "deprecated": false
-    },
-    {
       "version": "3.8.0",
       "tag": null,
       "stability": "stable",
@@ -198,14 +198,14 @@
     "types": null
   },
   "shipsTypes": true,
-  "checkedAt": "2026-11-26T12:37:22.006Z",
+  "checkedAt": "2026-11-27T09:43:05.909Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",
     "rules": "2026.11.1",
     "tool": "0.1.0"
   },
-  "downloadsWeekly": 6196464,
+  "downloadsWeekly": 6139430,
   "links": {
     "npm": "https://www.npmjs.com/package/@solid-primitives/storage",
     "repository": "https://github.com/solidjs-community/solid-primitives",
@@ -218,10 +218,10 @@
   ],
   "verified": false,
   "reasons": [
-    "Stable release 5.0.0 admits Solid 2 (`^2.0.0`).",
+    "Stable release 5.0.1 admits Solid 2 (`^2.0.0`).",
     "Static scan of the published code found no removed Solid 1 APIs."
   ],
-  "recommendedVersion": "5.0.0",
-  "solid2Version": "5.0.0",
+  "recommendedVersion": "5.0.1",
+  "solid2Version": "5.0.1",
   "solid2Tag": "latest"
 }

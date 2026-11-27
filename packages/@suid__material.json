@@ -138,14 +138,14 @@
     "types": null
   },
   "shipsTypes": true,
-  "checkedAt": "2026-11-26T12:37:22.006Z",
+  "checkedAt": "2026-11-27T09:43:05.909Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",
     "rules": "2026.11.1",
     "tool": "0.1.0"
   },
-  "downloadsWeekly": 3985,
+  "downloadsWeekly": 3763,
   "links": {
     "npm": "https://www.npmjs.com/package/@suid/material",
     "repository": "https://github.com/swordev/suid",
