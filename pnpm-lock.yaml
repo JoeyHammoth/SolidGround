@@ -95,6 +95,12 @@ importers:
 
   packages/schema: {}
 
+  packages/smoke:
+    dependencies:
+      '@solid-ground/schema':
+        specifier: workspace:*
+        version: link:../schema
+
   site:
     dependencies:
       '@solid-ground/schema':

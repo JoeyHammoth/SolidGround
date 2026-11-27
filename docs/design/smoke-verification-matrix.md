@@ -115,9 +115,13 @@ per cell is:
   "smoke": { "import": true, "build": true, "types": null },
   "entry": "esm",
   "durationMs": 41230,
-  "error": null
+  "error": null,
+  "at": "2026-11-26T04:12:00Z"
 }
 ```
+
+`at` is the instant the cell finished, and it is required: freshness is measured
+from it, never from the record's `checkedAt`.
 
 `error` carries an environmental failure string — registry 429, install
 timeout, runner OOM. An environmental failure emits `smoke: null` for the
@@ -137,6 +141,10 @@ silently downgrading a record.
   changes a record whose `recommendedVersion` is `2.0.4`.
 - `verified` becomes true when `status === "ready"`, the recommended version
   imported successfully against the current `stable2`, and nothing disagrees.
+- When Solid moves past the release a record was tested against, the pass stops
+  covering the version under test and `verified` is cleared. Ageing a pass out
+  while Solid stands still needs a `smokeAt` timestamp on the record itself;
+  that field is phase 2.
 - Evidence levels `B` and `T` are added from the same facts, so the record's
   `confidence` explains itself.
 
@@ -215,8 +223,9 @@ and drops `next` to weekly once the canary channel is stable.
 
 ## Task list
 
-- [ ] `smoke-result.schema.json` + validator wiring
-- [ ] `packages/smoke` plan/report/fold with unit tests, no network
+- [x] `smoke-result.schema.json` + validator wiring
+- [x] `packages/smoke` plan/report/fold with unit tests, no network
+- [ ] `smokeAt` on the record, so a pass on an unchanged Solid release can age out
 - [ ] `runner.ts` with the three steps and the temp-dir discipline
 - [ ] control fixtures and the discard-on-bad-control rule
 - [ ] `verify.yml` in `audit` mode, three packages, no publish

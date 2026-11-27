@@ -4,5 +4,6 @@ export {
   validateDataset,
   validateEvents,
   validateRegistryEntry,
+  validateSmokeResult,
   formatValidationErrors,
 } from "./validate.js";
