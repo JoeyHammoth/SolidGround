@@ -298,19 +298,39 @@ async function publishCommand(args: string[]): Promise<number> {
 async function statusCommand(args: string[]): Promise<number> {
   const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
   const last = Number(flagValue(args, "--last") ?? "14");
+  const asJson = args.includes("--json");
   const { results, summaries } = await readControlLog(file);
   const history = summarizeControls(results);
 
   if (history.days.length === 0 && summaries.length === 0) {
-    console.log(`no control history at ${file} yet`);
+    console.log(
+      asJson
+        ? JSON.stringify({ days: [], summaries: [], streak: 0, lastRun: null, auditMet: false })
+        : `no control history at ${file} yet`,
+    );
     return 0;
   }
-  for (const line of describeControls(history, last, summaries)) console.log(line);
-  for (const day of history.days.slice(-last)) {
-    if (day.clean) continue;
-    console.log(`  ${day.day}  ${day.failures.length} failure(s)`);
-    for (const group of groupControlFailures(day.failures)) {
-      console.log(`    ${group.subject}: ${group.details.join("; ")}`);
+  if (asJson) {
+    console.log(
+      JSON.stringify({
+        days: history.days.slice(-last).map((day) => ({
+          ...day,
+          groups: groupControlFailures(day.failures),
+        })),
+        summaries,
+        streak: history.streak,
+        lastRun: history.lastRun,
+        auditMet: history.auditMet,
+      }),
+    );
+  } else {
+    for (const line of describeControls(history, last, summaries)) console.log(line);
+    for (const day of history.days.slice(-last)) {
+      if (day.clean) continue;
+      console.log(`  ${day.day}  ${day.failures.length} failure(s)`);
+      for (const group of groupControlFailures(day.failures)) {
+        console.log(`    ${group.subject}: ${group.details.join("; ")}`);
+      }
     }
   }
   if (args.includes("--strict") && !(history.days.at(-1) as { clean: boolean }).clean) {

@@ -149,8 +149,8 @@ actually exercised, so `verified` never implies more than was run.
 
 Maintainers can read the audit trail with
 `pnpm smoke:status --file data/smoke/controls.jsonl` and see how far the gate has
-to go with `pnpm smoke:gate --file data/smoke/controls.jsonl`; add `--json` for
-a monitor. The Verify workflow opens one reminder issue when the gate is met and
+to go with `pnpm smoke:gate --file data/smoke/controls.jsonl`. Both accept
+`--json`; the status report includes failures grouped by control id. The Verify workflow opens one reminder issue when the gate is met and
 closes it after the first publish batch.
 
 ## JSON API
