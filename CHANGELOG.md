@@ -17,6 +17,10 @@ All notable changes to this project are documented here. The format follows
   appearing, changing or clearing.
 - `events.ndjson` is schema-validated line by line, so a malformed event fails
   collect and deploy with its line number instead of disappearing at read time.
+- Sandboxed smoke matrix, first slice: `smoke-result.schema.json`, and a pure
+  `@solid-ground/smoke` package that plans a batch of cells and folds results
+  into records. Environmental failures stay `null` and never read as a verdict.
+  The sandbox runner itself is not wired up yet.
 - `/changes/` lists every event newest first with filters by transition and
   category, `/feed.xml` is an Atom feed of the same events, and
   `/api/v1/events.json` exposes them as JSON.

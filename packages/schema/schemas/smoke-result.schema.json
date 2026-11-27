@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/smoke-result.schema.json",
+  "title": "Solid Ground smoke result",
+  "description": "One sandboxed import/build/types cell: one package version against one Solid version.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "version", "solid", "channel", "smoke", "at"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 214 },
+    "version": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "solid": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "channel": { "enum": ["stable", "next"] },
+    "smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["import", "build", "types"],
+      "properties": {
+        "import": { "type": ["boolean", "null"] },
+        "build": { "type": ["boolean", "null"] },
+        "types": { "type": ["boolean", "null"] }
+      }
+    },
+    "entry": { "type": ["string", "null"], "maxLength": 120 },
+    "durationMs": { "type": ["integer", "null"], "minimum": 0 },
+    "error": { "type": ["string", "null"], "maxLength": 2000 },
+    "at": { "type": "string", "maxLength": 40 }
+  }
+}

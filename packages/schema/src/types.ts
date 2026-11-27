@@ -41,6 +41,30 @@ export interface SmokeResults {
   types: boolean | null;
 }
 
+/** Which Solid release line a cell was tested against. */
+export type SmokeChannel = "stable" | "next";
+
+/**
+ * One sandboxed verification cell, published as JSON so a run can be audited
+ * after the runner is gone. `error` is an environmental failure (registry 429,
+ * timeout): the affected steps stay `null`, never `false`.
+ */
+export interface SmokeResult {
+  schemaVersion: 1;
+  name: string;
+  version: string;
+  /** The `solid-js` version installed for the cell. */
+  solid: string;
+  channel: SmokeChannel;
+  smoke: SmokeResults;
+  /** Which entry point the import step exercised, or null when it did not run. */
+  entry: string | null;
+  durationMs: number | null;
+  error: string | null;
+  /** When the cell finished, ISO. Freshness is measured from here. */
+  at: string;
+}
+
 /** A release line of a package: the version, its channel and what it declares. */
 export interface VersionLine {
   version: string;

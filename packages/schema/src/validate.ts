@@ -13,10 +13,12 @@ function createValidator() {
   const recordSchema = require("../schemas/package-record.schema.json");
   const registrySchema = require("../schemas/registry-entry.schema.json");
   const eventSchema = require("../schemas/change-event.schema.json");
+  const smokeSchema = require("../schemas/smoke-result.schema.json");
   return {
     record: ajv.compile(recordSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
+    smoke: ajv.compile(smokeSchema),
   };
 }
 
@@ -42,6 +44,11 @@ export function validateDataset(value: unknown): string[] {
 export function validateChangeEvent(value: unknown): string[] {
   if (validators.event(value)) return [];
   return [formatValidationErrors(validators.event.errors)];
+}
+
+export function validateSmokeResult(value: unknown): string[] {
+  if (validators.smoke(value)) return [];
+  return [formatValidationErrors(validators.smoke.errors)];
 }
 
 /**

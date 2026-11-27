@@ -1,0 +1,13 @@
+{
+  "name": "@solid-ground/smoke",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Batch planning, result folding and reporting for the sandboxed smoke matrix.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@solid-ground/schema": "workspace:*"
+  }
+}
