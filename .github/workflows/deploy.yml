@@ -53,7 +53,9 @@ jobs:
       - name: Validate the dataset before publishing a site from it
         run: |
           set -o pipefail
-          pnpm --silent run validate "$DATA_DIR" --json | tee "$DATA_DIR/validation.json"
+          # Write outside the dataset: tee would create the file before the scan.
+          pnpm --silent run validate "$DATA_DIR" --json | tee /tmp/validation.json
+          mv /tmp/validation.json "$DATA_DIR/validation.json"
       - name: Build
         run: pnpm run site:build
         env:
