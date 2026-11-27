@@ -165,6 +165,11 @@ export interface PackageRecord extends Verdict {
    * aged out by the moved-Solid rule only.
    */
   smokeAt?: string | null;
+  /**
+   * The subpath the folded pass imported, or null when it used the package
+   * root. Absent on editions published before the field existed.
+   */
+  smokeTarget?: string | null;
   shipsTypes: boolean;
   checkedAt: string;
   tested: {

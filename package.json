@@ -27,6 +27,7 @@
     "smoke:report": "tsx packages/smoke/src/cli.ts report",
     "smoke:publish": "tsx packages/smoke/src/cli.ts publish",
     "smoke:status": "tsx packages/smoke/src/cli.ts status",
+    "smoke:compact": "tsx packages/smoke/src/cli.ts compact",
     "smoke:run": "tsx packages/smoke/src/runner.ts",
     "audit:blocked": "tsx packages/cli/src/blocked.ts",
     "scan": "tsx packages/scanner/src/cli.ts",

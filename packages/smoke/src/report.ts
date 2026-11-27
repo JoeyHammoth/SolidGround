@@ -84,11 +84,13 @@ function applySmoke(
   record: PackageRecord,
   smoke: SmokeResults,
   smokeAt: string | null,
+  smokeTarget: string | null,
 ): PackageRecord {
   return {
     ...record,
     smoke,
     smokeAt,
+    smokeTarget,
     verified: record.status === "ready" && smoke.import === true,
     confidence: levelsFor(record, smoke),
   };
@@ -148,7 +150,7 @@ export function foldSmoke(
     // ran, or it is simply older than the policy window while Solid stood still.
     const solidMoved = record.tested.solid !== solid.stable2;
     if (!solidMoved && !passHasAgedOut(record, policy, now)) return record;
-    return applySmoke(record, { import: null, build: null, types: null }, null);
+    return applySmoke(record, { import: null, build: null, types: null }, null, null);
   }
 
   return applySmoke(
@@ -159,5 +161,6 @@ export function foldSmoke(
       types: best.smoke.types,
     },
     best.at,
+    best.target ?? null,
   );
 }

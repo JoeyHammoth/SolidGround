@@ -100,6 +100,23 @@ describe("foldSmoke", () => {
   it("stamps the record with when the folded pass finished", () => {
     const folded = foldSmoke(record(), [result()], POLICY, SOLID, NOW);
     expect(folded.smokeAt).toBe("2026-11-26T00:00:00Z");
+    expect(folded.smokeTarget).toBeNull();
+  });
+
+  it("records the subpath a pass actually probed", () => {
+    const subpath = result({ target: "@example/lib/widget" });
+    const folded = foldSmoke(record(), [subpath], POLICY, SOLID, NOW);
+    expect(folded.smokeTarget).toBe("@example/lib/widget");
+  });
+
+  it("clears the probed subpath when a pass is withdrawn", () => {
+    const withTarget = record({
+      verified: true,
+      smokeAt: "2026-09-01T00:00:00Z",
+      smokeTarget: "@example/lib/widget",
+      smoke: { import: true, build: true, types: null },
+    });
+    expect(foldSmoke(withTarget, [], POLICY, SOLID, NOW).smokeTarget).toBeNull();
   });
 
   it("ages a pass out while Solid stands still", () => {

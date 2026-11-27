@@ -214,14 +214,17 @@ verify.yml  (workflow_dispatch, nightly 04:10 UTC)
   plan    contents: read   -> matrix JSON (packages x cells + all controls)
   smoke   contents: read   -> one job per cell, uploads one result artifact
   report  contents: read   -> merge + validate + controls -> smoke/ artifact
-  history contents: write  -> append the control log to data (always, on main)
+  history contents: write  -> append + compact the control log on data (always, on main)
   publish contents: write  -> manual only: fold a trusted batch into data
+  audit   issues: write    -> check the generated blocked-package note, own an issue
 ```
 
 Both jobs write the audit trail to the run's step summary as well, so a passing
-or failing control day is visible without downloading an artifact. The plan job
-also checks that the generated blocked-package audit matches the edition; a
-stale note marks the step red without stopping the control runs. A scheduled
+or failing control day is visible without downloading an artifact. A separate
+`audit` job checks that the generated blocked-package note matches the edition
+and opens (or updates) an issue when it does not, then fails itself. That keeps
+a stale note visible without blocking the control runs the two-week gate depends
+on. A scheduled
 run stops after `history`: it records the control verdicts — the failures too —
 but cannot change a record. `publish` needs the manual input, so
 promoting a batch is a deliberate act rather than a cron side effect. Both write
@@ -249,9 +252,14 @@ pnpm smoke:publish --data data --results smoke/results.ndjson
 
 # The audit trail and the generated blocked-package note.
 pnpm smoke:status --file data/smoke/controls.jsonl
+pnpm smoke:compact --file data/smoke/controls.jsonl  # archive months past the window
 pnpm audit:blocked --data data          # writes docs/research/2026-11-blocked-packages.md
 pnpm audit:blocked --data data --check  # exits 1 when the committed note is stale
 ```
+
+The control log keeps 180 days of raw verdicts and replaces older results with
+one summary per month, so the file stays small and `smoke:status` still says how
+much of each archived month was clean.
 
 `smoke:publish` refuses a real publish until the log has fourteen clean days.
 `--skip-audit` bypasses that check for a maintainer bootstrap only.
@@ -347,5 +355,7 @@ and drops `next` to weekly once the canary channel is stable.
   so the two-week audit is visible after the artifact expires
 - [x] subpath-only control fixture, so a probe regression discards the batch
 - [x] publish refuses without fourteen clean control days, and the blocked
-  audit is generated from the dataset with a freshness check
+  audit is generated from the dataset with a freshness check that owns an issue
+- [x] control-log compaction, and the smoke evidence (including the probed
+  `target`) rendered on each package page once a pass is published
 - [ ] two weeks of clean control runs, then promote to nightly

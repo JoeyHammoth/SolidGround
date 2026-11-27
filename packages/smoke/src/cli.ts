@@ -10,7 +10,13 @@ import { checkControls, controlCells, isControlResult } from "./controls.js";
 import { artifactId, cellId, planBatch } from "./plan.js";
 import type { CellSource, SmokeCell, SmokeSteps } from "./plan.js";
 import { CONTROL_HISTORY_FILE, loadPolicy, publishBatch } from "./publish.js";
-import { describeControls, readControlHistory, summarizeControls } from "./status.js";
+import {
+  DEFAULT_RETENTION_DAYS,
+  compactControlLog,
+  describeControls,
+  readControlLog,
+  summarizeControls,
+} from "./status.js";
 
 /**
  * The plan, report, publish and status steps of `verify.yml`, on a laptop:
@@ -289,13 +295,14 @@ async function publishCommand(args: string[]): Promise<number> {
 async function statusCommand(args: string[]): Promise<number> {
   const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
   const last = Number(flagValue(args, "--last") ?? "14");
-  const history = summarizeControls(await readControlHistory(file));
+  const { results, summaries } = await readControlLog(file);
+  const history = summarizeControls(results);
 
-  if (history.days.length === 0) {
+  if (history.days.length === 0 && summaries.length === 0) {
     console.log(`no control history at ${file} yet`);
     return 0;
   }
-  for (const line of describeControls(history, last)) console.log(line);
+  for (const line of describeControls(history, last, summaries)) console.log(line);
   for (const day of history.days.slice(-last)) {
     if (day.clean) continue;
     for (const failure of day.failures) console.log(`  ${day.day}: ${failure}`);
@@ -307,13 +314,40 @@ async function statusCommand(args: string[]): Promise<number> {
   return 0;
 }
 
+async function compactCommand(args: string[]): Promise<number> {
+  const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
+  const retentionDays = Number(
+    flagValue(args, "--retention-days") ?? DEFAULT_RETENTION_DAYS,
+  );
+  const nowValue = flagValue(args, "--now");
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch {
+    console.log(`no control log at ${file}; nothing to compact`);
+    return 0;
+  }
+  const lines = text.split("\n").filter((line) => line.trim().length > 0).length;
+  const result = compactControlLog(text, {
+    retentionDays,
+    ...(nowValue ? { now: new Date(nowValue) } : {}),
+  });
+  await writeFile(file, result.text, "utf8");
+  console.log(
+    `compacted ${file}: ${result.kept} raw result(s) kept, ` +
+      `${result.summarized} month(s) archived, ${lines} line(s) before`,
+  );
+  return 0;
+}
+
 export async function main(argv: string[]): Promise<number> {
   const [command, ...args] = argv;
   if (command === "plan") return planCommand(args);
   if (command === "report") return reportCommand(args);
   if (command === "publish") return publishCommand(args);
   if (command === "status") return statusCommand(args);
-  console.error("usage: cli.ts <plan|report|publish|status> [options]");
+  if (command === "compact") return compactCommand(args);
+  console.error("usage: cli.ts <plan|report|publish|status|compact> [options]");
   return 2;
 }
 
