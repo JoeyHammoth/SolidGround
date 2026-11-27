@@ -54,7 +54,7 @@ contents never hold a write token.
 | `packages/collector/` | npm clients, normalisation, dataset builder |
 | `packages/scanner/` | Static import analysis (planned, M3) |
 | `packages/smoke/` | Batch planning, the sandbox runner, controls, result folding, publish and control history for the verify matrix (M4, phase 0) |
-| `packages/cli/` | `solid-ground check` dependency checker |
+| `packages/cli/` | `solid-ground check` dependency checker and the generated blocked-package audit |
 | `site/` | Astro static site and generated API routes |
 | `fixtures/` | Recorded evidence and the golden dataset used by tests and CI |
 | `docs/` | Methodology, architecture, ADRs, research notes |

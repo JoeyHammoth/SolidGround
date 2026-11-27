@@ -51,6 +51,7 @@ packages/smoke/
   src/cli.ts          # plan, report, publish and status, locally and in CI
   fixtures/control-good/  # must import, build and typecheck
   fixtures/control-bad/   # imports an API Solid 2 removed; must fail import
+  fixtures/control-subpath/  # no root export; must pass through ./widget
   test/plan.test.ts   # selection and folding, no network
   test/report.test.ts # artifact round-trip
   test/runner.test.ts # spec parsing, entry choice, manifest and file layout
@@ -168,7 +169,11 @@ silently downgrading a record.
   `confidence` explains itself.
 
 The publish job is the only write path. It is manual (`workflow_dispatch` with
-`publish: true`) and re-checks the controls before it touches anything:
+`publish: true`) and re-checks the controls before it touches anything. It also
+reads the control log and refuses to publish until there are fourteen clean
+days on record, so the phase-0 gate is enforced by the code rather than by a
+comment. `--skip-audit` exists for a maintainer bootstrap and for local
+experiments; CI never passes it.
 
 ```bash
 pnpm smoke:publish --data data --results smoke/results.ndjson --dry-run
@@ -177,7 +182,8 @@ pnpm smoke:publish --data data --results smoke/results.ndjson --dry-run
 It changes only records the batch names, updates `verified` and `confidence` on
 the matching `index.json` rows, stamps `meta.lastSuccessfulVerify`, and appends
 the batch's control results to `smoke/controls.jsonl` on the data branch. A
-malformed result or a wrong control aborts before the first write.
+malformed result, a wrong control or a short audit trail aborts before the first
+write.
 
 A failed `build` with a passing `import` withholds `verified` but does not
 downgrade `status` (decision 2 below): a bundler edge case is not evidence that
@@ -185,13 +191,17 @@ the package is broken.
 
 ## Controls
 
-Two fixtures ship with the harness and run in **every** batch:
+Three fixtures ship with the harness and run in **every** batch:
 
 - **known-good:** a two-line Solid 2 component that must return
-  `{ import: true, build: true, types: true }`.
+  `{ import: true, build: true, types: true }` through the package root.
 - **known-bad:** the same component importing `batch` from `solid-js`, which
   Solid 2 removed, and calling it at module scope, which must return
   `import: false`.
+- **subpath-only:** a package with no root export and one `./widget` entry. It
+  must pass all three steps and the artifact must name
+  `@solid-ground/control-subpath/widget` in `target`. If the subpath probe
+  regresses, this control fails and every batch is discarded.
 
 If either control returns the wrong verdict, the whole batch is discarded as an
 infrastructure failure. This is the single most important guard: without it a
@@ -201,7 +211,7 @@ broken sandbox quietly marks packages as failing.
 
 ```text
 verify.yml  (workflow_dispatch, nightly 04:10 UTC)
-  plan    contents: read   -> matrix JSON (packages x cells + both controls)
+  plan    contents: read   -> matrix JSON (packages x cells + all controls)
   smoke   contents: read   -> one job per cell, uploads one result artifact
   report  contents: read   -> merge + validate + controls -> smoke/ artifact
   history contents: write  -> append the control log to data (always, on main)
@@ -209,7 +219,9 @@ verify.yml  (workflow_dispatch, nightly 04:10 UTC)
 ```
 
 Both jobs write the audit trail to the run's step summary as well, so a passing
-or failing control day is visible without downloading an artifact. A scheduled
+or failing control day is visible without downloading an artifact. The plan job
+also checks that the generated blocked-package audit matches the edition; a
+stale note marks the step red without stopping the control runs. A scheduled
 run stops after `history`: it records the control verdicts — the failures too —
 but cannot change a record. `publish` needs the manual input, so
 promoting a batch is a deliberate act rather than a cron side effect. Both write
@@ -220,7 +232,7 @@ to the jobs that run package code; the publish and history jobs run none.
 ### Running it
 
 ```bash
-# Plan three packages plus both controls from the published edition.
+# Plan three packages plus the controls from the published edition.
 pnpm smoke:plan --data data \
   --packages "@solid-primitives/storage,@solidjs/meta,@kobalte/core" \
   --max-cells 3 --out smoke-plan.json
@@ -235,9 +247,14 @@ pnpm smoke:report --dir results --out smoke/results.ndjson
 pnpm smoke:publish --data data --results smoke/results.ndjson --dry-run
 pnpm smoke:publish --data data --results smoke/results.ndjson
 
-# The audit trail so far.
+# The audit trail and the generated blocked-package note.
 pnpm smoke:status --file data/smoke/controls.jsonl
+pnpm audit:blocked --data data          # writes docs/research/2026-11-blocked-packages.md
+pnpm audit:blocked --data data --check  # exits 1 when the committed note is stale
 ```
+
+`smoke:publish` refuses a real publish until the log has fourteen clean days.
+`--skip-audit` bypasses that check for a maintainer bootstrap only.
 
 `smoke:report` exits non-zero and writes nothing when a cell is malformed or a
 control answers wrongly: a batch without trustworthy controls must not be able
@@ -328,6 +345,7 @@ and drops `next` to weekly once the canary channel is stable.
   a malformed result or a wrong control
 - [x] control log on the data branch, `smoke:status` and a health-page section,
   so the two-week audit is visible after the artifact expires
-- [x] subpath probe and a `target` field, so a subpath-only package is measured
-  rather than failed by the root import
+- [x] subpath-only control fixture, so a probe regression discards the batch
+- [x] publish refuses without fourteen clean control days, and the blocked
+  audit is generated from the dataset with a freshness check
 - [ ] two weeks of clean control runs, then promote to nightly
