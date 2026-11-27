@@ -55,10 +55,11 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
-- `fixtures/live/controls.json` now refreshes itself: the Verify `history` job
-  writes it from the control log it just committed, using `pnpm smoke:fixture`
-  and the same `controlsResponse` builder the endpoint serves, so the recorded
-  answer cannot drift from `/api/v1/controls.json` without a visible commit.
+- `pnpm smoke:fixture` regenerates `fixtures/live/controls.json` from the
+  control log with the same `controlsResponse` builder `/api/v1/controls.json`
+  serves, so the recorded answer cannot differ from the served one. It stays a
+  PR rather than a workflow commit: `main` requires a pull request and two
+  green checks, and a workflow token push is rejected.
 - The site header's smoke badge carries the deployed API check in its tooltip
   (`API check passed <time>`), so a drift is visible from any page instead of
   only `/health/`.

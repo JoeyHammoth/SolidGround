@@ -31,15 +31,21 @@ so the page never hides a bad result behind the issue.
 
 `fixtures/live/controls.json` is a captured answer from the deployed
 `/api/v1/controls.json`, kept so the offline suite validates the shape a
-consumer actually receives. The `history` job writes it from the control log it
-just committed (`pnpm smoke:fixture`), so it tracks every batch without a manual
-step. Refresh it by hand when you need it before a batch lands:
+consumer actually receives. Regenerate it from the control log, which is what
+the deploy builds the endpoint from:
 
 ```bash
-curl -fsS https://joeyhammoth.github.io/SolidGround/api/v1/controls.json \
-  > fixtures/live/controls.json
+git fetch origin data
+git show origin/data:smoke/controls.jsonl > /tmp/controls.jsonl
+pnpm smoke:fixture --file /tmp/controls.jsonl
 pnpm check:live --strict   # fails while the fixture is behind
 ```
+
+`smoke:fixture` shares its builder with the endpoint, so the file matches what
+is served rather than a screenshot of it. The `history` job cannot do this for
+you: `main` requires a pull request and two green checks, so a workflow token
+push is rejected (`GH013`). The refresh is therefore a normal PR, and
+`check:live --strict` is what says it is due.
 
 A scheduled run that finds the fixture behind prints a warning with the same
 command instead of failing, because a fixture refresh is not an API problem. If
