@@ -52,6 +52,47 @@ export function categoryValueOf(event: ChangeEvent): string {
   return isDatasetEvent(event) ? "dataset" : categoryOf(event.name);
 }
 
+/** What a dataset event is about, for the subject column. */
+export function datasetSubject(event: ChangeEvent): string {
+  switch (event.kind) {
+    case "rules":
+      return "rules";
+    case "solid":
+      return "solid-js";
+    default:
+      return "dataset";
+  }
+}
+
+export interface EventRow {
+  /** The package page, or null when this event has no page to link to. */
+  href: string | null;
+  subject: string;
+  transition: string;
+  category: string;
+  title: string;
+}
+
+/**
+ * Everything the changes table needs for one event. Dataset events and monthly
+ * summaries have no package page, so they render as text rather than a link.
+ */
+export function eventRow(event: ChangeEvent, base = ""): EventRow {
+  const linked = event.kind !== "summary" && !isDatasetEvent(event);
+  return {
+    href: linked ? `${base}/packages/${eventSlug(event.name)}/` : null,
+    subject:
+      event.kind === "summary"
+        ? "all packages"
+        : isDatasetEvent(event)
+          ? datasetSubject(event)
+          : event.name,
+    transition: transitionOf(event),
+    category: categoryValueOf(event),
+    title: eventTitle(event),
+  };
+}
+
 /** The filter value an event maps to, e.g. `became-ready`. */
 export function transitionOf(event: ChangeEvent): string {
   switch (event.kind) {
