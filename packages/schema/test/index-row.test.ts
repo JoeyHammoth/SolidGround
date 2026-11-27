@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -37,6 +38,13 @@ describe("index rows", () => {
     const failures = validateIndexRows([row, { ...row, status: "shipped" }], "index.json");
     expect(failures).toHaveLength(1);
     expect(failures[0]).toContain("index.json[1]");
+  });
+
+  it("accepts a fixture shaped like a published row with smoke evidence", () => {
+    const fixture: unknown = JSON.parse(
+      readFileSync(new URL("./fixtures/published-index-row.json", import.meta.url), "utf8"),
+    );
+    expect(validateIndexRow(fixture)).toEqual([]);
   });
 
   it("validates index.json on disk, where publishes actually write it", async () => {

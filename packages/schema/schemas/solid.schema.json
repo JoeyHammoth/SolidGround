@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/solid.schema.json",
+  "title": "Solid Ground solid.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "stable2",
+    "next",
+    "observedAt",
+    "distTags",
+    "surfaceHash",
+    "docsHash"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "stable2": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "next": { "type": ["string", "null"], "maxLength": 120 },
+    "observedAt": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "distTags": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "maxLength": 120 }
+    },
+    "surfaceHash": { "type": ["string", "null"], "maxLength": 200 },
+    "docsHash": { "type": ["string", "null"], "maxLength": 200 }
+  }
+}

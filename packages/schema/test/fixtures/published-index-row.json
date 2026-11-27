@@ -1,0 +1,13 @@
+{
+  "name": "@solidjs/meta",
+  "status": "ready",
+  "confidence": ["D", "B", "T"],
+  "verified": true,
+  "solid2Version": "2.0.4",
+  "category": "meta-frameworks",
+  "family": null,
+  "downloadsWeekly": 412000,
+  "checkedAt": "2026-11-26T12:00:00.000Z",
+  "smokeTarget": "@solidjs/meta/head",
+  "smokeAt": "2026-11-26T12:00:00.000Z"
+}
