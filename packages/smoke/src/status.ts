@@ -33,6 +33,25 @@ export const AUDIT_DAYS = 14;
 export const DEFAULT_RETENTION_DAYS = 180;
 const DAY_MS = 86_400_000;
 
+/** The gate facts a monitor needs, independent of how they are printed. */
+export interface GateState {
+  streak: number;
+  required: number;
+  remaining: number;
+  ready: boolean;
+  lastRun: string | null;
+}
+
+export function gateState(history: ControlHistory): GateState {
+  return {
+    streak: history.streak,
+    required: AUDIT_DAYS,
+    remaining: Math.max(0, AUDIT_DAYS - history.streak),
+    ready: history.auditMet,
+    lastRun: history.lastRun,
+  };
+}
+
 function dayOf(at: string): string | null {
   const time = new Date(at);
   if (Number.isNaN(time.getTime())) return null;

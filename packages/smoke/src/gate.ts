@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { AUDIT_DAYS } from "./status.js";
-import type { ControlHistory } from "./status.js";
+
+export { gateState } from "./status.js";
+export type { GateState } from "./status.js";
 
 /**
  * The two-week gate is enforced in `publish.ts`, but a log that quietly reaches
@@ -16,25 +18,6 @@ export const GATE_CLOSE_COMMENT =
 export type GhRunner = (args: string[]) => string;
 export type GateAnnouncement = "created" | "existing" | "none";
 export type GateClose = "closed" | "none";
-
-/** The gate facts a monitor needs, independent of how they are printed. */
-export interface GateState {
-  streak: number;
-  required: number;
-  remaining: number;
-  ready: boolean;
-  lastRun: string | null;
-}
-
-export function gateState(history: ControlHistory): GateState {
-  return {
-    streak: history.streak,
-    required: AUDIT_DAYS,
-    remaining: Math.max(0, AUDIT_DAYS - history.streak),
-    ready: history.auditMet,
-    lastRun: history.lastRun,
-  };
-}
 
 function defaultGh(args: string[]): string {
   return execFileSync("gh", args, { encoding: "utf8" });

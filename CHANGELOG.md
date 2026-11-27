@@ -32,7 +32,12 @@ All notable changes to this project are documented here. The format follows
 - `pnpm smoke:gate --json` prints the streak, required days, remaining days and
   readiness for a monitor; with `--notify` it adds the issue outcome.
 - The health page reports build-time dataset consistency (record/index/meta and
-  control-day agreement) alongside the deploy's full schema validation.
+  control-day agreement) alongside the deploy's recorded full schema validation.
+- `pnpm validate --json` prints a machine-readable `{ ok, checkedAt, targets,
+  problems }` summary, and the deploy writes it into the dataset checkout so the
+  health page can show when and over what the edition passed.
+- `/api/v1/gate.json` exposes the publish-gate streak, required and remaining
+  days, readiness and last control run as JSON.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

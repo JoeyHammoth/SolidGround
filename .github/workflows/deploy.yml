@@ -51,7 +51,9 @@ jobs:
             echo "The \`data\` branch was unavailable, so this deploy used the fixtures in \`fixtures/dataset\`." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Validate the dataset before publishing a site from it
-        run: pnpm run validate "$DATA_DIR"
+        run: |
+          set -o pipefail
+          pnpm --silent run validate "$DATA_DIR" --json | tee "$DATA_DIR/validation.json"
       - name: Build
         run: pnpm run site:build
         env:

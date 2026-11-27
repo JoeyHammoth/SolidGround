@@ -90,6 +90,7 @@ exactly which facts changed.
 /api/v1/packages/<name>.json     # scoped names use "__"
 /api/v1/meta.json
 /api/v1/solid.json
+/api/v1/gate.json                # publish-gate state
 /api/v1/events.json
 /badges/<name>.json              # Shields endpoint format
 /feed.xml
