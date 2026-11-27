@@ -230,6 +230,7 @@ export async function publishBatch(
               verified: record.verified,
               confidence: record.confidence,
               smokeTarget: record.smokeTarget ?? null,
+              smokeAt: record.smokeAt ?? null,
             }
           : row;
       });

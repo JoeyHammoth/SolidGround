@@ -1165,7 +1165,7 @@ Input is a `package.json` or a lockfile, parsed in the browser. Output sections:
 | Output | Content |
 |---|---|
 | Shields badge | Label `Solid 2`, message equal to the status, colour mapped from the status, `cacheSeconds` of 3600 ([11.3](#113-badges)) |
-| `/api/v1/index.json` | One compact row per package: name, status, confidence, Solid 2 version, downloads bucket, category, `checkedAt` |
+| `/api/v1/index.json` | One compact row per package: name, status, confidence, Solid 2 version, downloads bucket, category, `checkedAt`, `smokeTarget` and `smokeAt` |
 | `/api/v1/packages/<name>.json` | The full record from [11.2](#112-per-package-record-abridged) |
 | `/api/v1/meta.json` | Timestamps, counts per status, Solid versions tested, schema, rules and tool versions, anomaly flags |
 | `/api/v1/events.json` | Recent status changes |

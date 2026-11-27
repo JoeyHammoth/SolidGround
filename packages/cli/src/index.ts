@@ -49,7 +49,11 @@ function statusLabel(row: IndexRow | undefined): string {
 
 function markdownRow(name: string, range: string, row: IndexRow | undefined): string {
   const fix = row?.solid2Version ? `\`${row.solid2Version}\`` : "-";
-  const probed = row?.smokeTarget ? `\`${row.smokeTarget}\`` : "—";
+  const probed = row?.smokeTarget
+    ? `\`${row.smokeTarget}\``
+    : row?.smokeTarget === null && row.smokeAt
+      ? "root"
+      : "—";
   return `| \`${name}\` | \`${range}\` | ${statusLabel(row)} | ${fix} | ${probed} |`;
 }
 
@@ -107,7 +111,7 @@ async function main(): Promise<void> {
 
   if (tracked.length > 0) {
     console.log(
-      "`Probed` is the subpath the sandbox imported; — means no sandboxed pass or the package root.",
+      "`Probed` is the subpath the sandbox imported; `root` means the package root passed; — means no sandboxed pass.",
     );
   }
 

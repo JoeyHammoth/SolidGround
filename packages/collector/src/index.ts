@@ -128,6 +128,7 @@ export function buildIndex(records: PackageRecord[]): IndexRow[] {
       downloadsWeekly: record.downloadsWeekly,
       checkedAt: record.checkedAt,
       smokeTarget: record.smokeTarget ?? null,
+      smokeAt: record.smokeAt ?? null,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }

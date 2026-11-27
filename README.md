@@ -129,14 +129,29 @@ pnpm check:app path/to/package.json
 
 It lists direct dependencies that block a Solid 2 upgrade, the first version
 that supports Solid 2, and an upgrade order. A non-zero exit code means
-blockers exist, so it can gate CI. A browser version that never uploads your
-lockfile is on the roadmap.
+blockers exist, so it can gate CI. The report's **Probed** column names the
+subpath the sandbox actually imported, matching the site: `root` means the
+package root passed, and — means no sandboxed pass is published. A browser
+version that never uploads your lockfile is on the roadmap.
 
 > **Package name note.** The unscoped npm name `solid-ground` is already taken
 > by an unrelated package, so `npx solid-ground` is **not** the install command.
 > A scoped release (`@solid-ground/cli`) is planned; until then, run the CLI
 > from a clone as shown above. Tracked in
 > [issue #9](https://github.com/JoeyHammoth/SolidGround/issues/9).
+
+## Smoke evidence
+
+Sandboxed import, build and type results are folded into the dataset only after
+the known-good, known-bad and subpath controls have answered correctly for
+fourteen consecutive days. The site and the CLI report show the subpath the pass
+actually exercised, so `verified` never implies more than was run.
+
+Maintainers can read the audit trail with
+`pnpm smoke:status --file data/smoke/controls.jsonl` and see how far the gate has
+to go with `pnpm smoke:gate --file data/smoke/controls.jsonl`. The Verify
+workflow opens one reminder issue when the gate is met and closes it after the
+first publish batch.
 
 ## JSON API
 
