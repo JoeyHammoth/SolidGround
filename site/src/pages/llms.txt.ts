@@ -56,10 +56,13 @@ The smoke matrix may only change a record after ${gate.required} clean control d
 Current: ${gate.streak} clean day(s) in a row; ${gate.remaining} more needed${gate.ready ? " (gate met)" : ""}.
 Last control run: ${gate.lastRun ?? "never"}.
 Machine-readable gate state: /api/v1/gate.json.
+Control-day history with grouped failure reasons: /api/v1/controls.json.
 Dataset schema validation: ${validation}.
 Machine-readable validation summary: /api/v1/validation.json.
-Response schemas: https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/gate.schema.json
+Response schemas: https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/gate.schema.json,
+https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/controls.schema.json
 and https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/validation.schema.json.
+Each response carries a \`$schema\` field pointing at its schema.
 
 ## Attribution
 
