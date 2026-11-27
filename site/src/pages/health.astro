@@ -1,7 +1,15 @@
 ---
 import Base from "../layouts/Base.astro";
 import { AUDIT_DAYS } from "@solid-ground/smoke/status";
-import { consistencyProblems, controls, index, meta, records, relativeAge } from "../lib/data";
+import {
+  consistencyProblems,
+  controls,
+  deployValidation,
+  index,
+  meta,
+  records,
+  relativeAge,
+} from "../lib/data";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
 const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
@@ -34,11 +42,32 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
 
   <h2>Dataset validation</h2>
   <p>
+    Full schema validation:{" "}
+    {deployValidation ? (
+      <span>
+        <strong>{deployValidation.ok ? "passed" : "failed"}</strong>
+        {deployValidation.checkedAt && ` at ${deployValidation.checkedAt}`} over
+        {" "}{deployValidation.targets.length} target(s)
+        ({deployValidation.problems.length} problem(s)).
+      </span>
+    ) : (
+      <span>
+        <strong>not recorded</strong> in this build. The deploy runs{" "}
+        <code>pnpm validate</code> before building, so a page published from the
+        data branch has passed it.
+      </span>
+    )}
+  </p>
+  <p>
     Consistency checks at build over {records.length} records, {index.length} index rows and {controls.days.length} control day(s):
     <strong>{consistencyProblems.length === 0 ? "valid" : `${consistencyProblems.length} problem(s)`}</strong>.
-    The deploy runs the full JSON-schema validation before building this page, so an invalid
-    edition cannot reach it.
   </p>
+  {deployValidation && deployValidation.problems.length > 0 && (
+    <ul>
+      {deployValidation.problems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}
+      {deployValidation.problems.length > 8 && <li>…and {deployValidation.problems.length - 8} more</li>}
+    </ul>
+  )}
   {consistencyProblems.length > 0 && (
     <ul>
       {consistencyProblems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}
@@ -89,5 +118,5 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     <a href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=add-package.yml">Request an addition</a>.
   </p>
 
-  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a></p>
+  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a> · <a href={`${base}/api/v1/gate.json`}><code>gate.json</code></a></p>
 </Base>
