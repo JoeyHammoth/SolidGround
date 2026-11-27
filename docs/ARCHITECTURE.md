@@ -53,7 +53,7 @@ contents never hold a write token.
 | `packages/engine/` | Pure status engine and golden-fixture tests |
 | `packages/collector/` | npm clients, normalisation, dataset builder |
 | `packages/scanner/` | Static import analysis (planned, M3) |
-| `packages/smoke/` | Batch planning, the sandbox runner, controls and result folding for the verify matrix (M4, phase 0) |
+| `packages/smoke/` | Batch planning, the sandbox runner, controls, result folding, publish and control history for the verify matrix (M4, phase 0) |
 | `packages/cli/` | `solid-ground check` dependency checker |
 | `site/` | Astro static site and generated API routes |
 | `fixtures/` | Recorded evidence and the golden dataset used by tests and CI |
@@ -65,7 +65,8 @@ contents never hold a write token.
 |---|---|---|
 | Facts | collector | engine, site |
 | Scan findings | scanner | engine, package page |
-| Smoke results | verify matrix | engine, package page |
+| Smoke results | verify matrix (manual publish) | engine, package page, health page |
+| Smoke control log | verify matrix `history` job | health page, `smoke:status` |
 | `packages/*.json` | engine | site, API, CLI |
 | `index.json` | engine | table, search, CLI |
 | `meta.json` | engine | banner, health page, third parties |

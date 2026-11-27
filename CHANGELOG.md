@@ -24,10 +24,24 @@ All notable changes to this project are documented here. The format follows
   the reason attached, never `false`.
 - Two control fixtures run in every batch. If the known-good package fails to
   import, build or typecheck, or the known-bad package imports, `smoke:report`
-  discards the whole batch and writes nothing.
+  discards the whole batch and writes no results. Collect's publish step now
+  preserves the verify matrix's `smoke/` directory when it replaces the data
+  branch.
 - `verify.yml` plans a batch from the published edition, runs one cell per job
   with Harden-Runner in `audit` mode, then validates the artifacts and the
   controls. Phase 0 has no publish job, so a run cannot change a record yet.
+- `smoke:publish` folds a batch the report step trusted into the published
+  edition: it updates the record's `smoke`, `smokeAt`, `verified` and
+  `confidence`, the matching `index.json` rows and `meta.lastSuccessfulVerify`.
+  It re-checks the controls and refuses a malformed result before writing
+  anything, and `verify.yml` exposes it only behind a manual input, so a
+  scheduled run still cannot change a record.
+- The verify matrix keeps an append-only control log at `smoke/controls.jsonl`
+  on the `data` branch. `smoke:report` writes the batch's control verdicts even
+  when it discards the batch, a `history` job records them on every run, and
+  `smoke:status` reports the clean-day streak against the two-week audit gate.
+  The health page shows the same history, which outlives the seven-day CI
+  artifact.
 - Package records carry `smokeAt`, the instant the folded smoke pass finished,
   so a pass ages out of the policy window while Solid stands still instead of
   keeping `verified` alive indefinitely. Editions published before the field
