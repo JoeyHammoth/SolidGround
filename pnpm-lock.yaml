@@ -50,6 +50,9 @@ importers:
       '@solid-ground/schema':
         specifier: workspace:*
         version: link:../schema
+      yaml:
+        specifier: ^2.6.1
+        version: 2.9.1
 
   packages/collector:
     dependencies:

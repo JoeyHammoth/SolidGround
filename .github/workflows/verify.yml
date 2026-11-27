@@ -84,6 +84,16 @@ jobs:
             --out smoke-plan.json
           echo "cells=$(jq -c '.cells' smoke-plan.json)" >> "$GITHUB_OUTPUT"
           echo "count=$(jq '.cells | length' smoke-plan.json)" >> "$GITHUB_OUTPUT"
+      - name: Check the blocked-package audit is current
+        # Advisory: a stale research note should not stop the control runs that
+        # the two-week gate depends on. The step is red on the run page.
+        continue-on-error: true
+        run: |
+          if [ ! -f data/index.json ]; then
+            echo "::notice::No dataset checkout; skipping the blocked-package audit check."
+            exit 0
+          fi
+          pnpm run audit:blocked --data data --check
       - uses: actions/upload-artifact@v7
         with:
           name: smoke-plan
@@ -217,6 +227,8 @@ jobs:
           name: smoke
           path: smoke
       - name: Fold the batch into the published edition
+        # Refuses until the control log holds fourteen clean days. A maintainer
+        # bootstrap can pass --skip-audit locally; CI never does.
         run: pnpm run smoke:publish --data data --results smoke/results.ndjson
       - name: Validate the folded dataset
         run: pnpm run validate data

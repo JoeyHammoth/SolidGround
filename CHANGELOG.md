@@ -22,14 +22,25 @@ All notable changes to this project are documented here. The format follows
   `--ignore-scripts`, pins a single `solid-js` copy through `pnpm.overrides`,
   and reports import, build and type results. Install failures stay `null` with
   the reason attached, never `false`.
-- Two control fixtures run in every batch. If the known-good package fails to
-  import, build or typecheck, or the known-bad package imports, `smoke:report`
-  discards the whole batch and writes no results. Collect's publish step now
+- The known-good and known-bad control fixtures run in every batch. If either
+  answers wrongly, `smoke:report` discards the whole batch and writes no
+  results. Collect's publish step now
   preserves the verify matrix's `smoke/` directory when it replaces the data
   branch.
 - `verify.yml` plans a batch from the published edition, runs one cell per job
   with Harden-Runner in `audit` mode, then validates the artifacts and the
   controls. Phase 0 has no publish job, so a run cannot change a record yet.
+- A third control fixture has no root export and only a `./widget` entry. It
+  must pass all three steps with `target: "@solid-ground/control-subpath/widget"`,
+  so a regression in the subpath probe discards the batch instead of quietly
+  testing the wrong specifier.
+- `smoke:publish` refuses a real publish until the control log holds fourteen
+  clean days, enforcing the phase-0 gate in code. `--skip-audit` covers a
+  maintainer bootstrap; CI never uses it.
+- The blocked-package audit is generated from the dataset by
+  `pnpm audit:blocked`, with `--check` for staleness. Verify runs the check
+  against the published edition and marks the step red without stopping the
+  control runs.
 - The sandbox runner probes a package's first real subpath when its root is not
   exported, and records it in a new `target` field. `@kobalte/core@2.0.0-alpha.5`
   exports only directory-shaped subpaths, so the root probe failed on packaging;

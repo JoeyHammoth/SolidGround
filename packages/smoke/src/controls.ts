@@ -2,7 +2,7 @@ import type { SmokeResult, SmokeResults } from "@solid-ground/schema";
 import type { SmokeSteps } from "./plan.js";
 
 /**
- * Two fixtures run in every batch. If either control returns the wrong verdict,
+ * Three fixtures run in every batch. If any control returns the wrong verdict,
  * the batch is discarded as an infrastructure failure: without this guard a
  * broken sandbox quietly marks every package as failing, which is worse than no
  * verification at all.
@@ -17,6 +17,12 @@ export interface Control {
   steps: SmokeSteps;
   /** What each attempted step must return for the harness to be trusted. */
   expected: Partial<SmokeResults>;
+  /**
+   * The specifier the runner must have probed, when it is not the package
+   * root. This is what makes a subpath-only fixture a real regression guard:
+   * a root probe fails the batch even if the steps somehow pass.
+   */
+  target?: string;
 }
 
 export const CONTROLS: readonly Control[] = [
@@ -35,6 +41,17 @@ export const CONTROLS: readonly Control[] = [
     // proves nothing extra and only burns the job's budget.
     steps: { import: true, build: false, types: false },
     expected: { import: false },
+  },
+  {
+    // No root export, only `./widget`. If the subpath probe regresses, this
+    // control fails and every batch is discarded, which is exactly the alarm
+    // we want rather than silently mis-testing subpath-only packages.
+    id: "control-subpath",
+    name: "@solid-ground/control-subpath",
+    path: "packages/smoke/fixtures/control-subpath",
+    steps: { import: true, build: true, types: true },
+    expected: { import: true, build: true, types: true },
+    target: "@solid-ground/control-subpath/widget",
   },
 ];
 
@@ -74,6 +91,11 @@ export function controlFailures(result: SmokeResult): string[] {
   const failures: string[] = [];
   if (result.error) {
     failures.push(`${control.id}: environmental failure (${result.error})`);
+  }
+  if (control.target !== undefined && result.target !== control.target) {
+    failures.push(
+      `${control.id}: probed ${String(result.target)}, expected ${control.target}`,
+    );
   }
   for (const [step, expected] of Object.entries(control.expected) as Array<
     [keyof SmokeResults, boolean]

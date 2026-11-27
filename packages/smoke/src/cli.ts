@@ -260,12 +260,19 @@ async function publishCommand(args: string[]): Promise<number> {
     return 1;
   }
 
+  const skipAudit = args.includes("--skip-audit");
+  if (skipAudit && !dryRun) {
+    console.warn(
+      "warning: --skip-audit bypasses the two-week control gate; only a maintainer bootstrap should use it.",
+    );
+  }
   const outcome = await publishBatch({
     dataDir,
     results,
     policy,
     dryRun,
     requireControls: !args.includes("--no-controls"),
+    requireAudit: !skipAudit,
   });
 
   const prefix = outcome.dryRun ? "would publish" : "published";
