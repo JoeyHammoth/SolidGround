@@ -173,8 +173,9 @@
     "build": null,
     "types": null
   },
+  "smokeAt": null,
   "shipsTypes": true,
-  "checkedAt": "2026-11-27T09:43:05.909Z",
+  "checkedAt": "2026-11-27T12:23:44.509Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",

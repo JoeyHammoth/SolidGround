@@ -8,7 +8,8 @@
     "category": "meta-frameworks",
     "family": null,
     "downloadsWeekly": 386901,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@kobalte/core",
@@ -21,7 +22,8 @@
     "category": "ui-components",
     "family": null,
     "downloadsWeekly": 6709481,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solid-primitives/event-listener",
@@ -35,7 +37,8 @@
     "category": "primitives",
     "family": "solid-primitives",
     "downloadsWeekly": 8944191,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solid-primitives/storage",
@@ -49,7 +52,8 @@
     "category": "primitives",
     "family": "solid-primitives",
     "downloadsWeekly": 6139430,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solid-primitives/utils",
@@ -63,7 +67,8 @@
     "category": "primitives",
     "family": "solid-primitives",
     "downloadsWeekly": 9360604,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solidjs/meta",
@@ -77,7 +82,8 @@
     "category": "other",
     "family": null,
     "downloadsWeekly": 842232,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solidjs/router",
@@ -91,7 +97,8 @@
     "category": "routing",
     "family": null,
     "downloadsWeekly": 1047354,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solidjs/start",
@@ -102,7 +109,8 @@
     "category": "meta-frameworks",
     "family": null,
     "downloadsWeekly": 255267,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solidjs/testing-library",
@@ -115,7 +123,8 @@
     "category": "testing",
     "family": null,
     "downloadsWeekly": 662589,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@solidjs/vite-plugin",
@@ -129,7 +138,8 @@
     "category": "build-tools",
     "family": null,
     "downloadsWeekly": 404328,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@suid/material",
@@ -140,7 +150,8 @@
     "category": "ui-components",
     "family": "suid",
     "downloadsWeekly": 3763,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@tanstack/solid-query",
@@ -153,7 +164,8 @@
     "category": "data-fetching",
     "family": "tanstack",
     "downloadsWeekly": 628222,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "@tanstack/solid-virtual",
@@ -164,7 +176,8 @@
     "category": "other",
     "family": "tanstack",
     "downloadsWeekly": 3504796,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   },
   {
     "name": "vite-plugin-solid",
@@ -175,6 +188,7 @@
     "category": "build-tools",
     "family": null,
     "downloadsWeekly": 2066246,
-    "checkedAt": "2026-11-27T09:43:05.909Z"
+    "checkedAt": "2026-11-27T12:23:44.509Z",
+    "smokeTarget": null
   }
 ]
