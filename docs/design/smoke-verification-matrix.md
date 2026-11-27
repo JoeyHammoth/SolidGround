@@ -1,8 +1,8 @@
 # Plan: sandboxed import/build/types matrix (issue #4)
 
-- **Status:** phase 0 implemented — runner, controls and `verify.yml` run in
-  audit mode with no publish; two weeks of clean control runs before the matrix
-  may change a record
+- **Status:** phase 0 implemented — runner, controls, an append-only control
+  log and a manual publish path; a scheduled run still cannot change a record
+  until two weeks of clean control runs are on record
 - **Owner:** maintainers ([#4](https://github.com/JoeyHammoth/SolidGround/issues/4))
 - **Depends on:** [ADR 0005](../adr/0005-sandbox-trust-boundary.md), the static
   scanner (M3), `SmokeResults` in `@solid-ground/schema`
@@ -45,13 +45,17 @@ packages/smoke/
   src/controls.ts     # the two fixtures' expectations + the discard rule
   src/runner.ts       # child-process install/import/build in a throwaway dir
   src/report.ts       # results -> schema-validated JSON artifact
-  src/cli.ts          # plan and report, used by verify.yml and locally
+  src/publish.ts      # fold a trusted batch into the published edition
+  src/status.ts       # the control log and the two-week audit streak
+  src/cli.ts          # plan, report, publish and status, locally and in CI
   fixtures/control-good/  # must import, build and typecheck
   fixtures/control-bad/   # imports an API Solid 2 removed; must fail import
   test/plan.test.ts   # selection and folding, no network
   test/report.test.ts # artifact round-trip
   test/runner.test.ts # spec parsing, entry choice, manifest and file layout
   test/controls.test.ts # expectations and the discard rule
+  test/publish.test.ts  # folding, refusals and the control log
+  test/status.test.ts   # day grouping and the audit streak
 ```
 
 Everything except `runner.ts` is pure and unit-tested. `runner.ts` is the only
@@ -158,8 +162,21 @@ silently downgrading a record.
 - Evidence levels `B` and `T` are added from the same facts, so the record's
   `confidence` explains itself.
 
-The verify job writes the folded records to an artifact; the existing publish
-job commits them to `data`. No new write path.
+The publish job is the only write path. It is manual (`workflow_dispatch` with
+`publish: true`) and re-checks the controls before it touches anything:
+
+```bash
+pnpm smoke:publish --data data --results smoke/results.ndjson --dry-run
+```
+
+It changes only records the batch names, updates `verified` and `confidence` on
+the matching `index.json` rows, stamps `meta.lastSuccessfulVerify`, and appends
+the batch's control results to `smoke/controls.jsonl` on the data branch. A
+malformed result or a wrong control aborts before the first write.
+
+A failed `build` with a passing `import` withholds `verified` but does not
+downgrade `status` (decision 2 below): a bundler edge case is not evidence that
+the package is broken.
 
 ## Controls
 
@@ -179,15 +196,19 @@ broken sandbox quietly marks packages as failing.
 
 ```text
 verify.yml  (workflow_dispatch, nightly 04:10 UTC)
-  plan   contents: read  -> matrix JSON (packages x cells + both controls)
-  smoke  contents: read  -> one job per cell, uploads one result artifact
-  report contents: read  -> merge + validate + controls -> smoke/ artifact
+  plan    contents: read   -> matrix JSON (packages x cells + both controls)
+  smoke   contents: read   -> one job per cell, uploads one result artifact
+  report  contents: read   -> merge + validate + controls -> smoke/ artifact
+  history contents: write  -> append the control log to data (always, on main)
+  publish contents: write  -> manual only: fold a trusted batch into data
 ```
 
-Phase 0 stops after `report`: there is no publish job, so a run can be read and
-discarded but can never change a record. The next slice reuses collect's publish
-logic once the controls are clean. `verify.yml` attaches
-`step-security/harden-runner` in `audit` mode to the job that runs package code.
+A scheduled run stops after `history`: it records the control verdicts — the
+failures too — but cannot change a record. `publish` needs the manual input, so
+promoting a batch is a deliberate act rather than a cron side effect. Both write
+jobs share the `data-write` concurrency group with collect, so they cannot race
+each other. `verify.yml` attaches `step-security/harden-runner` in `audit` mode
+to the jobs that run package code; the publish and history jobs run none.
 
 ### Running it
 
@@ -202,6 +223,13 @@ printf '%s' "$SPEC" | pnpm smoke:run
 
 # Merge the artifacts, validate them and check the controls.
 pnpm smoke:report --dir results --out smoke/results.ndjson
+
+# Preview what a trusted batch would change, then publish it.
+pnpm smoke:publish --data data --results smoke/results.ndjson --dry-run
+pnpm smoke:publish --data data --results smoke/results.ndjson
+
+# The audit trail so far.
+pnpm smoke:status --file data/smoke/controls.jsonl
 ```
 
 `smoke:report` exits non-zero and writes nothing when a cell is malformed or a
@@ -211,6 +239,17 @@ to change a record, so the failure has to be visible.
 `plan` reads the `data` branch edition so it only re-tests what is missing or
 stale: an unchanged package with a fresh pass is not re-run. A `--force` input
 re-tests everything, for after a scanner or rules change.
+
+## Known findings
+
+- **`@kobalte/core@2.0.0-alpha.5` fails all three steps, and the verdict is
+  correct.** The alpha publishes `main`, `module` and `types` but its `exports`
+  map has only `"./*"`, so the root specifier resolves to nothing:
+  `ERR_PACKAGE_PATH_NOT_EXPORTED` under Node, a Vite/Rolldown resolve error,
+  and `TS2307` from `tsc`. `pnpm install` succeeds and `solid-js 2.0.4` is the
+  only copy in the tree, so this is packaging and not a harness or peer-range
+  fault. The stable `0.13.14` line does export `"."`, so this arrived with the
+  alpha. Whether to probe a subpath for such packages is open decision 4.
 
 ## Rollout
 
@@ -239,6 +278,13 @@ and drops `next` to weekly once the canary channel is stable.
   allowlist of stub peers, kept in `plan.ts`, and a reason string in the record.
 - **Types fail only under `skipLibCheck: false`.** Run with `skipLibCheck: true`;
   a package that ships broken third-party types is not our problem.
+- **A package exports no root entry.** `@kobalte/core@2.0.0-alpha.5` sets
+  `main`, `module` and `types` but its `exports` map contains only `"./*"`, so
+  `import "@kobalte/core"` fails with `ERR_PACKAGE_PATH_NOT_EXPORTED` in Node,
+  at Vite resolve time and as `TS2307` in `tsc` — install succeeds, and none of
+  it is a `solid-js/web` incompatibility. The verdict is correct for a root
+  import, but packages that document subpath-only imports need a per-entry
+  probe before phase 1; see open decision 4.
 - **Node version skew.** The matrix pins `.nvmrc`, like every other job.
 - **A pass that later looks wrong.** Because the artifact is committed, the roll
   forward is `git revert` of the verify commit, and the record returns to
@@ -247,12 +293,16 @@ and drops `next` to weekly once the canary channel is stable.
 ## Open decisions
 
 1. Do we publish per-cell results publicly (`/api/v1/smoke/<name>.json`) or only
-   the folded `smoke` object on the record? *Leaning folded-only in phase 1.*
+   the folded `smoke` object on the record? *Decided: folded-only, plus the
+   control log — the per-cell artifacts stay in CI.*
 2. Does a failed `build` with a passing `import` downgrade the status, or only
-   withhold `verified`? *Leaning withhold only: a bundler edge case is not
-   evidence the package is broken.*
+   withhold `verified`? *Decided: withhold only.* `foldSmoke` never changes
+   `status`; a pass only adds `B`/`T` evidence and `verified`.
 3. Who reviews the first month of control runs? Needs a named maintainer before
    phase 0 ends.
+4. Should the import probe follow a package's first `exports` subpath when it
+   declares no `"."` entry? Today the matrix tests a root import, which is the
+   documented usage for most packages but not for a subpath-only one.
 
 ## Task list
 
@@ -261,5 +311,9 @@ and drops `next` to weekly once the canary channel is stable.
 - [x] `smokeAt` on the record, so a pass on an unchanged Solid release can age out
 - [x] `runner.ts` with the three steps and the temp-dir discipline
 - [x] control fixtures and the discard-on-bad-control rule
-- [x] `verify.yml` in `audit` mode, three packages, no publish
+- [x] `verify.yml` in `audit` mode, three packages, no scheduled publish
+- [x] `smoke:publish`: fold a clean batch into records, index and meta, refusing
+  a malformed result or a wrong control
+- [x] control log on the data branch, `smoke:status` and a health-page section,
+  so the two-week audit is visible after the artifact expires
 - [ ] two weeks of clean control runs, then promote to nightly

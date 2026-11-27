@@ -100,12 +100,18 @@ importers:
       '@solid-ground/schema':
         specifier: workspace:*
         version: link:../schema
+      yaml:
+        specifier: ^2.6.1
+        version: 2.9.1
 
   site:
     dependencies:
       '@solid-ground/schema':
         specifier: workspace:*
         version: link:../packages/schema
+      '@solid-ground/smoke':
+        specifier: workspace:*
+        version: link:../packages/smoke
       astro:
         specifier: ^7.2.8
         version: 7.4.13(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)

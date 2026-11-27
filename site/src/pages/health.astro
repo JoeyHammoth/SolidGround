@@ -1,9 +1,11 @@
 ---
 import Base from "../layouts/Base.astro";
-import { meta, relativeAge, records } from "../lib/data";
+import { controls, meta, relativeAge, records } from "../lib/data";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
 const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
+const controlDays = controls.days.slice(-14);
+const lastControlDay = controls.days.at(-1);
 ---
 
 <Base title="Health" description="Freshness, coverage and provenance of the Solid Ground dataset.">
@@ -27,6 +29,33 @@ const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt
     <li>Last successful collect: <code>{meta.lastSuccessfulCollect ?? "never"}</code></li>
     <li>Last successful verify: <code>{meta.lastSuccessfulVerify ?? "not run yet"}</code></li>
   </ul>
+
+  <h2>Smoke controls</h2>
+  <p>
+    The sandboxed matrix runs a known-good and a known-bad fixture in every batch. A batch whose
+    controls answer wrongly is discarded, so these verdicts are the evidence that a package result
+    can be trusted. Two weeks of clean control days is the gate for letting the matrix change a record.
+  </p>
+  {lastControlDay && !lastControlDay.clean && (
+    <div class="banner" role="status">The newest control run did not answer as expected; its batch was discarded.</div>
+  )}
+  {controlDays.length > 0 ? (
+    <>
+      <p>
+        {controls.streak} clean day(s) in a row from {controls.days.length} recorded; last run
+        <code>{controls.lastRun}</code>. Audit gate: <strong>{controls.auditMet ? "met" : "not met"}</strong>.
+      </p>
+      <ul>
+        {controlDays.map((day) => (
+          <li>
+            <code>{day.day}</code> {day.clean ? "clean" : "failed"} — {day.runs} control result(s)
+          </li>
+        ))}
+      </ul>
+    </>
+  ) : (
+    <p class="muted">No control runs recorded yet.</p>
+  )}
 
   <h2>Anomaly gate</h2>
   <p>

@@ -59,34 +59,51 @@ export function controlCells(solid: string): Array<{
   }));
 }
 
+/** True when a result belongs to a control fixture rather than a package. */
+export function isControlResult(result: SmokeResult): boolean {
+  return CONTROLS.some((control) => control.name === result.name);
+}
+
 /**
- * Check every control against its expectation. Returns human-readable failures;
- * an empty array means the batch can be trusted.
+ * Judge one control result against its expectation. Returns human-readable
+ * failures; an empty array means the control answered correctly.
+ */
+export function controlFailures(result: SmokeResult): string[] {
+  const control = CONTROLS.find((candidate) => candidate.name === result.name);
+  if (!control) return [];
+  const failures: string[] = [];
+  if (result.error) {
+    failures.push(`${control.id}: environmental failure (${result.error})`);
+  }
+  for (const [step, expected] of Object.entries(control.expected) as Array<
+    [keyof SmokeResults, boolean]
+  >) {
+    const actual = result.smoke[step];
+    if (actual !== expected) {
+      failures.push(
+        `${control.id}: ${step} was ${String(actual)}, expected ${String(expected)}`,
+      );
+    }
+  }
+  return failures;
+}
+
+/**
+ * Check every control against its expectation, keeping only the newest result
+ * for each. Returns human-readable failures; an empty array means the batch can
+ * be trusted.
  */
 export function checkControls(results: SmokeResult[]): string[] {
   const failures: string[] = [];
   for (const control of CONTROLS) {
-    const mine = results
+    const latest = results
       .filter((result) => result.name === control.name)
-      .sort((a, b) => (a.at === b.at ? 0 : a.at < b.at ? 1 : -1));
-    const latest = mine[0];
+      .sort((a, b) => (a.at === b.at ? 0 : a.at < b.at ? 1 : -1))[0];
     if (!latest) {
       failures.push(`${control.id}: no result in the batch`);
       continue;
     }
-    if (latest.error) {
-      failures.push(`${control.id}: environmental failure (${latest.error})`);
-    }
-    for (const [step, expected] of Object.entries(control.expected) as Array<
-      [keyof SmokeResults, boolean]
-    >) {
-      const actual = latest.smoke[step];
-      if (actual !== expected) {
-        failures.push(
-          `${control.id}: ${step} was ${String(actual)}, expected ${String(expected)}`,
-        );
-      }
-    }
+    failures.push(...controlFailures(latest));
   }
   return failures;
 }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@solid-ground/schema": "workspace:*",
+    "@solid-ground/smoke": "workspace:*",
     "astro": "^7.2.8"
   }
 }

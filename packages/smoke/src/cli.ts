@@ -6,18 +6,22 @@ import type {
   SmokeResult,
   SolidState,
 } from "@solid-ground/schema";
-import { checkControls, controlCells } from "./controls.js";
+import { checkControls, controlCells, isControlResult } from "./controls.js";
 import { artifactId, cellId, planBatch } from "./plan.js";
 import type { CellSource, SmokeCell, SmokeSteps } from "./plan.js";
+import { CONTROL_HISTORY_FILE, loadPolicy, publishBatch } from "./publish.js";
+import { describeControls, readControlHistory, summarizeControls } from "./status.js";
 
 /**
- * The plan and report steps of `verify.yml`, on a laptop:
+ * The plan, report, publish and status steps of `verify.yml`, on a laptop:
  *
  *   pnpm smoke:plan --data data --packages "@solidjs/meta" --max-cells 3
  *   pnpm smoke:report --dir results --out smoke/results.ndjson
+ *   pnpm smoke:publish --data data --results smoke/results.ndjson
+ *   pnpm smoke:status
  *
- * Both are thin: selection lives in `plan.ts`, trust in `controls.ts`, and the
- * artifact contract in `@solid-ground/schema`.
+ * Each command is thin: selection lives in `plan.ts`, trust in `controls.ts`,
+ * the write path in `publish.ts`, and the audit trail in `status.ts`.
  */
 
 interface PlannedCell extends SmokeCell {
@@ -116,49 +120,111 @@ async function planCommand(args: string[]): Promise<number> {
   return 0;
 }
 
-async function collectJson(dir: string): Promise<string[]> {
+/** Every artifact file under a path; `.ndjson` batches and `.json` cells both. */
+async function resultFiles(dir: string): Promise<string[]> {
   const info = await stat(dir).catch(() => null);
   if (!info) return [];
-  if (info.isFile()) return dir.endsWith(".json") ? [dir] : [];
+  const wanted = (name: string): boolean =>
+    name.endsWith(".json") || name.endsWith(".ndjson");
+  if (info.isFile()) return wanted(dir) ? [dir] : [];
   const entries = await readdir(dir, { withFileTypes: true });
   const files: string[] = [];
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) files.push(...(await collectJson(full)));
-    else if (entry.name.endsWith(".json")) files.push(full);
+    if (entry.isDirectory()) files.push(...(await resultFiles(full)));
+    else if (wanted(entry.name)) files.push(full);
   }
   return files;
+}
+
+/** Parse one artifact file into results, collecting every problem it carries. */
+async function parseResultFile(
+  file: string,
+): Promise<{ results: SmokeResult[]; failures: string[] }> {
+  const results: SmokeResult[] = [];
+  const failures: string[] = [];
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch (error) {
+    return { results, failures: [`${file}: ${(error as Error).message}`] };
+  }
+  const values: unknown[] = [];
+  if (file.endsWith(".ndjson")) {
+    text.split("\n").forEach((line, index) => {
+      const trimmed = line.trim();
+      if (!trimmed) return;
+      try {
+        values.push(JSON.parse(trimmed));
+      } catch (error) {
+        failures.push(
+          `${file}: line ${index + 1}: invalid JSON (${(error as Error).message})`,
+        );
+      }
+    });
+  } else {
+    try {
+      const parsed = JSON.parse(text) as unknown;
+      if (Array.isArray(parsed)) values.push(...parsed);
+      else values.push(parsed);
+    } catch (error) {
+      failures.push(`${file}: invalid JSON (${(error as Error).message})`);
+    }
+  }
+  for (const value of values) {
+    const messages = validateSmokeResult(value);
+    if (messages.length > 0) {
+      for (const message of messages) failures.push(`${file}: ${message}`);
+      continue;
+    }
+    results.push(value as SmokeResult);
+  }
+  return { results, failures };
+}
+
+async function readBatch(
+  target: string,
+): Promise<{ results: SmokeResult[]; failures: string[] }> {
+  const results: SmokeResult[] = [];
+  const failures: string[] = [];
+  for (const file of await resultFiles(target)) {
+    const parsed = await parseResultFile(file);
+    results.push(...parsed.results);
+    failures.push(...parsed.failures);
+  }
+  return { results, failures };
 }
 
 async function reportCommand(args: string[]): Promise<number> {
   const dir = flagValue(args, "--dir") ?? "results";
   const out = flagValue(args, "--out");
-  const files = await collectJson(dir);
-
-  const results: SmokeResult[] = [];
-  const failures: string[] = [];
-  for (const file of files) {
-    let parsed: unknown;
-    try {
-      parsed = await readJsonFile(file);
-    } catch (error) {
-      failures.push(`${file}: invalid JSON (${(error as Error).message})`);
-      continue;
-    }
-    const messages = validateSmokeResult(parsed);
-    if (messages.length > 0) {
-      for (const message of messages) failures.push(`${file}: ${message}`);
-      continue;
-    }
-    results.push(parsed as SmokeResult);
-  }
+  const controlsOut =
+    flagValue(args, "--controls-out") ??
+    (out ? path.join(path.dirname(out), "controls.jsonl") : undefined);
+  const { results, failures } = await readBatch(dir);
 
   if (!args.includes("--no-controls")) failures.push(...checkControls(results));
+
+  // The control log is written even when the batch is discarded: a failed run
+  // is exactly what the two-week audit has to be able to see later.
+  const controls = results
+    .filter((result) => isControlResult(result))
+    .sort((a, b) =>
+      a.name === b.name ? a.at.localeCompare(b.at) : a.name.localeCompare(b.name),
+    );
+  if (controlsOut && controls.length > 0) {
+    await mkdir(path.dirname(controlsOut), { recursive: true });
+    await writeFile(
+      controlsOut,
+      `${controls.map((result) => JSON.stringify(result)).join("\n")}\n`,
+      "utf8",
+    );
+  }
 
   if (failures.length > 0) {
     for (const failure of failures) console.error(`discard: ${failure}`);
     console.error(
-      `batch discarded: ${failures.length} problem(s); nothing was written. A batch without trustworthy controls must not change a record.`,
+      `batch discarded: ${failures.length} problem(s); no records were written. A batch without trustworthy controls must not change a record.`,
     );
     return 1;
   }
@@ -177,11 +243,70 @@ async function reportCommand(args: string[]): Promise<number> {
   return 0;
 }
 
+async function publishCommand(args: string[]): Promise<number> {
+  const dataDir = flagValue(args, "--data") ?? "data";
+  const target = flagValue(args, "--results") ?? "smoke/results.ndjson";
+  const policy = await loadPolicy(flagValue(args, "--policy") ?? "rules/status-policy.yml");
+  const dryRun = args.includes("--dry-run");
+
+  const { results, failures } = await readBatch(target);
+  if (failures.length > 0) {
+    for (const failure of failures) console.error(`reject: ${failure}`);
+    console.error("batch rejected: nothing was written.");
+    return 1;
+  }
+  if (results.length === 0) {
+    console.error(`no results in ${target}; nothing to publish`);
+    return 1;
+  }
+
+  const outcome = await publishBatch({
+    dataDir,
+    results,
+    policy,
+    dryRun,
+    requireControls: !args.includes("--no-controls"),
+  });
+
+  const prefix = outcome.dryRun ? "would publish" : "published";
+  console.log(
+    `${prefix}: ${outcome.changed.length} record(s) changed, ${outcome.unchanged} unchanged; ` +
+      `${outcome.verified.length} gained verified, ${outcome.withdrawn.length} withdrawn; ` +
+      `${outcome.controls} control result(s) recorded`,
+  );
+  for (const name of outcome.verified) console.log(`  verified: ${name}`);
+  for (const name of outcome.withdrawn) console.log(`  withdrawn: ${name}`);
+  return 0;
+}
+
+async function statusCommand(args: string[]): Promise<number> {
+  const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
+  const last = Number(flagValue(args, "--last") ?? "14");
+  const history = summarizeControls(await readControlHistory(file));
+
+  if (history.days.length === 0) {
+    console.log(`no control history at ${file} yet`);
+    return 0;
+  }
+  for (const line of describeControls(history, last)) console.log(line);
+  for (const day of history.days.slice(-last)) {
+    if (day.clean) continue;
+    for (const failure of day.failures) console.log(`  ${day.day}: ${failure}`);
+  }
+  if (args.includes("--strict") && !(history.days.at(-1) as { clean: boolean }).clean) {
+    console.error("the newest control day is not clean");
+    return 1;
+  }
+  return 0;
+}
+
 export async function main(argv: string[]): Promise<number> {
   const [command, ...args] = argv;
   if (command === "plan") return planCommand(args);
   if (command === "report") return reportCommand(args);
-  console.error("usage: cli.ts <plan|report> [options]");
+  if (command === "publish") return publishCommand(args);
+  if (command === "status") return statusCommand(args);
+  console.error("usage: cli.ts <plan|report|publish|status> [options]");
   return 2;
 }
 
