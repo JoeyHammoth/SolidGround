@@ -44,7 +44,10 @@ All notable changes to this project are documented here. The format follows
   remaining days, last control run and recorded schema validation, linking
   `gate.json` and `validation.json`.
 - The health page draws the last fourteen control days as a clean/failed
-  timeline instead of a plain list.
+  timeline instead of a plain list, with a legend and a full date/state/run-count
+  label on each cell.
+- `validation.json` names the validated dataset (`data`) instead of exposing the
+  runner's checkout path, and the footer links `llms.txt` for assistants.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

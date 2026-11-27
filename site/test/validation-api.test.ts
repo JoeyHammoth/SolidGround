@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { GET } from "../src/pages/api/v1/validation.json.js";
+import { validationTargetLabels } from "../src/lib/validation.js";
+
+describe("validation target labels", () => {
+  it("names the dataset instead of the checkout path", () => {
+    expect(validationTargetLabels(["/home/runner/work/SolidGround/SolidGround/data"])).toEqual([
+      "data",
+    ]);
+    expect(validationTargetLabels(["fixtures/dataset", "C:\\repo\\data"])).toEqual([
+      "dataset",
+      "data",
+    ]);
+  });
+});
 
 describe("GET /api/v1/validation.json", () => {
   it("returns a stable shape even without a recorded summary", async () => {
