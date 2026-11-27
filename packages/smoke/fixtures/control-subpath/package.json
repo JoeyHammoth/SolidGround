@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/widget/index.js",
-  "module": "./dist/widget/index.js",
-  "types": "./dist/widget/index.d.ts",
+  "main": "./widget/index.js",
+  "module": "./widget/index.js",
+  "types": "./widget/index.d.ts",
   "exports": {
     "./widget": {
-      "types": "./dist/widget/index.d.ts",
-      "default": "./dist/widget/index.js"
+      "types": "./widget/index.d.ts",
+      "default": "./widget/index.js"
     }
   },
   "peerDependencies": {
