@@ -15,5 +15,5 @@
     "types": ["node"]
   },
   "include": ["packages/**/*.ts", "site/src/**/*.ts"],
-  "exclude": ["**/node_modules", "**/dist", "site/dist"]
+  "exclude": ["**/node_modules", "**/dist", "site/dist", "packages/smoke/fixtures/**"]
 }

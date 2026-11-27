@@ -1,6 +1,15 @@
 import type { PackageRecord, SmokeChannel, SmokeResult, SolidState } from "@solid-ground/schema";
 import { isFresh } from "./report.js";
 
+/** Where the cell's package comes from: the registry, or a local fixture. */
+export type CellSource = { kind: "registry" } | { kind: "path"; path: string };
+
+export interface SmokeSteps {
+  import: boolean;
+  build: boolean;
+  types: boolean;
+}
+
 export interface SmokeCell {
   name: string;
   version: string;
@@ -33,6 +42,14 @@ export function cellId(cell: Pick<SmokeCell, "name" | "version" | "solid">): str
   return `${cell.name}@${cell.version}~${cell.solid}`;
 }
 
+/** A filesystem-safe identity, used as the CI artifact name. */
+export function artifactId(cell: Pick<SmokeCell, "name" | "version" | "solid">): string {
+  return cellId(cell)
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^[^a-zA-Z0-9]+/, "")
+    .slice(0, 120);
+}
+
 /**
  * Choose the cells worth running. Pure: it reads only its arguments.
  *
@@ -54,16 +71,28 @@ export function planBatch(options: PlanOptions): SmokeCell[] {
   }
 
   const cells: SmokeCell[] = [];
-  const records = [...options.records].sort((a, b) => a.name.localeCompare(b.name));
+  const records = [...options.records].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
   for (const record of records) {
     const version = record.recommendedVersion;
     if (version === null) continue;
 
     const candidates: SmokeCell[] = [
-      { name: record.name, version, solid: options.solid.stable2, channel: "stable" },
+      {
+        name: record.name,
+        version,
+        solid: options.solid.stable2,
+        channel: "stable",
+      },
     ];
     if (options.includeNext !== false && options.solid.next !== null) {
-      candidates.push({ name: record.name, version, solid: options.solid.next, channel: "next" });
+      candidates.push({
+        name: record.name,
+        version,
+        solid: options.solid.next,
+        channel: "next",
+      });
     }
 
     for (const cell of candidates) {

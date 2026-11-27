@@ -17,6 +17,17 @@ All notable changes to this project are documented here. The format follows
   appearing, changing or clearing.
 - `events.ndjson` is schema-validated line by line, so a malformed event fails
   collect and deploy with its line number instead of disappearing at read time.
+- Sandbox runner for the smoke matrix: `pnpm smoke:run` installs one package
+  version against one Solid version in a throwaway directory with
+  `--ignore-scripts`, pins a single `solid-js` copy through `pnpm.overrides`,
+  and reports import, build and type results. Install failures stay `null` with
+  the reason attached, never `false`.
+- Two control fixtures run in every batch. If the known-good package fails to
+  import, build or typecheck, or the known-bad package imports, `smoke:report`
+  discards the whole batch and writes nothing.
+- `verify.yml` plans a batch from the published edition, runs one cell per job
+  with Harden-Runner in `audit` mode, then validates the artifacts and the
+  controls. Phase 0 has no publish job, so a run cannot change a record yet.
 - Package records carry `smokeAt`, the instant the folded smoke pass finished,
   so a pass ages out of the policy window while Solid stands still instead of
   keeping `verified` alive indefinitely. Editions published before the field

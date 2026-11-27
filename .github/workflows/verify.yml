@@ -1,0 +1,172 @@
+name: Verify
+
+# Phase 0 of the sandboxed matrix (issue #4): harness plus controls, three
+# hand-picked packages, Harden-Runner in audit mode, and no publish. Nothing
+# here can change a record until the controls have run clean for two weeks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Re-test cells that already have a fresh result
+        type: boolean
+        default: false
+      packages:
+        description: Comma-separated package names
+        type: string
+        default: ""
+      max-cells:
+        description: Cap on package cells per batch
+        type: string
+        default: "3"
+  schedule:
+    # Nightly, after collect has refreshed the dataset at 03:17.
+    - cron: "10 4 * * *"
+
+permissions: {}
+
+concurrency:
+  group: verify
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      cells: ${{ steps.plan.outputs.cells }}
+      count: ${{ steps.plan.outputs.count }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check out the published dataset
+        uses: actions/checkout@v7
+        # Without a data branch every cell is planned, which is the honest
+        # bootstrap answer; only the plan step's own reads have to succeed.
+        continue-on-error: true
+        with:
+          ref: data
+          path: data
+          persist-credentials: false
+      - name: Plan the batch
+        id: plan
+        env:
+          PACKAGES: ${{ inputs.packages || '@solid-primitives/storage,@solidjs/meta,@kobalte/core' }}
+          MAX_CELLS: ${{ inputs.max-cells || '3' }}
+          FORCE: ${{ inputs.force || 'false' }}
+        run: |
+          set -euo pipefail
+          rm -rf data/.git
+          extra=()
+          if [ "$FORCE" = "true" ]; then extra+=(--force); fi
+          pnpm run smoke:plan \
+            --data data \
+            --packages "$PACKAGES" \
+            --max-cells "$MAX_CELLS" \
+            "${extra[@]}" \
+            --out smoke-plan.json
+          echo "cells=$(jq -c '.cells' smoke-plan.json)" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq '.cells | length' smoke-plan.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: smoke-plan
+          path: smoke-plan.json
+          retention-days: 7
+
+  smoke:
+    name: smoke ${{ matrix.cell.id }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # One package per job: a compromise sees one job token with read access
+      # and nothing else. The publish path never runs package code.
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        cell: ${{ fromJSON(needs.plan.outputs.cells) }}
+    steps:
+      # Audit first. Promote to `block` with only registry.npmjs.org and the
+      # GitHub hosts once two clean weeks of control runs are on record.
+      - uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Run the cell
+        env:
+          SPEC: ${{ toJSON(matrix.cell) }}
+          CELL_ID: ${{ matrix.cell.id }}
+          SMOKE_REPO_ROOT: ${{ github.workspace }}
+          SMOKE_WORKDIR: ${{ runner.temp }}
+        run: |
+          set -o pipefail
+          printf '%s' "$SPEC" | pnpm run smoke:run | tee "$RUNNER_TEMP/$CELL_ID.json"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cell-${{ matrix.cell.id }}
+          path: ${{ runner.temp }}/${{ matrix.cell.id }}.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  report:
+    name: report
+    needs: [plan, smoke]
+    # Runs after a partial batch too: a missing cell artifact is exactly what
+    # the control check is supposed to notice.
+    if: always() && needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: cell-*
+          path: results
+          merge-multiple: true
+      - name: Validate the artifacts and the controls
+        run: pnpm run smoke:report --dir results --out smoke/results.ndjson
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: smoke
+          path: smoke
+          if-no-files-found: ignore
+          retention-days: 7
