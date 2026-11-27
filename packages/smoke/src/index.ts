@@ -49,10 +49,17 @@ export {
 } from "./publish.js";
 export {
   AUDIT_DAYS,
+  DEFAULT_RETENTION_DAYS,
+  compactControlLog,
   describeControls,
+  isControlSummary,
   parseControlHistory,
+  parseControlLog,
   readControlHistory,
+  readControlLog,
   summarizeControls,
   type ControlDay,
   type ControlHistory,
+  type ControlLog,
+  type ControlSummary,
 } from "./status.js";

@@ -30,6 +30,8 @@ export interface ControlHistory {
 }
 
 export const AUDIT_DAYS = 14;
+export const DEFAULT_RETENTION_DAYS = 180;
+const DAY_MS = 86_400_000;
 
 function dayOf(at: string): string | null {
   const time = new Date(at);
@@ -100,37 +102,145 @@ function isResult(value: unknown): value is SmokeResult {
   );
 }
 
+/**
+ * One archived month in the control log. Raw results older than the retention
+ * window are replaced by these, so the file stays bounded while the audit still
+ * remembers that the month happened and how much of it was clean.
+ */
+export interface ControlSummary {
+  schemaVersion: 1;
+  kind: "control-summary";
+  /** `YYYY-MM`. */
+  month: string;
+  days: number;
+  cleanDays: number;
+  results: number;
+}
+
+export function isControlSummary(value: unknown): value is ControlSummary {
+  if (typeof value !== "object" || value === null) return false;
+  const summary = value as Record<string, unknown>;
+  return (
+    summary["kind"] === "control-summary" &&
+    typeof summary["month"] === "string" &&
+    typeof summary["days"] === "number" &&
+    typeof summary["cleanDays"] === "number" &&
+    typeof summary["results"] === "number"
+  );
+}
+
+export interface ControlLog {
+  results: SmokeResult[];
+  summaries: ControlSummary[];
+}
+
 /** Parse the append-only log; a damaged line is skipped, not fatal. */
-export function parseControlHistory(text: string): SmokeResult[] {
+export function parseControlLog(text: string): ControlLog {
   const results: SmokeResult[] = [];
+  const summaries: ControlSummary[] = [];
   for (const line of text.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     try {
       const parsed: unknown = JSON.parse(trimmed);
       if (isResult(parsed)) results.push(parsed);
+      else if (isControlSummary(parsed)) summaries.push(parsed);
     } catch {
       // Ignore a truncated or hand-edited line.
     }
   }
-  return results;
+  return { results, summaries };
+}
+
+export function parseControlHistory(text: string): SmokeResult[] {
+  return parseControlLog(text).results;
 }
 
 /** Read the append-only control log; a missing file is an empty history. */
-export async function readControlHistory(file: string): Promise<SmokeResult[]> {
+export async function readControlLog(file: string): Promise<ControlLog> {
   try {
-    return parseControlHistory(await readFile(file, "utf8"));
+    return parseControlLog(await readFile(file, "utf8"));
   } catch {
-    return [];
+    return { results: [], summaries: [] };
   }
 }
 
+export async function readControlHistory(file: string): Promise<SmokeResult[]> {
+  return (await readControlLog(file)).results;
+}
+
+/**
+ * Bound the log: keep `retentionDays` of raw control results and replace the
+ * rest with one summary per month. A month is summarized only once, because a
+ * later run cannot move a result back out of the archived window.
+ */
+export function compactControlLog(
+  text: string,
+  options: { retentionDays: number; now?: Date },
+): { text: string; kept: number; summarized: number } {
+  const now = options.now ?? new Date();
+  const cutoff = now.getTime() - options.retentionDays * DAY_MS;
+  const { results, summaries } = parseControlLog(text);
+  const byMonth = new Map(summaries.map((summary) => [summary.month, summary]));
+  const kept: SmokeResult[] = [];
+  const archived = new Map<string, SmokeResult[]>();
+
+  for (const result of results) {
+    const time = new Date(result.at).getTime();
+    if (Number.isNaN(time) || time >= cutoff) {
+      kept.push(result);
+      continue;
+    }
+    const month = result.at.slice(0, 7);
+    archived.set(month, [...(archived.get(month) ?? []), result]);
+  }
+
+  let summarized = 0;
+  for (const [month, monthResults] of archived) {
+    if (byMonth.has(month)) continue;
+    const history = summarizeControls(monthResults);
+    byMonth.set(month, {
+      schemaVersion: 1,
+      kind: "control-summary",
+      month,
+      days: history.days.length,
+      cleanDays: history.days.filter((day) => day.clean).length,
+      results: monthResults.length,
+    });
+    summarized += 1;
+  }
+
+  const lines = [
+    ...[...byMonth.values()]
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .map((summary) => JSON.stringify(summary)),
+    ...kept
+      .sort((a, b) => a.at.localeCompare(b.at))
+      .map((result) => JSON.stringify(result)),
+  ];
+  return {
+    text: lines.length > 0 ? `${lines.join("\n")}\n` : "",
+    kept: kept.length,
+    summarized,
+  };
+}
+
 /** One line per day, newest last, for the CLI. */
-export function describeControls(history: ControlHistory, limit = 14): string[] {
+export function describeControls(
+  history: ControlHistory,
+  limit = 14,
+  summaries: ControlSummary[] = [],
+): string[] {
   const lines = history.days.slice(-limit).map((day) => {
     const label = day.clean ? "clean" : "FAIL ";
     return `${label} ${day.day}  ${day.runs} control result(s) at ${day.at.slice(11, 19)}Z`;
   });
+  for (const summary of summaries) {
+    lines.push(
+      `archived ${summary.month}  ${summary.days} day(s), ${summary.cleanDays} clean, ` +
+        `${summary.results} result(s)`,
+    );
+  }
   const gate = history.auditMet ? "met" : "not met";
   lines.push(
     `${history.days.length} control day(s) on record; ${history.streak} clean in a row; ` +

@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 import type { SmokeResult } from "@solid-ground/schema";
 import {
   AUDIT_DAYS,
+  compactControlLog,
   describeControls,
+  parseControlLog,
   readControlHistory,
   summarizeControls,
 } from "../src/index.js";
@@ -118,6 +120,58 @@ describe("summarizeControls", () => {
     expect(history.days).toEqual([]);
     expect(history.lastRun).toBeNull();
     expect(describeControls(history)[0]).toContain("0 control day(s)");
+  });
+});
+
+describe("compactControlLog", () => {
+  const NOW = new Date("2026-11-27T00:00:00Z");
+
+  it("archives whole months older than the retention window", () => {
+    const text = `${[...batch("2026-05-10"), ...batch("2026-05-11"), ...batch("2026-11-25")]
+      .map((entry) => JSON.stringify(entry))
+      .join("\n")}\n`;
+
+    const compacted = compactControlLog(text, { retentionDays: 90, now: NOW });
+    const parsed = parseControlLog(compacted.text);
+
+    expect(parsed.results).toHaveLength(3);
+    expect(parsed.summaries).toEqual([
+      {
+        schemaVersion: 1,
+        kind: "control-summary",
+        month: "2026-05",
+        days: 2,
+        cleanDays: 2,
+        results: 6,
+      },
+    ]);
+    expect(compacted.summarized).toBe(1);
+    expect(compacted.kept).toBe(3);
+  });
+
+  it("is idempotent, so a second run changes nothing", () => {
+    const text = [...batch("2026-05-10"), ...batch("2026-11-25")]
+      .map((entry) => JSON.stringify(entry))
+      .join("\n");
+    const once = compactControlLog(text, { retentionDays: 90, now: NOW });
+    const twice = compactControlLog(once.text, { retentionDays: 90, now: NOW });
+    expect(twice.text).toBe(once.text);
+    expect(twice.summarized).toBe(0);
+  });
+
+  it("reports archived months through the status lines", () => {
+    const history = summarizeControls(batch("2026-11-25"));
+    const lines = describeControls(history, 14, [
+      {
+        schemaVersion: 1,
+        kind: "control-summary",
+        month: "2026-05",
+        days: 2,
+        cleanDays: 2,
+        results: 6,
+      },
+    ]);
+    expect(lines).toContain("archived 2026-05  2 day(s), 2 clean, 6 result(s)");
   });
 });
 

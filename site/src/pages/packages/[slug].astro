@@ -17,6 +17,13 @@ const snippets = [
   `[![Solid 2](https://img.shields.io/endpoint?url=https://joeyhammoth.github.io/SolidGround/badges/${slug}.json)](https://joeyhammoth.github.io/SolidGround/packages/${slug}/)`,
 ];
 const updateUrl = `https://github.com/JoeyHammoth/SolidGround/issues/new?template=correct-status.yml&title=${encodeURIComponent(`data: ${record.name}`)}`;
+const smokeVerdict = (value: boolean | null): string =>
+  value === null ? "not run" : value ? "passed" : "failed";
+const ranSmoke =
+  record.smokeAt != null ||
+  record.smoke.import !== null ||
+  record.smoke.build !== null ||
+  record.smoke.types !== null;
 ---
 
 <Base title={`${record.name} · Solid 2 readiness`} description={`${record.name}: ${record.status}. ${record.reasons[0] ?? ""}`}>
@@ -85,6 +92,27 @@ const updateUrl = `https://github.com/JoeyHammoth/SolidGround/issues/new?templat
       </ul>
     </div>
   </div>
+
+  {ranSmoke && (
+    <>
+      <h2>Sandboxed smoke</h2>
+      <p class="small muted">
+        One cell installs <code>{record.recommendedVersion ?? "the recommended release"}</code> with
+        <code>solid-js {record.tested.solid}</code>
+        {record.smokeTarget ? <> and imports <code>{record.smokeTarget}</code></> : null}
+        {record.smokeAt ? <> · finished {relativeAge(record.smokeAt)} (<code>{record.smokeAt}</code>)</> : null}
+      </p>
+      <ul class="small">
+        <li>Import: <strong>{smokeVerdict(record.smoke.import)}</strong></li>
+        <li>Build: <strong>{smokeVerdict(record.smoke.build)}</strong></li>
+        <li>Types: <strong>{smokeVerdict(record.smoke.types)}</strong></li>
+      </ul>
+      <p class="small muted">
+        A verdict is only as strong as its controls; the volatile detail lives in the run artifact and the
+        <a href={`${base}/health/`}>health page</a> keeps the control trail.
+      </p>
+    </>
+  )}
 
   <h2>Upstream</h2>
   {record.upstream.hasSolid2Work ? (

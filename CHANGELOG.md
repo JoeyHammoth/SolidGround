@@ -30,6 +30,17 @@ All notable changes to this project are documented here. The format follows
 - `verify.yml` plans a batch from the published edition, runs one cell per job
   with Harden-Runner in `audit` mode, then validates the artifacts and the
   controls. Phase 0 has no publish job, so a run cannot change a record yet.
+- Package pages render the folded smoke evidence once a pass is published:
+  import, build and types verdicts, when the cell finished, and the subpath it
+  probed (`smokeTarget` on the record). A page whose record has no sandbox
+  result shows nothing new rather than a wall of "not run".
+- The control log keeps 180 days of raw verdicts and archives older results as
+  one summary per month. Verify compacts after every append, and `smoke:status`
+  reports archived months beside the live days.
+- A dedicated verify job checks the generated blocked-package audit against the
+  published edition, opens or updates an issue when it drifts, and stays red
+  until the note matches again. It is independent of the matrix, so a stale note
+  cannot stop control runs.
 - A third control fixture has no root export and only a `./widget` entry. It
   must pass all three steps with `target: "@solid-ground/control-subpath/widget"`,
   so a regression in the subpath probe discards the batch instead of quietly

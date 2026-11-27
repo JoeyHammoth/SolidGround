@@ -84,16 +84,6 @@ jobs:
             --out smoke-plan.json
           echo "cells=$(jq -c '.cells' smoke-plan.json)" >> "$GITHUB_OUTPUT"
           echo "count=$(jq '.cells | length' smoke-plan.json)" >> "$GITHUB_OUTPUT"
-      - name: Check the blocked-package audit is current
-        # Advisory: a stale research note should not stop the control runs that
-        # the two-week gate depends on. The step is red on the run page.
-        continue-on-error: true
-        run: |
-          if [ ! -f data/index.json ]; then
-            echo "::notice::No dataset checkout; skipping the blocked-package audit check."
-            exit 0
-          fi
-          pnpm run audit:blocked --data data --check
       - uses: actions/upload-artifact@v7
         with:
           name: smoke-plan
@@ -285,31 +275,102 @@ jobs:
           name: smoke
           path: smoke
       - name: Append this batch's control verdicts
-        working-directory: data
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          if [ ! -f ../smoke/controls.jsonl ]; then
+          if [ ! -f smoke/controls.jsonl ]; then
             echo "::notice::This batch carries no control results; nothing to record."
             exit 0
           fi
-          mkdir -p smoke
-          touch smoke/controls.jsonl
-          # Keep the log append-only and replayable: a line already on record is
-          # not written twice.
-          awk '!seen[$0]++' smoke/controls.jsonl ../smoke/controls.jsonl > smoke/controls.tmp
-          mv smoke/controls.tmp smoke/controls.jsonl
-          git config user.name "solid-ground-verify"
-          git config user.email "verify@users.noreply.github.com"
-          git add smoke/controls.jsonl
-          if git diff --cached --quiet; then
+          mkdir -p data/smoke
+          touch data/smoke/controls.jsonl
+          # Keep the log replayable: a line already on record is not written twice.
+          awk '!seen[$0]++' data/smoke/controls.jsonl smoke/controls.jsonl > data/smoke/controls.tmp
+          mv data/smoke/controls.tmp data/smoke/controls.jsonl
+          # Bound the file: raw results for the retention window, one summary per
+          # archived month before it.
+          pnpm run smoke:compact --file data/smoke/controls.jsonl
+          git -C data config user.name "solid-ground-verify"
+          git -C data config user.email "verify@users.noreply.github.com"
+          git -C data add smoke/controls.jsonl
+          if git -C data diff --cached --quiet; then
             echo "::notice::Control log unchanged; nothing to record."
             exit 0
           fi
-          git commit -m "chore(data): record smoke controls $(date -u +%FT%TZ)"
-          git push
+          git -C data commit -m "chore(data): record smoke controls $(date -u +%FT%TZ)"
+          git -C data push
           gh workflow run deploy.yml --ref main
       - name: Summarize the audit trail
         if: always()
         run: pnpm run smoke:status --file data/smoke/controls.jsonl --last 14 >> "$GITHUB_STEP_SUMMARY"
+
+  audit:
+    name: blocked audit
+    # Independent of the matrix: a stale research note must neither stop the
+    # control runs nor go unnoticed, so this job owns an issue instead.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/checkout@v7
+        continue-on-error: true
+        with:
+          ref: data
+          path: data
+          persist-credentials: false
+      - name: Compare the committed audit with the published edition
+        id: audit
+        run: |
+          set -euo pipefail
+          if [ ! -f data/index.json ]; then
+            echo "::notice::No dataset checkout; skipping the blocked-package audit check."
+            echo "stale=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if pnpm run audit:blocked --data data --check; then
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open or update the audit issue
+        if: steps.audit.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title="docs: the blocked-package audit is stale"
+          body=$(printf '%s\n\n%s\n' \
+            'The committed audit no longer matches the edition on the data branch.' \
+            'Run `pnpm audit:blocked --data data`, review the diff and commit it. This job stays red until the note matches again.')
+          number=$(gh issue list --state open --limit 100 --json number,title \
+            --jq '.[] | select(.title == "docs: the blocked-package audit is stale") | .number' | head -1)
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+          exit 1
+      - name: Close the audit issue once current
+        if: steps.audit.outputs.stale == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for number in $(gh issue list --state open --limit 100 --json number,title \
+            --jq '.[] | select(.title == "docs: the blocked-package audit is stale") | .number'); do
+            gh issue close "$number" --comment "The committed audit matches the published edition again. Closing."
+          done
