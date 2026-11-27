@@ -2,11 +2,12 @@
 import Base from "../../layouts/Base.astro";
 import { CATEGORY_LABELS } from "../../lib/data";
 import {
-  categoryOf,
+  categoryValueOf,
   eventDate,
   eventSlug,
   eventTitle,
   events,
+  isDatasetEvent,
   monthLabel,
   transitionOf,
 } from "../../lib/events";
@@ -14,14 +15,19 @@ import {
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const transitions = [...new Set(events.map(transitionOf))].sort();
 const categories = [
-  ...new Set(events.filter((event) => event.kind !== "summary").map((event) => categoryOf(event.name))),
+  ...new Set(events.filter((event) => event.kind !== "summary").map(categoryValueOf)),
 ].sort();
 const transitionLabel = (value: string) => {
   if (value.startsWith("became-")) return `became ${value.slice("became-".length)}`;
   if (value === "new") return "new packages";
   if (value === "attestation") return "expired overrides";
+  if (value === "solid") return "Solid releases";
+  if (value === "rules") return "rules changes";
+  if (value === "anomaly") return "anomaly holds";
   return value;
 };
+const subjectLabel = (event: (typeof events)[number]) =>
+  event.kind === "rules" ? "rules" : event.kind === "solid" ? "solid-js" : "dataset";
 ---
 
 <Base
@@ -30,8 +36,8 @@ const transitionLabel = (value: string) => {
 >
   <h1>Changes</h1>
   <p class="lede">
-    Every status change, new package and expired override in the dataset, newest first. Generated
-    from the published records, not retyped by hand.
+    Every status change, new package, expired override, Solid release, rules change and anomaly
+    hold in the dataset, newest first. Generated from the published records, not retyped by hand.
   </p>
   <p class="small muted">
     Follow along with the <a href={`${base}/feed.xml`}>Atom feed</a> or read
@@ -81,25 +87,22 @@ const transitionLabel = (value: string) => {
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr
-                  data-transition={transitionOf(event)}
-                  data-category={event.kind === "summary" ? "summary" : categoryOf(event.name)}
-                >
+                <tr data-transition={transitionOf(event)} data-category={categoryValueOf(event)}>
                   <td title={event.at}>
                     {event.kind === "summary" ? monthLabel(event.to) : eventDate(event.at)}
                   </td>
                   <td>
                     {event.kind === "summary" ? (
                       <span class="muted">all packages</span>
+                    ) : isDatasetEvent(event) ? (
+                      <span class="muted">{subjectLabel(event)}</span>
                     ) : (
                       <a href={`${base}/packages/${eventSlug(event.name)}/`}>{event.name}</a>
                     )}
                   </td>
                   <td>{eventTitle(event)}</td>
                   <td class="small muted">
-                    {event.kind === "summary"
-                      ? "summary"
-                      : (CATEGORY_LABELS[categoryOf(event.name)] ?? categoryOf(event.name))}
+                    {CATEGORY_LABELS[categoryValueOf(event)] ?? categoryValueOf(event)}
                   </td>
                 </tr>
               ))}

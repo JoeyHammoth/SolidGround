@@ -39,6 +39,19 @@ export function eventSlug(name: string): string {
   return name.replace(/\//g, "__");
 }
 
+const DATASET_KINDS = new Set<ChangeEvent["kind"]>(["rules", "solid", "anomaly"]);
+
+/** Events about the dataset itself, which have no package page to link to. */
+export function isDatasetEvent(event: ChangeEvent): boolean {
+  return DATASET_KINDS.has(event.kind);
+}
+
+/** The value the category filter uses for one event. */
+export function categoryValueOf(event: ChangeEvent): string {
+  if (event.kind === "summary") return "summary";
+  return isDatasetEvent(event) ? "dataset" : categoryOf(event.name);
+}
+
 /** The filter value an event maps to, e.g. `became-ready`. */
 export function transitionOf(event: ChangeEvent): string {
   switch (event.kind) {
@@ -48,6 +61,12 @@ export function transitionOf(event: ChangeEvent): string {
       return "version";
     case "attestation":
       return "attestation";
+    case "rules":
+      return "rules";
+    case "solid":
+      return "solid";
+    case "anomaly":
+      return "anomaly";
     case "summary":
       return "summary";
     default:
@@ -63,6 +82,17 @@ export function eventTitle(event: ChangeEvent): string {
       return `${event.name} reports Solid 2 in ${event.to}`;
     case "attestation":
       return `An override claiming "${event.from}" expired for ${event.name}`;
+    case "rules":
+      return `The status rules moved from ${event.from ?? "none"} to ${event.to}`;
+    case "solid":
+      // A prerelease in `to` marks the `next` line rather than a stable release.
+      return event.to.includes("-")
+        ? `Solid's next line moved to ${event.to}`
+        : `Solid ${event.to} was released`;
+    case "anomaly":
+      return event.to === "clear"
+        ? "The anomaly hold on the dataset was cleared"
+        : `The dataset is held: ${event.to}`;
     case "summary":
       return `${event.count ?? 1} changes in ${monthLabel(event.to)}`;
     case "new":

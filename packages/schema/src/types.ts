@@ -178,16 +178,31 @@ export interface SolidFile extends SolidState {
 }
 
 /**
- * One change event, derived by diffing two package records. `summary` replaces
- * events older than the retention window: one line per calendar month.
+ * One change event. Package events are derived by diffing two package records;
+ * dataset events (`rules`, `solid`, `anomaly`) by diffing two `meta.json`
+ * editions. `summary` replaces events older than the retention window: one line
+ * per calendar month.
  */
 export interface ChangeEvent {
   schemaVersion: 1;
+  /** A package name, or the dataset subject: `solid-js`, `rules`, `dataset`. */
   name: string;
-  /** `next.checkedAt` — never a clock read. For a summary, the month's last event. */
+  /**
+   * `next.checkedAt` for a record and `next.generatedAt` for the dataset — never
+   * a clock read. For a summary, the month's last event.
+   */
   at: string;
-  kind: "new" | "status" | "version" | "attestation" | "summary";
+  kind:
+    | "new"
+    | "status"
+    | "version"
+    | "attestation"
+    | "rules"
+    | "solid"
+    | "anomaly"
+    | "summary";
   from: string | null;
+  /** For `solid`, a prerelease version means the `next` line rather than stable. */
   to: string;
   /** For `summary` only: how many events the summary stands in for. */
   count?: number;

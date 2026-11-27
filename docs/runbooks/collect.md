@@ -33,6 +33,10 @@ one tarball per package for the scan. A normal run is a few minutes.
   invents a finding.
 - **`publish` reports nothing to commit.** The dataset was identical; that is a
   success, not a failure.
-- **The site still shows old data.** Pages builds from `fixtures/dataset` today.
-  Pointing it at the `data` branch is a separate change; until then the data
-  branch is the record, not the published site.
+- **No events appear.** Events are a diff against the previous edition, so a
+  first run, or a rerun that changed nothing, adds none by design. Set
+  `events.ndjson` aside to watch the next run bootstrap from scratch.
+- **The site still shows old data.** A successful publish dispatches
+  `deploy.yml`, which rebuilds the site from a fresh checkout of `data`. If the
+  site lags behind, check that the dispatch ran; a push made with `GITHUB_TOKEN`
+  does not trigger workflows on its own.

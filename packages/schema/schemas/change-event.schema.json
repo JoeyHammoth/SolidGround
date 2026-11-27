@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/change-event.schema.json",
+  "title": "Solid Ground change event",
+  "description": "One line of events.ndjson: a change to a package record or to the dataset itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "at", "kind", "from", "to"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "A package name, or the dataset subject for rules/solid/anomaly events."
+    },
+    "at": { "type": "string", "maxLength": 40 },
+    "kind": {
+      "enum": [
+        "new",
+        "status",
+        "version",
+        "attestation",
+        "rules",
+        "solid",
+        "anomaly",
+        "summary"
+      ]
+    },
+    "from": { "type": ["string", "null"], "maxLength": 2000 },
+    "to": { "type": "string", "maxLength": 2000 },
+    "count": { "type": "integer", "minimum": 1 }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": { "kind": { "const": "summary" } }
+      },
+      "then": {
+        "required": ["count"],
+        "properties": { "count": { "type": "integer", "minimum": 1 } }
+      }
+    }
+  ]
+}

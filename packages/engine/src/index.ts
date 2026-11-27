@@ -1,6 +1,6 @@
 import semver from "semver";
 import type {
-  ChangeEvent, EvidenceLevel,
+  ChangeEvent, DatasetMeta, EvidenceLevel,
   PackageEvidence,
   PackageRecord,
   Phase,
@@ -329,6 +329,53 @@ export function diffRecords(previous: PackageRecord | null, next: PackageRecord)
     .sort((a, b) => a.expires.localeCompare(b.expires));
   for (const attestation of expired) {
     events.push(changeEvent(next, "attestation", attestation.claim, "expired"));
+  }
+
+  return events;
+}
+
+function datasetEvent(
+  next: DatasetMeta,
+  kind: ChangeEvent["kind"],
+  name: string,
+  from: string | null,
+  to: string,
+): ChangeEvent {
+  return { schemaVersion: 1, name, at: next.generatedAt, kind, from, to };
+}
+
+/** How an anomaly hold reads in an event: its reasons, or `clear`. */
+function anomalyLabel(anomaly: DatasetMeta["anomaly"]): string {
+  if (!anomaly.held) return "clear";
+  return anomaly.reasons.length > 0 ? anomaly.reasons.join("; ") : "held";
+}
+
+/**
+ * Compare two dataset editions and report the changes above the package level:
+ * a Solid release, a rules version change and the anomaly hold appearing,
+ * changing or clearing. Pure, and silent on the first edition — the state that
+ * already exists is not news.
+ */
+export function diffMeta(previous: DatasetMeta | null, next: DatasetMeta): ChangeEvent[] {
+  if (previous === null) return [];
+  const events: ChangeEvent[] = [];
+
+  if (previous.solid.stable2 !== next.solid.stable2) {
+    events.push(
+      datasetEvent(next, "solid", "solid-js", previous.solid.stable2, next.solid.stable2),
+    );
+  }
+  if (previous.solid.next !== next.solid.next && next.solid.next !== null) {
+    events.push(datasetEvent(next, "solid", "solid-js", previous.solid.next, next.solid.next));
+  }
+  if (previous.versions.rules !== next.versions.rules) {
+    events.push(datasetEvent(next, "rules", "rules", previous.versions.rules, next.versions.rules));
+  }
+
+  const heldBefore = anomalyLabel(previous.anomaly);
+  const heldAfter = anomalyLabel(next.anomaly);
+  if (heldBefore !== heldAfter) {
+    events.push(datasetEvent(next, "anomaly", "dataset", heldBefore, heldAfter));
   }
 
   return events;
