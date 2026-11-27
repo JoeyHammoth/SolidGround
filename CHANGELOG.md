@@ -55,6 +55,15 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
+- `pnpm check:live` fetches the published JSON endpoints and validates every
+  body against its schema, including the `$schema` each one names. It needs
+  network access, so it stays out of `pnpm test`; a recorded deployed
+  `controls.json` in `fixtures/live/` covers the same shape offline.
+- `/health/` links `controls.json` from the smoke section and the
+  machine-readable footer, so the grouped failure reasons are one click from a
+  page before anyone reaches for `curl`.
+- `smoke:status --json --last <n>` is tested to return only the newest `n`
+  days, with the unlimited report as the control.
 - `/api/v1/gate.json`, `/api/v1/validation.json` and the new `/api/v1/controls.json`
   carry a `$schema` field naming their JSON Schema, so a consumer can validate a
   response without hard-coding the repository path.

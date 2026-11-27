@@ -113,6 +113,24 @@ describe("smoke:status output", () => {
     }
   });
 
+  it("limits --json days to the newest with --last", async () => {
+    const { dir, file } = await writeLog([
+      result({ at: "2026-11-26T04:10:00Z" }),
+      ...FAILED_DAY,
+    ]);
+    try {
+      const limited = JSON.parse(status(file, ["--json", "--last", "1"])) as {
+        days: { day: string }[];
+      };
+      expect(limited.days.map((day) => day.day)).toEqual(["2026-11-27"]);
+
+      const all = JSON.parse(status(file, ["--json"])) as { days: { day: string }[] };
+      expect(all.days.map((day) => day.day)).toEqual(["2026-11-26", "2026-11-27"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("exits 1 under --strict when the newest day failed", async () => {
     const { dir, file } = await logFile();
     try {

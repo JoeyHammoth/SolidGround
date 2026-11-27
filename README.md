@@ -174,6 +174,11 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 [`validation.schema.json`](packages/schema/schemas/validation.schema.json);
 each response names its schema in a `$schema` field.
 
+`pnpm check:live` fetches those endpoints from the deployed site and validates
+every body against its schema, failing on a drift or a `$schema` that names the
+wrong document (it needs network access, so it is not part of `pnpm test`). Pass
+`--base <url>` to check a preview or a local build instead.
+
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
 [`LICENSE-DATA`](LICENSE-DATA).
 

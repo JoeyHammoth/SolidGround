@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JoeyHammoth/SolidGround/main/packages/schema/schemas/controls.schema.json",
+  "schemaVersion": 1,
+  "streak": 0,
+  "required": 14,
+  "remaining": 14,
+  "auditMet": false,
+  "lastRun": "2026-11-27T12:57:23.519Z",
+  "days": [
+    {
+      "day": "2026-11-27",
+      "clean": false,
+      "runs": 25,
+      "at": "2026-11-27T12:57:23.519Z",
+      "failures": 3,
+      "groups": [
+        {
+          "subject": "control-subpath",
+          "details": [
+            "import was false, expected true",
+            "build was false, expected true",
+            "types was false, expected true"
+          ]
+        }
+      ]
+    }
+  ]
+}
