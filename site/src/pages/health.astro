@@ -37,7 +37,7 @@ const lastControlDay = controls.days.at(-1);
     can be trusted. Two weeks of clean control days is the gate for letting the matrix change a record.
   </p>
   {lastControlDay && !lastControlDay.clean && (
-    <div class="banner" role="status">The newest control run did not answer as expected; its batch was discarded.</div>
+    <div class="banner" role="status">A control run on the newest day did not answer as expected; that batch was discarded. The last successful run is listed below.</div>
   )}
   {controlDays.length > 0 ? (
     <>
