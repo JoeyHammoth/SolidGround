@@ -26,8 +26,11 @@ export interface RunnerSpec extends SmokeCell {
 
 /** Pinned loosely: the harness is rebuilt on every run, so a range is honest. */
 export const TOOLCHAIN = {
-  vite: "^6.0.0",
-  "vite-plugin-solid": "^2.11.0",
+  // Solid 2 moved the renderer to @solidjs/web and the bundler integration to
+  // @solidjs/vite-plugin, which needs Vite 8 or 9.
+  vite: "^8.0.0",
+  "@solidjs/vite-plugin": "^3.0.0",
+  "@solidjs/web": "^2.0.0",
   typescript: "^5.7.0",
 } as const;
 
@@ -147,9 +150,12 @@ export function cellManifest(spec: RunnerSpec): Record<string, unknown> {
     [spec.name]: dependency,
     "solid-js": spec.solid,
   };
+  if (spec.steps.build || spec.steps.types) {
+    dependencies["@solidjs/web"] = TOOLCHAIN["@solidjs/web"];
+  }
   if (spec.steps.build) {
     dependencies.vite = TOOLCHAIN.vite;
-    dependencies["vite-plugin-solid"] = TOOLCHAIN["vite-plugin-solid"];
+    dependencies["@solidjs/vite-plugin"] = TOOLCHAIN["@solidjs/vite-plugin"];
   }
   if (spec.steps.types) dependencies.typescript = TOOLCHAIN.typescript;
 
@@ -179,7 +185,7 @@ export function cellFiles(spec: RunnerSpec): CellFiles {
     files["index.html"] =
       '<!doctype html><html><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>\n';
     files["src/main.jsx"] = [
-      'import { render } from "solid-js/web";',
+      'import { render } from "@solidjs/web";',
       `import * as target from ${JSON.stringify(spec.name)};`,
       "",
       "function App() {",
@@ -191,9 +197,9 @@ export function cellFiles(spec: RunnerSpec): CellFiles {
     ].join("\n");
     files["vite.config.js"] = [
       'import { defineConfig } from "vite";',
-      'import solid from "vite-plugin-solid";',
+      'import solidPlugin from "@solidjs/vite-plugin";',
       "",
-      'export default defineConfig({ plugins: [solid()], logLevel: "warn" });',
+      'export default defineConfig({ plugins: [solidPlugin()], logLevel: "warn" });',
       "",
     ].join("\n");
   }
@@ -231,17 +237,40 @@ export function cellFiles(spec: RunnerSpec): CellFiles {
  * install writes nothing outside the job workspace.
  */
 export function childEnv(workdir: string): NodeJS.ProcessEnv {
-  return {
+  const env: NodeJS.ProcessEnv = {
     PATH: process.env["PATH"] ?? "",
     HOME: path.join(workdir, "home"),
     TMPDIR: path.join(workdir, "tmp"),
     CI: "true",
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
     npm_config_store_dir: path.join(workdir, ".pnpm-store"),
     npm_config_cache: path.join(workdir, ".npm-cache"),
     npm_config_update_notifier: "false",
     npm_config_fund: "false",
     npm_config_audit: "false",
   };
+  // pnpm may be a corepack shim. Its cache lives under the real HOME, which the
+  // cell deliberately replaces, so point the shim at it instead of letting it
+  // fetch a version (and its keys) mid-run.
+  const corepackHome =
+    process.env["COREPACK_HOME"] ??
+    (process.env["HOME"] ? path.join(process.env["HOME"], ".cache", "node", "corepack") : undefined);
+  if (corepackHome) env.COREPACK_HOME = corepackHome;
+  return env;
+}
+
+/**
+ * Use the pnpm that launched this process rather than whatever a shim resolves
+ * to. In CI that is the action-setup binary; locally it is the same version the
+ * repository pins.
+ */
+export function pnpmCommand(env: NodeJS.ProcessEnv = process.env): {
+  command: string;
+  args: string[];
+} {
+  const execPath = env["npm_execpath"];
+  if (execPath && /pnpm/.test(execPath)) return { command: process.execPath, args: [execPath] };
+  return { command: "pnpm", args: [] };
 }
 
 interface CommandResult {
@@ -342,13 +371,14 @@ export async function runCell(
       "utf8",
     );
 
-    let install = await runCommand("pnpm", INSTALL_ARGS, {
+    const pnpm = pnpmCommand();
+    let install = await runCommand(pnpm.command, [...pnpm.args, ...INSTALL_ARGS], {
       cwd: workdir,
       timeoutMs: spec.timeoutMs,
       env,
     });
     if (!install.ok) {
-      install = await runCommand("pnpm", INSTALL_ARGS, {
+      install = await runCommand(pnpm.command, [...pnpm.args, ...INSTALL_ARGS], {
         cwd: workdir,
         timeoutMs: spec.timeoutMs,
         env,
@@ -392,7 +422,7 @@ export async function runCell(
     }
 
     if (spec.steps.build) {
-      const result = await runCommand("pnpm", ["exec", "vite", "build"], {
+      const result = await runCommand(pnpm.command, [...pnpm.args, "exec", "vite", "build"], {
         cwd: workdir,
         timeoutMs: spec.timeoutMs,
         env,
@@ -402,10 +432,7 @@ export async function runCell(
     }
 
     if (spec.steps.types) {
-      const result = await runCommand(
-        "pnpm",
-        ["exec", "tsc", "-p", "tsconfig.json"],
-        {
+            const result = await runCommand(pnpm.command, [...pnpm.args, "exec", "tsc", "-p", "tsconfig.json"], {
           cwd: workdir,
           timeoutMs: spec.timeoutMs,
           env,

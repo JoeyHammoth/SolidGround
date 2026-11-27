@@ -3,8 +3,10 @@ import {
   TOOLCHAIN,
   cellFiles,
   cellManifest,
+  childEnv,
   chooseEntry,
   parseRunnerSpec,
+  pnpmCommand,
 } from "../src/runner.js";
 
 const SPEC = {
@@ -159,6 +161,36 @@ describe("cellManifest", () => {
     expect(dependency.endsWith("packages/smoke/fixtures/control-good")).toBe(
       true,
     );
+  });
+});
+
+describe("pnpmCommand", () => {
+  it("runs the pnpm that launched this process", () => {
+    const invocation = pnpmCommand({ npm_execpath: "/opt/pnpm/pnpm.cjs", PATH: "/usr/bin" });
+    expect(invocation.command).toBe(process.execPath);
+    expect(invocation.args).toEqual(["/opt/pnpm/pnpm.cjs"]);
+  });
+
+  it("falls back to pnpm on PATH", () => {
+    expect(pnpmCommand({ PATH: "/usr/bin" })).toEqual({ command: "pnpm", args: [] });
+  });
+});
+
+describe("childEnv", () => {
+  it("keeps every writable path inside the cell", () => {
+    const env = childEnv("/tmp/sg-smoke-cell");
+    expect(env.HOME).toBe("/tmp/sg-smoke-cell/home");
+    expect(env.TMPDIR).toBe("/tmp/sg-smoke-cell/tmp");
+    expect(env.npm_config_store_dir).toBe("/tmp/sg-smoke-cell/.pnpm-store");
+    expect(env.npm_config_cache).toBe("/tmp/sg-smoke-cell/.npm-cache");
+  });
+
+  it("leaves corepack's cache reachable without the real HOME", () => {
+    const env = childEnv("/tmp/sg-smoke-cell");
+    expect(env.COREPACK_ENABLE_DOWNLOAD_PROMPT).toBe("0");
+    if (process.env["COREPACK_HOME"] || process.env["HOME"]) {
+      expect(env.COREPACK_HOME).toBeTruthy();
+    }
   });
 });
 

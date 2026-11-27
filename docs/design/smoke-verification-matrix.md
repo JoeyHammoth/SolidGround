@@ -76,10 +76,10 @@ cell and runs all three steps in sequence. A failure in `import` still attempts
 1. **import** — `node --input-type=module -e "await import('<name>')"` in a
    project whose only `solid-js` is the version under test. For a package with no
    ESM entry, fall back to `createRequire` and record which entry was used.
-2. **build** — a minimal Vite + `vite-plugin-solid` app that imports the package's
-   default export and runs `vite build`. This is the step that catches the real
-   world: JSX transforms, peer-range mismatches, subpath exports that only fail
-   under bundling.
+2. **build** — a minimal Vite + `@solidjs/vite-plugin` app that imports the
+   package and runs `vite build`. This is the step that catches the real world:
+   JSX transforms, peer-range mismatches, subpath exports that only fail under
+   bundling.
 3. **types** — `tsc --noEmit` on a three-line `import` of the package's types,
    only when the record has `shipsTypes: true`. A package without types is
    `null`, never `false`.
@@ -167,8 +167,8 @@ Two fixtures ship with the harness and run in **every** batch:
 
 - **known-good:** a two-line Solid 2 component that must return
   `{ import: true, build: true, types: true }`.
-- **known-bad:** the same component with `createEffect` imported from
-  `solid-js` under a `2.0` install in a way Solid 2 removed, which must return
+- **known-bad:** the same component importing `batch` from `solid-js`, which
+  Solid 2 removed, and calling it at module scope, which must return
   `import: false`.
 
 If either control returns the wrong verdict, the whole batch is discarded as an

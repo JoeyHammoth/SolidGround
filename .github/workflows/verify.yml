@@ -125,7 +125,9 @@ jobs:
           SMOKE_WORKDIR: ${{ runner.temp }}
         run: |
           set -o pipefail
-          printf '%s' "$SPEC" | pnpm run smoke:run | tee "$RUNNER_TEMP/$CELL_ID.json"
+          # `pnpm exec`, not `pnpm run`: the run banner would prefix stdout and
+          # corrupt the JSON artifact.
+          printf '%s' "$SPEC" | pnpm exec tsx packages/smoke/src/runner.ts | tee "$RUNNER_TEMP/$CELL_ID.json"
       - uses: actions/upload-artifact@v7
         if: always()
         with:

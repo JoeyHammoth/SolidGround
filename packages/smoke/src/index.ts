@@ -22,6 +22,7 @@ export {
   childEnv,
   chooseEntry,
   parseRunnerSpec,
+  pnpmCommand,
   runCell,
   type CellFiles,
   type RunnerSpec,
