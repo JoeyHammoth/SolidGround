@@ -55,6 +55,11 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
+- `/health/` reports the last deployed API check: pass or fail, when it ran,
+  how many endpoints answered and the problems behind a failure. The Verify
+  `live API` job records the result as `api-check.json` on the `data` branch,
+  so the page needs no request-time work and a broken endpoint is visible
+  without opening an Actions log.
 - The Verify workflow now checks the deployed JSON on every scheduled run:
   `pnpm check:live` validates each endpoint, and a failure opens one issue
   (`pnpm api:issue --stale`) that closes on the next clean run. The control

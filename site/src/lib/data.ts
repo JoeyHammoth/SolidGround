@@ -98,6 +98,40 @@ function readDeployValidation(): DeployValidation | null {
 /** Null in local builds and in editions published before the deploy recorded it. */
 export const deployValidation = readDeployValidation();
 
+/**
+ * What the Verify workflow saw when it last validated the deployed JSON. It
+ * lives in the dataset because a static site cannot ask at request time, and a
+ * reader should not have to open an Actions log to know the API still parses.
+ */
+export interface DeployApiCheck {
+  ok: boolean;
+  checkedAt: string | null;
+  base: string;
+  endpoints: number;
+  problems: string[];
+}
+
+function readApiCheck(): DeployApiCheck | null {
+  const file = path.join(dataDir, "api-check.json");
+  if (!existsSync(file)) return null;
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8")) as Partial<DeployApiCheck>;
+    if (typeof parsed.ok !== "boolean" || !Array.isArray(parsed.problems)) return null;
+    return {
+      ok: parsed.ok,
+      checkedAt: typeof parsed.checkedAt === "string" ? parsed.checkedAt : null,
+      base: typeof parsed.base === "string" ? parsed.base : "",
+      endpoints: typeof parsed.endpoints === "number" ? parsed.endpoints : 0,
+      problems: parsed.problems,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Null until a Verify run has recorded a check for this edition. */
+export const apiCheck = readApiCheck();
+
 export function recordBySlug(slug: string): PackageRecord | undefined {
   return records.find((record) => record.name.replace(/\//g, "__") === decodeSlug(slug));
 }

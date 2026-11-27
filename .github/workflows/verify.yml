@@ -396,8 +396,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: read
+      contents: write
       issues: write
+    concurrency:
+      group: data-write
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
@@ -410,6 +413,10 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/checkout@v7
+        with:
+          ref: data
+          path: data
       - name: Validate the deployed JSON against its schemas
         id: live
         # Not strict: a fixture behind the nightly batch must not turn this job
@@ -447,3 +454,42 @@ jobs:
               echo "::notice::Live API check did not report; no issue to sync."
               ;;
           esac
+      - name: Record the result for /health/
+        # One file on the data branch, so the health page can say when the
+        # deployed JSON last passed without anyone reading this log. A failed
+        # check is recorded too: the reader should see it, not only the issue.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ ! -f data/index.json ]; then
+            echo "::notice::No dataset checkout; the health page keeps the previous result."
+            exit 0
+          fi
+          ok=false
+          if [ "${{ steps.live.outputs.drift }}" = "false" ]; then ok=true; fi
+          endpoints=$(grep -c '^ok ' "$RUNNER_TEMP/live.log" || true)
+          : > "$RUNNER_TEMP/api-problems.txt"
+          grep '^fail ' "$RUNNER_TEMP/live.log" | sed 's/^fail //' > "$RUNNER_TEMP/api-problems.txt" || true
+          jq -R -s 'split("\n") | map(select(length > 0))' "$RUNNER_TEMP/api-problems.txt" \
+            > "$RUNNER_TEMP/api-problems.json"
+          jq -n \
+            --argjson ok "$ok" \
+            --arg at "$(date -u +%FT%TZ)" \
+            --arg base "https://joeyhammoth.github.io/SolidGround" \
+            --argjson endpoints "${endpoints:-0}" \
+            --slurpfile problems "$RUNNER_TEMP/api-problems.json" \
+            '{schemaVersion: 1, ok: $ok, checkedAt: $at, base: $base, endpoints: $endpoints, problems: $problems[0]}' \
+            > data/api-check.json
+          git -C data config user.name "solid-ground-verify"
+          git -C data config user.email "verify@users.noreply.github.com"
+          git -C data add api-check.json
+          if git -C data diff --cached --quiet; then
+            echo "::notice::API check unchanged; nothing to record."
+            exit 0
+          fi
+          git -C data commit -m "chore(data): record deployed API check $(date -u +%FT%TZ)"
+          git -C data push
+          # A push made with GITHUB_TOKEN does not trigger other workflows.
+          gh workflow run deploy.yml --ref main

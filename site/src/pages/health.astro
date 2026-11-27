@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import { AUDIT_DAYS } from "@solid-ground/smoke/status";
 import {
+  apiCheck,
   consistencyProblems,
   controls,
   deployValidation,
@@ -76,6 +77,31 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     <ul>
       {consistencyProblems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}
       {consistencyProblems.length > 8 && <li>…and {consistencyProblems.length - 8} more</li>}
+    </ul>
+  )}
+
+  <h2>Deployed API</h2>
+  <p>
+    Schema check of the published JSON:{" "}
+    {apiCheck ? (
+      <span>
+        <strong>{apiCheck.ok ? "passed" : "failed"}</strong>
+        {apiCheck.checkedAt && ` at ${apiCheck.checkedAt}`}
+        {apiCheck.endpoints > 0 && ` over ${apiCheck.endpoints} endpoint(s)`}{" "}
+        ({apiCheck.problems.length} problem(s)).
+      </span>
+    ) : (
+      <span>
+        <strong>not recorded</strong> in this edition. The{" "}
+        <a href="https://github.com/JoeyHammoth/SolidGround/actions/workflows/verify.yml">Verify workflow</a>{" "}
+        runs <code>pnpm check:live</code> on a schedule and records the result here.
+      </span>
+    )}
+  </p>
+  {apiCheck && apiCheck.problems.length > 0 && (
+    <ul>
+      {apiCheck.problems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}
+      {apiCheck.problems.length > 8 && <li>…and {apiCheck.problems.length - 8} more</li>}
     </ul>
   )}
 

@@ -21,8 +21,11 @@ pnpm smoke:gate --file data/smoke/controls.jsonl --json
 against its schema, including the `$schema` each response names. It needs
 network access, so it is not part of `pnpm test`.
 
-The scheduled `live API` job runs it and opens one issue while it fails
-(`api: issue …`). The issue closes by itself on the next passing run.
+The scheduled `live API` job runs it, opens one issue while it fails
+(`api: issue …`), and closes it on the next passing run. It also writes
+`api-check.json` to the `data` branch and redeploys, which is what the
+"Deployed API" line on `/health/` reads; a failing check is recorded there too,
+so the page never hides a bad result behind the issue.
 
 ## Refresh the recorded API fixture
 
