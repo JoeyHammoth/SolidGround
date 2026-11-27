@@ -31,7 +31,9 @@ function addMonths(iso: string | null, months: number): string | null {
 }
 
 function cell(value: string): string {
-  return value.replace(/\|/g, "\\|");
+  // Backslashes first: escaping only the pipe would let an existing backslash
+  // swallow the escape and break the table cell.
+  return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
 }
 
 export function renderBlockedReport(input: BlockedReportInput): string {
