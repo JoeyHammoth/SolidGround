@@ -15,8 +15,11 @@ All notable changes to this project are documented here. The format follows
 - `pnpm check` prints a `Probed` column beside each package, naming the subpath
   the sandbox imported (`root` for a root pass) so the CLI report matches the
   site. Index rows carry `smokeAt` so the two can be told apart after a publish.
-- The health page counts down the clean days still needed for the publish gate,
-  instead of only saying whether it is met.
+- The home page and the health page count down the clean days still needed for
+  the publish gate, instead of only saying whether it is met.
+- `index.json` is now schema-validated: a new `index-row.schema.json` checks
+  every row, including `smokeTarget` and `smokeAt`, and `pnpm validate` reports
+  the failing row by position.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,
