@@ -55,6 +55,14 @@ All notable changes to this project are documented here. The format follows
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
   JSON responses, tests validate the generated endpoint bodies against them
   (including a gate with no runs), and the README API table links both schemas.
+- The Verify workflow now checks the deployed JSON on every scheduled run:
+  `pnpm check:live` validates each endpoint, and a failure opens one issue
+  (`pnpm api:issue --stale`) that closes on the next clean run. The control
+  matrix keeps running whether or not the API check passes.
+- `pnpm check:live --strict` also fails when `fixtures/live/controls.json` is
+  older than the deployed `lastRun`, and a scheduled run that finds it behind
+  prints the refresh command as a warning instead of failing every night.
+  `docs/runbooks/verify.md` documents the refresh step.
 - `pnpm check:live` fetches the published JSON endpoints and validates every
   body against its schema, including the `$schema` each one names. It needs
   network access, so it stays out of `pnpm test`; a recorded deployed

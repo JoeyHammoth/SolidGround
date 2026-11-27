@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import {
   validateControls,
   validateGateState,
@@ -12,9 +14,13 @@ import {
  * endpoint and validate the answer. This is the check a consumer would run, so
  * it fails on the same things they would notice — an unreachable file, a field
  * that drifted, or a `$schema` that no longer names the right document.
+ *
+ * The recorded fixture in `fixtures/live/` is compared too, because an offline
+ * test over an outdated answer proves less than it looks like it does.
  */
 
 export const DEFAULT_BASE = "https://joeyhammoth.github.io/SolidGround";
+export const RECORDED_CONTROLS = "fixtures/live/controls.json";
 
 interface Endpoint {
   path: string;
@@ -41,12 +47,59 @@ export type FetchJson = (url: string) => Promise<unknown>;
 export interface LiveReport {
   /** Endpoints whose body validated. */
   valid: string[];
+  /** Schema or transport failures: the deployed API is wrong. */
   problems: string[];
+  /** The recorded fixture lags the deployed answer. */
+  fixture: string[];
+  /** Bodies by endpoint path, for the checks that need the content. */
+  bodies: Record<string, unknown>;
 }
 
 /** `/api/v1/gate.json` is described by `gate.schema.json`. */
 export function schemaFileName(path: string): string {
   return path.replace(/^\/api\/v1\//, "").replace(/\.json$/, ".schema.json");
+}
+
+function lastRunOf(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) return null;
+  const lastRun = (value as Record<string, unknown>)["lastRun"];
+  return typeof lastRun === "string" ? lastRun : null;
+}
+
+/**
+ * The offline suite validates a recorded deployed answer, so that answer has to
+ * keep up with the API. Returns a problem only when the deployed run is newer:
+ * a fixture ahead of the deploy means the release has not landed yet.
+ */
+export function compareRecordedControls(
+  recorded: unknown,
+  deployed: unknown,
+  file = RECORDED_CONTROLS,
+): string[] {
+  if (recorded === undefined || recorded === null) {
+    return [
+      `${file}: missing; record the deployed answer with \`curl <base>/api/v1/controls.json > ${file}\``,
+    ];
+  }
+  const deployedRun = lastRunOf(deployed);
+  if (deployedRun === null) return [];
+  const recordedRun = lastRunOf(recorded);
+  if (recordedRun === null) {
+    return [
+      `${file}: carries no lastRun while the deployed response reports ${deployedRun}; refresh it`,
+    ];
+  }
+  if (new Date(deployedRun).getTime() > new Date(recordedRun).getTime()) {
+    return [
+      `${file}: recorded lastRun ${recordedRun} is older than the deployed ${deployedRun}; refresh it`,
+    ];
+  }
+  return [];
+}
+
+/** What the process should report, and therefore what it exits on. */
+export function reportProblems(report: LiveReport, strict: boolean): string[] {
+  return strict ? [...report.problems, ...report.fixture] : report.problems;
 }
 
 export async function checkLiveEndpoints(options: {
@@ -56,6 +109,7 @@ export async function checkLiveEndpoints(options: {
   const base = (options.base ?? DEFAULT_BASE).replace(/\/+$/, "");
   const valid: string[] = [];
   const problems: string[] = [];
+  const bodies: Record<string, unknown> = {};
 
   for (const endpoint of ENDPOINTS) {
     let value: unknown;
@@ -85,9 +139,28 @@ export async function checkLiveEndpoints(options: {
       continue;
     }
     valid.push(endpoint.path);
+    bodies[endpoint.path] = value;
   }
 
-  return { valid, problems };
+  const deployedControls = bodies["/api/v1/controls.json"];
+  const fixture =
+    deployedControls === undefined
+      ? []
+      : compareRecordedControls(
+          await readRecorded(RECORDED_CONTROLS),
+          deployedControls,
+          RECORDED_CONTROLS,
+        );
+
+  return { valid, problems, fixture, bodies };
+}
+
+async function readRecorded(file: string): Promise<unknown> {
+  try {
+    return JSON.parse(await readFile(path.resolve(file), "utf8")) as unknown;
+  } catch {
+    return undefined;
+  }
 }
 
 function flagValue(args: string[], name: string): string | undefined {
@@ -97,6 +170,7 @@ function flagValue(args: string[], name: string): string | undefined {
 
 async function main(argv: string[]): Promise<number> {
   const base = flagValue(argv, "--base") ?? DEFAULT_BASE;
+  const strict = argv.includes("--strict");
   const report = await checkLiveEndpoints({
     base,
     fetchJson: async (url) => {
@@ -108,10 +182,18 @@ async function main(argv: string[]): Promise<number> {
 
   for (const path of report.valid) console.log(`ok   ${path}`);
   for (const problem of report.problems) console.error(`fail ${problem}`);
+  for (const problem of report.fixture) {
+    if (strict) console.error(`fail ${problem}`);
+    else console.log(`warn ${problem}`);
+  }
+
+  const reported = reportProblems(report, strict);
   console.log(
-    `${report.valid.length}/${ENDPOINTS.length} endpoint(s) valid, ${report.problems.length} problem(s) against ${base}`,
+    `${report.valid.length}/${ENDPOINTS.length} endpoint(s) valid, ${report.problems.length} problem(s), ` +
+      `${report.fixture.length} stale fixture note(s) against ${base}` +
+      (strict ? "" : "; pass --strict to fail on a stale fixture"),
   );
-  return report.problems.length === 0 ? 0 : 1;
+  return reported.length === 0 ? 0 : 1;
 }
 
 const invoked = process.argv[1] ?? "";

@@ -27,9 +27,11 @@ export function syncAuditIssue(options: {
   run?: GhRunner;
   title?: string;
   body?: string;
+  closeComment?: string;
 }): AuditIssueOutcome {
   const title = options.title ?? AUDIT_ISSUE_TITLE;
   const body = options.body ?? AUDIT_ISSUE_BODY;
+  const closeComment = options.closeComment ?? AUDIT_CLOSE_COMMENT;
   const run = options.run ?? defaultGh;
   const open = run([
     "issue",
@@ -58,7 +60,7 @@ export function syncAuditIssue(options: {
   }
 
   for (const number of open) {
-    run(["issue", "close", number, "--comment", AUDIT_CLOSE_COMMENT]);
+    run(["issue", "close", number, "--comment", closeComment]);
   }
   return open.length > 0 ? "closed" : "none";
 }

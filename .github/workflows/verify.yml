@@ -387,3 +387,63 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: pnpm run smoke:gate --file data/smoke/controls.jsonl --notify
+
+  api:
+    name: live API
+    # The published JSON is the public contract, so drift gets its own job and
+    # its own issue: a broken endpoint must neither stop the control runs nor
+    # go unnoticed. This job reads the deployed site and writes no data.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate the deployed JSON against its schemas
+        id: live
+        # Not strict: a fixture behind the nightly batch must not turn this job
+        # red every day. The warning below still puts the refresh in the log.
+        run: |
+          set -euo pipefail
+          set +e
+          pnpm run check:live 2>&1 | tee "$RUNNER_TEMP/live.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+          if grep -q '^warn ' "$RUNNER_TEMP/live.log"; then
+            echo "::warning::fixtures/live/controls.json is behind the deployed response; refresh it with the curl in docs/runbooks/verify.md."
+          fi
+      - name: Sync the API drift issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          case "${{ steps.live.outputs.drift }}" in
+            true)
+              # Creates or comments, then fails the job: the issue is the durable
+              # record, the red run is the nudge.
+              pnpm run api:issue --stale
+              exit 1
+              ;;
+            false)
+              pnpm run api:issue --clean
+              ;;
+            *)
+              echo "::notice::Live API check did not report; no issue to sync."
+              ;;
+          esac

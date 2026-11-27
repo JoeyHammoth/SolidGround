@@ -33,6 +33,7 @@
     "smoke:run": "tsx packages/smoke/src/runner.ts",
     "audit:blocked": "tsx packages/cli/src/blocked.ts",
     "audit:issue": "tsx packages/cli/src/audit-issue.ts",
+    "api:issue": "tsx packages/cli/src/api-issue.ts",
     "scan": "tsx packages/scanner/src/cli.ts",
     "eval:scanner": "tsx packages/scanner/eval/run.ts",
     "ci": "pnpm run lint && pnpm run test && pnpm run validate registry fixtures && pnpm run site:build"
