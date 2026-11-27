@@ -32,9 +32,10 @@ const lastControlDay = controls.days.at(-1);
 
   <h2>Smoke controls</h2>
   <p>
-    The sandboxed matrix runs a known-good and a known-bad fixture in every batch. A batch whose
-    controls answer wrongly is discarded, so these verdicts are the evidence that a package result
-    can be trusted. Two weeks of clean control days is the gate for letting the matrix change a record.
+    The sandboxed matrix runs a known-good fixture, a known-bad fixture and a subpath-only fixture in
+    every batch. A batch whose controls answer wrongly is discarded, so these verdicts are the evidence
+    that a package result can be trusted. Two weeks of clean control days is the gate for letting the
+    matrix change a record.
   </p>
   {lastControlDay && !lastControlDay.clean && (
     <div class="banner" role="status">A control run on the newest day did not answer as expected; that batch was discarded. The last successful run is listed below.</div>
