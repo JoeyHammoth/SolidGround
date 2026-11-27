@@ -91,10 +91,12 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
         {controls.streak} clean day(s) in a row from {controls.days.length} recorded; last run
         <code>{controls.lastRun}</code>. Audit gate: <strong>{controls.auditMet ? "met" : `not met — ${remaining} more clean day(s) needed`}</strong>.
       </p>
+      <p class="small muted">Legend: ✓ clean day · ✕ failed day · one cell per UTC day, oldest first.</p>
       <ol class="gate-timeline" aria-label={`Last ${controlDays.length} control day(s), oldest first`}>
         {controlDays.map((day) => (
           <li
             class={`gate-day ${day.clean ? "clean" : "failed"}`}
+            aria-label={`${day.day}: ${day.clean ? "clean" : "failed"}, ${day.runs} control result(s)`}
             title={`${day.day}: ${day.clean ? "clean" : "failed"}, ${day.runs} control result(s)`}
           >
             <span class="gate-day-mark" aria-hidden="true">{day.clean ? "✓" : "✕"}</span>
