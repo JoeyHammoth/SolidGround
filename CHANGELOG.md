@@ -38,6 +38,13 @@ All notable changes to this project are documented here. The format follows
   health page can show when and over what the edition passed.
 - `/api/v1/gate.json` exposes the publish-gate streak, required and remaining
   days, readiness and last control run as JSON.
+- `/api/v1/validation.json` publishes the deploy's recorded schema validation,
+  with an explicit `recorded: false` shape when a build has no summary.
+- `/llms.txt` is generated at build and now states the publish-gate streak,
+  remaining days, last control run and recorded schema validation, linking
+  `gate.json` and `validation.json`.
+- The health page draws the last fourteen control days as a clean/failed
+  timeline instead of a plain list.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

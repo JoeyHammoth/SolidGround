@@ -1,4 +1,14 @@
-# Solid Ground: SolidJS 2 ecosystem compatibility data
+import type { APIRoute } from "astro";
+import { gateState } from "@solid-ground/smoke/status";
+import { controls, deployValidation } from "../lib/data";
+
+export const GET: APIRoute = () => {
+  const gate = gateState(controls);
+  const validation = deployValidation
+    ? `${deployValidation.ok ? "passed" : "failed"} at ${deployValidation.checkedAt ?? "an unrecorded time"} (${deployValidation.problems.length} problem(s))`
+    : "not recorded in this build";
+
+  const body = `# Solid Ground: SolidJS 2 ecosystem compatibility data
 
 > Community-maintained dataset describing which npm packages work with SolidJS 2.0.
 > Not an official SolidJS project. Data is CC BY 4.0; code is MIT.
@@ -37,10 +47,25 @@ treat "declared" as proof.
 
 ## Before trusting a status
 
-Read meta.json and check `generatedAt`. If it is more than 72 hours old, the
-dataset is stale. Each package record has `checkedAt` and `tested.solid`.
+Read meta.json and check \`generatedAt\`. If it is more than 72 hours old, the
+dataset is stale. Each package record has \`checkedAt\` and \`tested.solid\`.
+
+## Publish gate
+
+The smoke matrix may only change a record after ${gate.required} clean control days.
+Current: ${gate.streak} clean day(s) in a row; ${gate.remaining} more needed${gate.ready ? " (gate met)" : ""}.
+Last control run: ${gate.lastRun ?? "never"}.
+Machine-readable gate state: /api/v1/gate.json.
+Dataset schema validation: ${validation}.
+Machine-readable validation summary: /api/v1/validation.json.
 
 ## Attribution
 
 Data from Solid Ground (https://github.com/JoeyHammoth/SolidGround), licensed
 CC BY 4.0. Indicate changes if you filter or transform the data.
+`;
+
+  return new Response(body, {
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+};
