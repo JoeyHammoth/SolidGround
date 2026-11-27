@@ -23,10 +23,13 @@ export {
   cellManifest,
   childEnv,
   chooseEntry,
+  chooseTarget,
+  exportedSubpaths,
   parseRunnerSpec,
   pnpmCommand,
   runCell,
   type CellFiles,
+  type CellTarget,
   type RunnerSpec,
 } from "./runner.js";
 export {

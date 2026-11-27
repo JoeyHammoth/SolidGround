@@ -115,6 +115,20 @@ describe("foldSmoke", () => {
     expect(folded.confidence).toEqual(["D", "S"]);
   });
 
+  it("ignores an environmental failure even when it is fresh", () => {
+    const verified = record({
+      verified: true,
+      confidence: ["D", "S", "B"],
+      smoke: { import: true, build: true, types: null },
+      smokeAt: "2026-11-20T00:00:00Z",
+    });
+    const failed = result({
+      error: "pnpm install failed: 429 Too Many Requests",
+      smoke: { import: null, build: null, types: null },
+    });
+    expect(foldSmoke(verified, [failed], POLICY, SOLID, NOW)).toBe(verified);
+  });
+
   it("keeps a pass inside the policy window", () => {
     const freshPass = record({
       verified: true,

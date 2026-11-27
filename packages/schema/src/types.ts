@@ -59,6 +59,11 @@ export interface SmokeResult {
   smoke: SmokeResults;
   /** Which entry point the import step exercised, or null when it did not run. */
   entry: string | null;
+  /**
+   * The module specifier tested when it is not the package root, e.g.
+   * `@kobalte/core/accordion`. Null or absent means the root was used.
+   */
+  target?: string | null;
   durationMs: number | null;
   error: string | null;
   /** When the cell finished, ISO. Freshness is measured from here. */

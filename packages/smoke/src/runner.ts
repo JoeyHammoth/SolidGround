@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type {
@@ -168,10 +168,113 @@ export function cellManifest(spec: RunnerSpec): Record<string, unknown> {
   };
 }
 
+export interface CellTarget {
+  /** The module specifier the steps import: the package name, or a subpath. */
+  specifier: string;
+  entry: "esm" | "cjs";
+}
+
+function exportsHasRoot(manifest: Record<string, unknown>): boolean {
+  const value = manifest.exports;
+  // No `exports` at all means `main`/`module` decide. A string export is the
+  // root itself. An object only exposes the root when it has a `.` key.
+  if (value === undefined || typeof value === "string") return true;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return true;
+  return Object.hasOwn(value, ".");
+}
+
+/**
+ * Choose what to import. A package that exports only subpaths — Kobalte's 2.0
+ * alpha is one — cannot be reached through its own name, so test the first
+ * real subpath it declares. The root is still attempted when nothing resolves,
+ * because that failure is a true statement about the package.
+ */
+export function chooseTarget(
+  manifest: Record<string, unknown>,
+  name: string,
+  subpaths: string[] = [],
+): CellTarget {
+  const entry = chooseEntry(manifest);
+  if (exportsHasRoot(manifest)) return { specifier: name, entry };
+  const first = subpaths[0];
+  if (first) return { specifier: `${name}/${first}`, entry };
+  return { specifier: name, entry };
+}
+
+/** Every string target declared in one `exports` value. */
+function exportTargets(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (typeof value !== "object" || value === null) return [];
+  return Object.values(value as Record<string, unknown>).filter(
+    (nested): nested is string => typeof nested === "string",
+  );
+}
+
+/**
+ * Expand a directory-shaped export pattern — a `"./*"` key whose target puts
+ * the wildcard in a directory segment — against the installed package. Only
+ * that common form is expanded: a file-shaped pattern has no way to name the
+ * specifier without guessing.
+ */
+async function expandDirectoryPattern(
+  packageDir: string,
+  value: unknown,
+): Promise<string[]> {
+  const names: string[] = [];
+  for (const target of exportTargets(value)) {
+    const star = target.indexOf("*");
+    if (star === -1) continue;
+    const head = target.slice(0, star);
+    const tail = target.slice(star + 1);
+    if (!head.endsWith("/") || !tail.startsWith("/")) continue;
+    const dir = path.join(packageDir, head);
+    const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const resolved = path.join(dir, entry.name + tail);
+      const exists = await stat(resolved).then(
+        (info) => info.isFile(),
+        () => false,
+      );
+      if (exists) names.push(entry.name);
+    }
+  }
+  return names;
+}
+
+/**
+ * Subpaths the installed package actually exposes, used only when it has no
+ * root export. Explicit keys are trusted; a `"./*"` pattern is expanded on
+ * disk, which is how a component library's per-directory entries are found.
+ */
+export async function exportedSubpaths(
+  packageDir: string,
+  manifest: Record<string, unknown>,
+): Promise<string[]> {
+  const value = manifest.exports;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return [];
+  }
+  const exportsField = value as Record<string, unknown>;
+  const keys = Object.keys(exportsField).filter((key) => key !== ".");
+  const explicit = keys
+    .filter((key) => !key.includes("*"))
+    .map((key) => key.replace(/^\.\//, ""))
+    .filter((key) => key.length > 0)
+    .sort();
+  if (explicit.length > 0) return explicit;
+
+  for (const key of keys.filter((candidate) => /^\.\/\*$/.test(candidate))) {
+    const expanded = await expandDirectoryPattern(packageDir, exportsField[key]);
+    if (expanded.length > 0) return expanded.sort();
+  }
+  return [];
+}
+
 export type CellFiles = Record<string, string>;
 
 /** The files the steps run against. Pure, so the harness can be tested offline. */
-export function cellFiles(spec: RunnerSpec): CellFiles {
+export function cellFiles(spec: RunnerSpec, target: string = spec.name): CellFiles {
   const files: CellFiles = {
     "probe.mjs": [
       'import { createRequire } from "node:module";',
@@ -186,7 +289,7 @@ export function cellFiles(spec: RunnerSpec): CellFiles {
       '<!doctype html><html><body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>\n';
     files["src/main.jsx"] = [
       'import { render } from "@solidjs/web";',
-      `import * as target from ${JSON.stringify(spec.name)};`,
+      `import * as target from ${JSON.stringify(target)};`,
       "",
       "function App() {",
       "  return <div data-smoke={typeof target}>{Object.keys(target).length}</div>;",
@@ -206,7 +309,7 @@ export function cellFiles(spec: RunnerSpec): CellFiles {
 
   if (spec.steps.types) {
     files["types.ts"] =
-      `import * as target from ${JSON.stringify(spec.name)};\nexport const value: unknown = target;\n`;
+      `import * as target from ${JSON.stringify(target)};\nexport const value: unknown = target;\n`;
     files["tsconfig.json"] = JSON.stringify(
       {
         compilerOptions: {
@@ -398,8 +501,14 @@ export async function runCell(
       });
     }
 
-    const entry = chooseEntry(await installedManifest(workdir, spec.name));
-    for (const [file, contents] of Object.entries(cellFiles(spec))) {
+    const packageDir = path.join(workdir, "node_modules", spec.name);
+    const manifest = await installedManifest(workdir, spec.name);
+    const target = chooseTarget(
+      manifest,
+      spec.name,
+      await exportedSubpaths(packageDir, manifest),
+    );
+    for (const [file, contents] of Object.entries(cellFiles(spec, target.specifier))) {
       const full = path.join(workdir, file);
       await mkdir(path.dirname(full), { recursive: true });
       await writeFile(full, contents, "utf8");
@@ -412,7 +521,7 @@ export async function runCell(
     };
 
     if (spec.steps.import) {
-      const result = await runCommand("node", ["probe.mjs", spec.name, entry], {
+      const result = await runCommand("node", ["probe.mjs", target.specifier, target.entry], {
         cwd: workdir,
         timeoutMs: spec.timeoutMs,
         env,
@@ -448,7 +557,8 @@ export async function runCell(
       solid: spec.solid,
       channel: spec.channel,
       smoke,
-      entry: spec.steps.import ? entry : null,
+      entry: spec.steps.import ? target.entry : null,
+      target: target.specifier === spec.name ? null : target.specifier,
       durationMs: Date.now() - started,
       error,
       at: new Date().toISOString(),
