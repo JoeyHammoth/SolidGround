@@ -17,11 +17,13 @@ function createValidator() {
   const indexSchema = require("../schemas/index-row.schema.json");
   const metaSchema = require("../schemas/meta.schema.json");
   const solidSchema = require("../schemas/solid.schema.json");
+  const controlSummarySchema = require("../schemas/control-summary.schema.json");
   return {
     record: ajv.compile(recordSchema),
     indexRow: ajv.compile(indexSchema),
     meta: ajv.compile(metaSchema),
     solid: ajv.compile(solidSchema),
+    controlSummary: ajv.compile(controlSummarySchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -74,6 +76,38 @@ export function validateSolidFile(value: unknown): string[] {
   return [formatValidationErrors(validators.solid.errors)];
 }
 
+export function validateControlSummary(value: unknown): string[] {
+  if (validators.controlSummary(value)) return [];
+  return [formatValidationErrors(validators.controlSummary.errors)];
+}
+
+/**
+ * Validate the append-only control log: each line is a smoke result or one
+ * archived month. A line without a position has no identity, so failures carry
+ * the 1-based number.
+ */
+export function validateControlLog(text: string): string[] {
+  const failures: string[] = [];
+  text.split("\n").forEach((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (error) {
+      failures.push(`line ${index + 1}: invalid JSON (${(error as Error).message})`);
+      return;
+    }
+    const isSummary =
+      typeof parsed === "object" &&
+      parsed !== null &&
+      (parsed as Record<string, unknown>)["kind"] === "control-summary";
+    const messages = isSummary ? validateControlSummary(parsed) : validateSmokeResult(parsed);
+    for (const message of messages) failures.push(`line ${index + 1}: ${message}`);
+  });
+  return failures;
+}
+
 export function validateChangeEvent(value: unknown): string[] {
   if (validators.event(value)) return [];
   return [formatValidationErrors(validators.event.errors)];
@@ -120,7 +154,7 @@ async function collectDataFiles(dir: string): Promise<string[]> {
     const info = await stat(full);
     if (info.isDirectory()) {
       files.push(...(await collectDataFiles(full)));
-    } else if (entry.endsWith(".json") || entry.endsWith(".ndjson")) {
+    } else if (entry.endsWith(".json") || entry.endsWith(".ndjson") || entry.endsWith(".jsonl")) {
       files.push(full);
     }
   }
@@ -150,6 +184,10 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         for (const error of errors) failures.push(`${target}: ${error}`);
       } else if (target.endsWith(".ndjson")) {
         for (const message of validateEvents(await readFile(target, "utf8"))) {
+          failures.push(`${target}: ${message}`);
+        }
+      } else if (target.endsWith(".jsonl")) {
+        for (const message of validateControlLog(await readFile(target, "utf8"))) {
           failures.push(`${target}: ${message}`);
         }
       } else if (path.basename(target) === "index.json") {
@@ -196,6 +234,12 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
       if (file.includes(`${path.sep}registry${path.sep}`)) continue;
       if (file.endsWith(".ndjson")) {
         for (const message of validateEvents(await readFile(file, "utf8"))) {
+          failures.push(`${file}: ${message}`);
+        }
+        continue;
+      }
+      if (file.endsWith(".jsonl")) {
+        for (const message of validateControlLog(await readFile(file, "utf8"))) {
           failures.push(`${file}: ${message}`);
         }
         continue;

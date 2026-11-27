@@ -91,7 +91,11 @@ const nav = [
       .small { font-size: 0.85rem; }
       .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.78rem; color: var(--muted); background: var(--bg-soft); }
       .gate { text-decoration: none; }
-      .gate:hover { color: var(--text); border-color: var(--teal); text-decoration: none; }
+      .gate:hover { text-decoration: none; }
+      .gate-waiting { border-color: rgba(251, 191, 36, 0.45); background: rgba(251, 191, 36, 0.1); color: #fde68a; }
+      .gate-waiting:hover { color: #fef3c7; border-color: var(--amber); }
+      .gate-met { border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.1); color: #a7f3d0; }
+      .gate-met:hover { color: #d1fae5; border-color: var(--green); }
       .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-weight: 600; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
       .btn.primary { background: linear-gradient(135deg, var(--teal), var(--indigo)); color: #06101f; border: 0; }
       .btn:hover { text-decoration: none; transform: translateY(-1px); }
@@ -148,7 +152,7 @@ const nav = [
           Solid Ground
         </a>
         <a
-          class="pill gate"
+          class={`pill gate ${controls.auditMet ? "gate-met" : "gate-waiting"}`}
           href={`${base}/health/`}
           title={controls.auditMet
             ? "The two-week control gate is met; new passes may publish"

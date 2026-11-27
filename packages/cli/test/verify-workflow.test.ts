@@ -32,6 +32,12 @@ describe("verify workflow issue wiring", () => {
     expect(run).toContain("exit 1");
   });
 
+  it("validates the checked-out dataset on every run", () => {
+    expect(stepRun("audit", "Validate the published dataset")).toContain(
+      "pnpm run validate data",
+    );
+  });
+
   it("announces the publish gate from the job that already reads the control log", () => {
     const run = stepRun("audit", "Announce the publish gate");
     expect(run).toContain("pnpm run smoke:gate");
