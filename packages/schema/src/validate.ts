@@ -15,9 +15,13 @@ function createValidator() {
   const eventSchema = require("../schemas/change-event.schema.json");
   const smokeSchema = require("../schemas/smoke-result.schema.json");
   const indexSchema = require("../schemas/index-row.schema.json");
+  const metaSchema = require("../schemas/meta.schema.json");
+  const solidSchema = require("../schemas/solid.schema.json");
   return {
     record: ajv.compile(recordSchema),
     indexRow: ajv.compile(indexSchema),
+    meta: ajv.compile(metaSchema),
+    solid: ajv.compile(solidSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -58,6 +62,16 @@ export function validateIndexRows(value: unknown, label = "index.json"): string[
     }
   });
   return failures;
+}
+
+export function validateMeta(value: unknown): string[] {
+  if (validators.meta(value)) return [];
+  return [formatValidationErrors(validators.meta.errors)];
+}
+
+export function validateSolidFile(value: unknown): string[] {
+  if (validators.solid(value)) return [];
+  return [formatValidationErrors(validators.solid.errors)];
 }
 
 export function validateChangeEvent(value: unknown): string[] {
@@ -146,6 +160,17 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         } catch (error) {
           failures.push(`${target}: invalid JSON (${(error as Error).message})`);
         }
+      } else if (path.basename(target) === "meta.json" || path.basename(target) === "solid.json") {
+        try {
+          const parsed: unknown = JSON.parse(await readFile(target, "utf8"));
+          const messages =
+            path.basename(target) === "meta.json"
+              ? validateMeta(parsed)
+              : validateSolidFile(parsed);
+          for (const message of messages) failures.push(`${target}: ${message}`);
+        } catch (error) {
+          failures.push(`${target}: invalid JSON (${(error as Error).message})`);
+        }
       }
       continue;
     }
@@ -184,6 +209,14 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
       }
       if (path.basename(file) === "index.json") {
         for (const message of validateIndexRows(parsed, file)) failures.push(message);
+        continue;
+      }
+      if (path.basename(file) === "meta.json") {
+        for (const message of validateMeta(parsed)) failures.push(`${file}: ${message}`);
+        continue;
+      }
+      if (path.basename(file) === "solid.json") {
+        for (const message of validateSolidFile(parsed)) failures.push(`${file}: ${message}`);
         continue;
       }
       const isRecord =

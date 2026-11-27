@@ -1,10 +1,14 @@
 ---
+import { AUDIT_DAYS } from "@solid-ground/smoke/status";
+import { controls } from "../lib/data";
+
 interface Props {
   title: string;
   description?: string;
 }
 const { title, description = "Know what's solid before you upgrade: SolidJS 2 ecosystem readiness with evidence and dates." } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
 const here = Astro.url.pathname.replace(base, "") || "/";
 const nav = [
   { href: "/", label: "Overview" },
@@ -86,6 +90,8 @@ const nav = [
       .muted { color: var(--muted); }
       .small { font-size: 0.85rem; }
       .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.78rem; color: var(--muted); background: var(--bg-soft); }
+      .gate { text-decoration: none; }
+      .gate:hover { color: var(--text); border-color: var(--teal); text-decoration: none; }
       .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-weight: 600; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
       .btn.primary { background: linear-gradient(135deg, var(--teal), var(--indigo)); color: #06101f; border: 0; }
       .btn:hover { text-decoration: none; transform: translateY(-1px); }
@@ -140,6 +146,15 @@ const nav = [
         <a class="brand" href={`${base}/`}>
           <img src={`${base}/assets/logo.svg`} alt="" width="30" height="30" />
           Solid Ground
+        </a>
+        <a
+          class="pill gate"
+          href={`${base}/health/`}
+          title={controls.auditMet
+            ? "The two-week control gate is met; new passes may publish"
+            : `${remaining} more clean control day(s) before new smoke passes publish`}
+        >
+          {controls.auditMet ? "Smoke gate met" : `Smoke gate ${controls.streak}/${AUDIT_DAYS}`}
         </a>
         <nav class="main" aria-label="Main">
           {nav.map((item) => (

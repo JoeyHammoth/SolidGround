@@ -19,7 +19,10 @@ All notable changes to this project are documented here. The format follows
   the publish gate, instead of only saying whether it is met.
 - `index.json` is now schema-validated: a new `index-row.schema.json` checks
   every row, including `smokeTarget` and `smokeAt`, and `pnpm validate` reports
-  the failing row by position.
+  the failing row by position. `meta.json` and `solid.json` gain their own
+  schemas, so every published dataset file is checked.
+- The site header carries a smoke-gate badge (`Smoke gate 0/14`) linking to the
+  health page, with the remaining clean days in its tooltip.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,
