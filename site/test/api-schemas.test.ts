@@ -17,4 +17,17 @@ describe("API response schemas", () => {
       validateValidationSummary({ ...body, recorded: true, ok: null }).length,
     ).toBeGreaterThan(0);
   });
+
+  it("accepts a recorded validation summary", () => {
+    expect(
+      validateValidationSummary({
+        schemaVersion: 1,
+        recorded: true,
+        ok: true,
+        checkedAt: "2026-11-27T13:41:12.387Z",
+        targets: ["data"],
+        problems: [],
+      }),
+    ).toEqual([]);
+  });
 });
