@@ -196,6 +196,8 @@ export interface IndexRow {
   family: string | null;
   downloadsWeekly: number | null;
   checkedAt: string;
+  /** The subpath the folded pass probed; null for a root pass or no pass. */
+  smokeTarget?: string | null;
 }
 
 export interface DatasetMeta {

@@ -224,7 +224,14 @@ export async function publishBatch(
     if (index.length > 0) {
       const nextIndex = index.map((row) => {
         const record = byName.get(row.name);
-        return record ? { ...row, verified: record.verified, confidence: record.confidence } : row;
+        return record
+          ? {
+              ...row,
+              verified: record.verified,
+              confidence: record.confidence,
+              smokeTarget: record.smokeTarget ?? null,
+            }
+          : row;
       });
       writes.push(
         writeFile(indexPath, `${JSON.stringify(nextIndex, null, 2)}\n`, "utf8"),

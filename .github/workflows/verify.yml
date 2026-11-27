@@ -346,31 +346,22 @@ jobs:
           else
             echo "stale=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Open or update the audit issue
-        if: steps.audit.outputs.stale == 'true'
+      - name: Sync the audit issue
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          title="docs: the blocked-package audit is stale"
-          body=$(printf '%s\n\n%s\n' \
-            'The committed audit no longer matches the edition on the data branch.' \
-            'Run `pnpm audit:blocked --data data`, review the diff and commit it. This job stays red until the note matches again.')
-          number=$(gh issue list --state open --limit 100 --json number,title \
-            --jq '.[] | select(.title == "docs: the blocked-package audit is stale") | .number' | head -1)
-          if [ -n "$number" ]; then
-            gh issue comment "$number" --body "$body"
-          else
-            gh issue create --title "$title" --body "$body"
-          fi
-          exit 1
-      - name: Close the audit issue once current
-        if: steps.audit.outputs.stale == 'false'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for number in $(gh issue list --state open --limit 100 --json number,title \
-            --jq '.[] | select(.title == "docs: the blocked-package audit is stale") | .number'); do
-            gh issue close "$number" --comment "The committed audit matches the published edition again. Closing."
-          done
+          case "${{ steps.audit.outputs.stale }}" in
+            true)
+              # Creates or comments, then fails the job: the issue is the durable
+              # record, the red run is the nudge.
+              pnpm run audit:issue --stale
+              exit 1
+              ;;
+            false)
+              pnpm run audit:issue --clean
+              ;;
+            *)
+              echo "::notice::Audit check skipped; no issue to sync."
+              ;;
+          esac

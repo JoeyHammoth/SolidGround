@@ -224,7 +224,8 @@ or failing control day is visible without downloading an artifact. A separate
 `audit` job checks that the generated blocked-package note matches the edition
 and opens (or updates) an issue when it does not, then fails itself. That keeps
 a stale note visible without blocking the control runs the two-week gate depends
-on. A scheduled
+on. The issue lifecycle is `pnpm audit:issue --stale|--clean`, whose
+create/comment/close branches are unit-tested against a fake `gh`. A scheduled
 run stops after `history`: it records the control verdicts — the failures too —
 but cannot change a record. `publish` needs the manual input, so
 promoting a batch is a deliberate act rather than a cron side effect. Both write
