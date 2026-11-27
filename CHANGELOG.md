@@ -34,6 +34,11 @@ All notable changes to this project are documented here. The format follows
   import, build and types verdicts, when the cell finished, and the subpath it
   probed (`smokeTarget` on the record). A page whose record has no sandbox
   result shows nothing new rather than a wall of "not run".
+- The home table gains a "Probed" column and `index.json` rows carry
+  `smokeTarget`, so the API index and the table agree on which subpath a pass
+  imported.
+- The audit job's issue lifecycle lives in `audit:issue` with tests for create,
+  comment and close, so the stale branch is exercised without touching GitHub.
 - The control log keeps 180 days of raw verdicts and archives older results as
   one summary per month. Verify compacts after every append, and `smoke:status`
   reports archived months beside the live days.

@@ -127,6 +127,7 @@ const percentage = (value: number) => (meta.counts.total === 0 ? 0 : Math.round(
           <th scope="col">Status</th>
           <th scope="col">Solid 2 version</th>
           <th scope="col">Evidence</th>
+          <th scope="col">Probed</th>
           <th scope="col">Downloads</th>
           <th scope="col">Last checked</th>
         </tr>
@@ -144,6 +145,7 @@ const percentage = (value: number) => (meta.counts.total === 0 ? 0 : Math.round(
             <td><span class="evidence">{["D", "S", "B", "T", "A", "U"].map((level) => (
               <span class={record.confidence.includes(level as never) ? "on" : ""}>{level}</span>
             ))}</span></td>
+            <td>{record.smokeTarget ? <code>{record.smokeTarget}</code> : <span class="muted" title="No sandbox pass has been published yet">—</span>}</td>
             <td>{formatDownloads(record.downloadsWeekly)}</td>
             <td title={record.checkedAt}>{relativeAge(record.checkedAt)}</td>
           </tr>
@@ -152,6 +154,7 @@ const percentage = (value: number) => (meta.counts.total === 0 ? 0 : Math.round(
     </table>
   </div>
   <p class="small muted">
+    Probed is the subpath the sandbox actually imported; — means no pass is published yet.
     Downloads are context, never a quality ranking. Data generated {relativeAge(meta.generatedAt)} · rules {meta.versions.rules} · tested against Solid {meta.solid.stable2}{meta.solid.next ? ` and ${meta.solid.next}` : ""}.
   </p>
 

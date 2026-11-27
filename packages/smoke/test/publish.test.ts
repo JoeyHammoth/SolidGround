@@ -157,7 +157,7 @@ describe("publishBatch", () => {
     cleanup.push(dir);
     const outcome = await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, SUBPATH, result()],
+      results: [GOOD, BAD, SUBPATH, result({ target: "@example/lib/widget" })],
       policy: POLICY,
       now: NOW,
     });
@@ -170,10 +170,12 @@ describe("publishBatch", () => {
     ) as PackageRecord;
     expect(written.verified).toBe(true);
     expect(written.smokeAt).toBe("2026-11-26T00:00:00Z");
+    expect(written.smokeTarget).toBe("@example/lib/widget");
     expect(written.confidence).toContain("B");
 
     const index = JSON.parse(await readFile(path.join(dir, "index.json"), "utf8"));
     expect(index[0].verified).toBe(true);
+    expect(index[0].smokeTarget).toBe("@example/lib/widget");
 
     const meta = JSON.parse(await readFile(path.join(dir, "meta.json"), "utf8"));
     expect(meta.lastSuccessfulVerify).toBe(NOW.toISOString());
