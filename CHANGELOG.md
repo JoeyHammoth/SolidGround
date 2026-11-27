@@ -29,6 +29,10 @@ All notable changes to this project are documented here. The format follows
 - Verify validates the checked-out data branch on every scheduled run, so a
   malformed `index`, `meta`, `solid`, record, event or control-log file turns
   the audit job red before the next publish.
+- `pnpm smoke:gate --json` prints the streak, required days, remaining days and
+  readiness for a monitor; with `--notify` it adds the issue outcome.
+- The health page reports build-time dataset consistency (record/index/meta and
+  control-day agreement) alongside the deploy's full schema validation.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

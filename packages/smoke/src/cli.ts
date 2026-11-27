@@ -7,7 +7,7 @@ import type {
   SolidState,
 } from "@solid-ground/schema";
 import { checkControls, controlCells, isControlResult } from "./controls.js";
-import { announceGate, closeGateIssue } from "./gate.js";
+import { announceGate, closeGateIssue, gateState } from "./gate.js";
 import { artifactId, cellId, planBatch } from "./plan.js";
 import type { CellSource, SmokeCell, SmokeSteps } from "./plan.js";
 import { CONTROL_HISTORY_FILE, loadPolicy, publishBatch } from "./publish.js";
@@ -317,24 +317,31 @@ async function statusCommand(args: string[]): Promise<number> {
 }
 
 async function gateCommand(args: string[]): Promise<number> {
+  const asJson = args.includes("--json");
   if (args.includes("--close")) {
-    console.log(`gate issue: ${closeGateIssue()}`);
+    const outcome = closeGateIssue();
+    console.log(asJson ? JSON.stringify({ issue: outcome }) : `gate issue: ${outcome}`);
     return 0;
   }
   const file = flagValue(args, "--file") ?? path.join("data", CONTROL_HISTORY_FILE);
   const { results } = await readControlLog(file);
-  const history = summarizeControls(results);
-  console.log(
-    `${history.streak} clean control day(s) in a row; ${AUDIT_DAYS} required; ` +
-      `two-week gate ${history.auditMet ? "met" : "not met"}`,
-  );
+  const state = gateState(summarizeControls(results));
+
   if (!args.includes("--notify")) {
-    if (history.auditMet) console.log("run with --notify to open the publish reminder issue");
+    if (asJson) {
+      console.log(JSON.stringify(state));
+    } else {
+      console.log(
+        `${state.streak} clean control day(s) in a row; ${AUDIT_DAYS} required; ` +
+          `two-week gate ${state.ready ? "met" : "not met"}`,
+      );
+      if (state.ready) console.log("run with --notify to open the publish reminder issue");
+    }
     return 0;
   }
-  console.log(
-    `gate issue: ${announceGate({ ready: history.auditMet, streak: history.streak })}`,
-  );
+
+  const issue = announceGate({ ready: state.ready, streak: state.streak });
+  console.log(asJson ? JSON.stringify({ ...state, issue }) : `gate issue: ${issue}`);
   return 0;
 }
 

@@ -58,6 +58,37 @@ export const records: PackageRecord[] = readdirSync(path.join(dataDir, "packages
   .map((file) => JSON.parse(readFileSync(path.join(dataDir, "packages", file), "utf8")) as PackageRecord)
   .sort((a, b) => a.name.localeCompare(b.name));
 
+/**
+ * Cheap cross-file checks the site can run on every build without pulling the
+ * Ajv validators into the prerender bundle (they resolve their schemas through
+ * `createRequire`, which Astro's chunking breaks). The deploy still runs the
+ * full schema validation before building, so this catches the local shapes the
+ * schema cannot see: the files disagreeing with each other.
+ */
+export const consistencyProblems: string[] = (() => {
+  const problems: string[] = [];
+  if (meta.counts.total !== records.length)
+    problems.push(`meta.counts.total ${meta.counts.total} != ${records.length} records`);
+  if (index.length !== records.length)
+    problems.push(`index.json has ${index.length} rows for ${records.length} records`);
+  const byName = new Map(records.map((record) => [record.name, record]));
+  for (const row of index) {
+    const record = byName.get(row.name);
+    if (!record) {
+      problems.push(`index row ${row.name} has no record`);
+      continue;
+    }
+    if (record.status !== row.status || record.verified !== row.verified)
+      problems.push(`index row ${row.name} disagrees with its record`);
+  }
+  for (const record of records) {
+    if (record.schemaVersion !== 1) problems.push(`${record.name} has schema ${String(record.schemaVersion)}`);
+  }
+  if (meta.solid.stable2 !== solid.stable2)
+    problems.push(`meta.solid.stable2 ${meta.solid.stable2} != solid.stable2 ${solid.stable2}`);
+  return problems;
+})();
+
 export function recordBySlug(slug: string): PackageRecord | undefined {
   return records.find((record) => record.name.replace(/\//g, "__") === decodeSlug(slug));
 }
