@@ -1,6 +1,9 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import type { DatasetMeta, IndexRow, PackageRecord, SolidFile } from "@solid-ground/schema";
+// The pure half of the smoke package: no validator, no filesystem, so Astro can
+// bundle it into the prerender without pulling Ajv's JSON schemas along.
+import { parseControlHistory, summarizeControls } from "@solid-ground/smoke/status";
 
 /**
  * The site is a pure function of the dataset. Prefer `DATA_DIR` (a checkout of
@@ -37,6 +40,18 @@ function decodeSlug(slug: string): string {
 export const index: IndexRow[] = readJson<IndexRow[]>("index.json");
 export const meta = readJson<DatasetMeta>("meta.json");
 export const solid = readJson<SolidFile>("solid.json");
+
+/**
+ * The verify matrix's control log. Optional: an edition published before the
+ * matrix existed simply has no history to show.
+ */
+function readControls() {
+  const file = path.join(dataDir, "smoke", "controls.jsonl");
+  if (!existsSync(file)) return parseControlHistory("");
+  return parseControlHistory(readFileSync(file, "utf8"));
+}
+
+export const controls = summarizeControls(readControls());
 
 export const records: PackageRecord[] = readdirSync(path.join(dataDir, "packages"))
   .filter((file) => file.endsWith(".json"))
