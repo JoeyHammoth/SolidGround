@@ -10,10 +10,12 @@ import {
   records,
   relativeAge,
 } from "../lib/data";
+import { validationTargetLabels } from "../lib/validation.js";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
 const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
 const controlDays = controls.days.slice(-14);
+const failedDays = controlDays.filter((day) => !day.clean);
 const lastControlDay = controls.days.at(-1);
 const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
 ---
@@ -46,8 +48,9 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     {deployValidation ? (
       <span>
         <strong>{deployValidation.ok ? "passed" : "failed"}</strong>
-        {deployValidation.checkedAt && ` at ${deployValidation.checkedAt}`} over
-        {" "}{deployValidation.targets.length} target(s)
+        {deployValidation.checkedAt && ` at ${deployValidation.checkedAt}`}
+        {deployValidation.targets.length > 0 &&
+          ` over ${validationTargetLabels(deployValidation.targets).join(", ")}`}{" "}
         ({deployValidation.problems.length} problem(s)).
       </span>
     ) : (
@@ -105,6 +108,21 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
           </li>
         ))}
       </ol>
+      {failedDays.length > 0 && (
+        <details class="gate-failures">
+          <summary>Why {failedDays.length} control day(s) failed</summary>
+          <ul>
+            {failedDays.map((day) => (
+              <li>
+                <code>{day.day}</code>
+                <ul>
+                  {day.failures.map((failure) => <li>{failure}</li>)}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </>
   ) : (
     <p class="muted">No control runs recorded yet; {AUDIT_DAYS} clean days are needed before the matrix can change a record.</p>

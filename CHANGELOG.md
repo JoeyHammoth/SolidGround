@@ -48,6 +48,9 @@ All notable changes to this project are documented here. The format follows
   label on each cell.
 - `validation.json` names the validated dataset (`data`) instead of exposing the
   runner's checkout path, and the footer links `llms.txt` for assistants.
+- Failed control days on `/health/` expand to the individual control failures,
+  the validation line names the validated dataset, and a test fails when the
+  README JSON API table drifts from the endpoints on disk.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,
