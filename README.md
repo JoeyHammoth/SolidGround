@@ -178,7 +178,8 @@ each response names its schema in a `$schema` field.
 every body against its schema, failing on a drift or a `$schema` that names the
 wrong document (it needs network access, so it is not part of `pnpm test`). Pass
 `--base <url>` to check a preview or a local build instead, or `--strict` to
-fail when `fixtures/live/controls.json` is behind the deployed answer. The
+fail when `fixtures/live/controls.json` is behind the deployed answer (the
+Verify `history` job refreshes that fixture from each batch it records). The
 Verify workflow runs the check on every scheduled run and opens one issue while
 it fails; the refresh procedure is in
 [`docs/runbooks/verify.md`](docs/runbooks/verify.md).

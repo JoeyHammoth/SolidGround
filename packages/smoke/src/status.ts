@@ -31,6 +31,14 @@ export interface ControlHistory {
 
 export const AUDIT_DAYS = 14;
 export const DEFAULT_RETENTION_DAYS = 180;
+
+/**
+ * Where the published response schemas live. A `$schema` value has to resolve
+ * to JSON, so this is the raw file rather than a GitHub blob page; see ADR 0006.
+ */
+export const SCHEMA_BASE =
+  "https://raw.githubusercontent.com/JoeyHammoth/SolidGround/main/packages/schema/schemas";
+export const CONTROLS_SCHEMA_URL = `${SCHEMA_BASE}/controls.schema.json`;
 const DAY_MS = 86_400_000;
 
 /** The gate facts a monitor needs, independent of how they are printed. */
@@ -265,6 +273,55 @@ export function groupControlFailures(
     groups.set(subject, [...(groups.get(subject) ?? []), detail]);
   }
   return [...groups].map(([subject, details]) => ({ subject, details }));
+}
+
+/** One day as a consumer reads it: counts plus the grouped reasons. */
+export interface ControlDayResponse {
+  day: string;
+  clean: boolean;
+  runs: number;
+  at: string;
+  failures: number;
+  groups: ControlFailureGroup[];
+}
+
+export interface ControlsResponse {
+  $schema: string;
+  schemaVersion: 1;
+  streak: number;
+  required: number;
+  remaining: number;
+  auditMet: boolean;
+  lastRun: string | null;
+  days: ControlDayResponse[];
+}
+
+/**
+ * The `/api/v1/controls.json` body. The endpoint and the fixture writer both
+ * call this, so the recorded answer cannot drift from the served one.
+ */
+export function controlsResponse(
+  history: ControlHistory,
+  schemaUrl: string = CONTROLS_SCHEMA_URL,
+): ControlsResponse {
+  const gate = gateState(history);
+  return {
+    $schema: schemaUrl,
+    schemaVersion: 1,
+    streak: gate.streak,
+    required: gate.required,
+    remaining: gate.remaining,
+    auditMet: gate.ready,
+    lastRun: gate.lastRun,
+    days: history.days.map((day) => ({
+      day: day.day,
+      clean: day.clean,
+      runs: day.runs,
+      at: day.at,
+      failures: day.failures.length,
+      groups: groupControlFailures(day.failures),
+    })),
+  };
 }
 
 /** One line per day, newest last, for the CLI. */

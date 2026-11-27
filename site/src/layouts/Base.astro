@@ -1,6 +1,6 @@
 ---
 import { AUDIT_DAYS } from "@solid-ground/smoke/status";
-import { controls } from "../lib/data";
+import { apiCheck, controls } from "../lib/data";
 
 interface Props {
   title: string;
@@ -9,6 +9,14 @@ interface Props {
 const { title, description = "Know what's solid before you upgrade: SolidJS 2 ecosystem readiness with evidence and dates." } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
+const gateNote = controls.auditMet
+  ? "The two-week control gate is met; new passes may publish"
+  : `${remaining} more clean control day(s) before new smoke passes publish`;
+// The badge is the one place every page shows, so the deployed API's last
+// check rides along: a drift is visible without opening the health page.
+const apiNote = apiCheck
+  ? `API check ${apiCheck.ok ? "passed" : "failed"} ${apiCheck.checkedAt ?? "at an unrecorded time"}`
+  : "API check not recorded yet";
 const here = Astro.url.pathname.replace(base, "") || "/";
 const nav = [
   { href: "/", label: "Overview" },
@@ -161,9 +169,7 @@ const nav = [
         <a
           class={`pill gate ${controls.auditMet ? "gate-met" : "gate-waiting"}`}
           href={`${base}/health/`}
-          title={controls.auditMet
-            ? "The two-week control gate is met; new passes may publish"
-            : `${remaining} more clean control day(s) before new smoke passes publish`}
+          title={`${gateNote}. ${apiNote}.`}
         >
           {controls.auditMet ? "Smoke gate met" : `Smoke gate ${controls.streak}/${AUDIT_DAYS}`}
         </a>
