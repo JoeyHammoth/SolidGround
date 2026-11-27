@@ -143,8 +143,10 @@ silently downgrading a record.
   imported successfully against the current `stable2`, and nothing disagrees.
 - When Solid moves past the release a record was tested against, the pass stops
   covering the version under test and `verified` is cleared. Ageing a pass out
-  while Solid stands still needs a `smokeAt` timestamp on the record itself;
-  that field is phase 2.
+  while Solid stands still uses `smokeAt` on the record, which is written
+  whenever a pass is folded in and cleared when one is withdrawn. An edition
+  published before the field existed carries no age, so only the moved-Solid
+  rule applies to it.
 - Evidence levels `B` and `T` are added from the same facts, so the record's
   `confidence` explains itself.
 
@@ -225,7 +227,7 @@ and drops `next` to weekly once the canary channel is stable.
 
 - [x] `smoke-result.schema.json` + validator wiring
 - [x] `packages/smoke` plan/report/fold with unit tests, no network
-- [ ] `smokeAt` on the record, so a pass on an unchanged Solid release can age out
+- [x] `smokeAt` on the record, so a pass on an unchanged Solid release can age out
 - [ ] `runner.ts` with the three steps and the temp-dir discipline
 - [ ] control fixtures and the discard-on-bad-control rule
 - [ ] `verify.yml` in `audit` mode, three packages, no publish

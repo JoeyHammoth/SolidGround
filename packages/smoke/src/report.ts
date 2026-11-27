@@ -77,13 +77,32 @@ function levelsFor(record: PackageRecord, smoke: SmokeResults): EvidenceLevel[] 
   return EVIDENCE_ORDER.filter((level) => levels.has(level));
 }
 
-function applySmoke(record: PackageRecord, smoke: SmokeResults): PackageRecord {
+function applySmoke(
+  record: PackageRecord,
+  smoke: SmokeResults,
+  smokeAt: string | null,
+): PackageRecord {
   return {
     ...record,
     smoke,
+    smokeAt,
     verified: record.status === "ready" && smoke.import === true,
     confidence: levelsFor(record, smoke),
   };
+}
+
+/**
+ * True when the pass already on the record has aged out of the policy window.
+ * An edition published before `smokeAt` existed has no age to check, so it is
+ * left alone rather than silently downgraded.
+ */
+function passHasAgedOut(
+  record: PackageRecord,
+  policy: Policy,
+  now: Date,
+): boolean {
+  if (record.smokeAt === null || record.smokeAt === undefined) return false;
+  return !isFresh(record.smokeAt, now, policy.staleness.smokeDays);
 }
 
 /**
@@ -118,15 +137,21 @@ export function foldSmoke(
 
   const best = fresh[0];
   if (!best) {
-    if (!record.verified || record.tested.solid === solid.stable2) return record;
-    // Solid has moved since this record was verified, so the old pass covers a
-    // release that is no longer under test.
-    return applySmoke(record, { import: null, build: null, types: null });
+    if (!record.verified) return record;
+    // Two ways a pass stops standing behind a record: Solid has moved since it
+    // ran, or it is simply older than the policy window while Solid stood still.
+    const solidMoved = record.tested.solid !== solid.stable2;
+    if (!solidMoved && !passHasAgedOut(record, policy, now)) return record;
+    return applySmoke(record, { import: null, build: null, types: null }, null);
   }
 
-  return applySmoke(record, {
-    import: best.smoke.import,
-    build: best.smoke.build,
-    types: best.smoke.types,
-  });
+  return applySmoke(
+    record,
+    {
+      import: best.smoke.import,
+      build: best.smoke.build,
+      types: best.smoke.types,
+    },
+    best.at,
+  );
 }

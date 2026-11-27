@@ -17,6 +17,10 @@ All notable changes to this project are documented here. The format follows
   appearing, changing or clearing.
 - `events.ndjson` is schema-validated line by line, so a malformed event fails
   collect and deploy with its line number instead of disappearing at read time.
+- Package records carry `smokeAt`, the instant the folded smoke pass finished,
+  so a pass ages out of the policy window while Solid stands still instead of
+  keeping `verified` alive indefinitely. Editions published before the field
+  existed keep their verification until Solid moves.
 - Sandboxed smoke matrix, first slice: `smoke-result.schema.json`, and a pure
   `@solid-ground/smoke` package that plans a batch of cells and folds results
   into records. Environmental failures stay `null` and never read as a verdict.

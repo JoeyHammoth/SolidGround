@@ -154,6 +154,12 @@ export interface PackageRecord extends Verdict {
   upstream: UpstreamSignals;
   attestations: Attestation[];
   smoke: SmokeResults;
+  /**
+   * When the folded smoke result finished, or null when no pass stands behind
+   * the record. Absent on editions published before the field existed; those are
+   * aged out by the moved-Solid rule only.
+   */
+  smokeAt?: string | null;
   shipsTypes: boolean;
   checkedAt: string;
   tested: {

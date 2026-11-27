@@ -273,6 +273,7 @@ export function toRecord(
     upstream: evidence.upstream,
     attestations: evidence.attestations,
     smoke: evidence.smoke,
+    smokeAt: null,
     shipsTypes: evidence.shipsTypes,
     checkedAt,
     tested: {

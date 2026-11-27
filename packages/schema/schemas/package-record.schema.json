@@ -82,6 +82,7 @@
       }
     },
     "shipsTypes": { "type": "boolean" },
+    "smokeAt": { "type": ["string", "null"], "maxLength": 40 },
     "checkedAt": { "type": "string", "maxLength": 40 },
     "tested": {
       "type": "object",
