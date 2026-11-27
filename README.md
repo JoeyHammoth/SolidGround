@@ -167,6 +167,10 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness |
 | `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
 
+`gate.json` and `validation.json` are described by
+[`gate.schema.json`](packages/schema/schemas/gate.schema.json) and
+[`validation.schema.json`](packages/schema/schemas/validation.schema.json).
+
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
 [`LICENSE-DATA`](LICENSE-DATA).
 

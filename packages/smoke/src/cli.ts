@@ -16,6 +16,7 @@ import {
   DEFAULT_RETENTION_DAYS,
   compactControlLog,
   describeControls,
+  groupControlFailures,
   readControlLog,
   summarizeControls,
 } from "./status.js";
@@ -307,7 +308,10 @@ async function statusCommand(args: string[]): Promise<number> {
   for (const line of describeControls(history, last, summaries)) console.log(line);
   for (const day of history.days.slice(-last)) {
     if (day.clean) continue;
-    for (const failure of day.failures) console.log(`  ${day.day}: ${failure}`);
+    console.log(`  ${day.day}  ${day.failures.length} failure(s)`);
+    for (const group of groupControlFailures(day.failures)) {
+      console.log(`    ${group.subject}: ${group.details.join("; ")}`);
+    }
   }
   if (args.includes("--strict") && !(history.days.at(-1) as { clean: boolean }).clean) {
     console.error("the newest control day is not clean");
