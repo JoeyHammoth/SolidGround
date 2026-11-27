@@ -5,6 +5,7 @@ export {
   validateControlSummary,
   validateDataset,
   validateEvents,
+  validateGateState,
   validateIndexRow,
   validateIndexRows,
   validateMeta,
@@ -12,5 +13,6 @@ export {
   validateRegistryEntry,
   validateSolidFile,
   validateSmokeResult,
+  validateValidationSummary,
   formatValidationErrors,
 } from "./validate.js";

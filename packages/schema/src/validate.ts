@@ -18,12 +18,16 @@ function createValidator() {
   const metaSchema = require("../schemas/meta.schema.json");
   const solidSchema = require("../schemas/solid.schema.json");
   const controlSummarySchema = require("../schemas/control-summary.schema.json");
+  const gateSchema = require("../schemas/gate.schema.json");
+  const validationSchema = require("../schemas/validation.schema.json");
   return {
     record: ajv.compile(recordSchema),
     indexRow: ajv.compile(indexSchema),
     meta: ajv.compile(metaSchema),
     solid: ajv.compile(solidSchema),
     controlSummary: ajv.compile(controlSummarySchema),
+    gate: ajv.compile(gateSchema),
+    validation: ajv.compile(validationSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -79,6 +83,16 @@ export function validateSolidFile(value: unknown): string[] {
 export function validateControlSummary(value: unknown): string[] {
   if (validators.controlSummary(value)) return [];
   return [formatValidationErrors(validators.controlSummary.errors)];
+}
+
+export function validateGateState(value: unknown): string[] {
+  if (validators.gate(value)) return [];
+  return [formatValidationErrors(validators.gate.errors)];
+}
+
+export function validateValidationSummary(value: unknown): string[] {
+  if (validators.validation(value)) return [];
+  return [formatValidationErrors(validators.validation.errors)];
 }
 
 /**

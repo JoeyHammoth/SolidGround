@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/validation.schema.json",
+  "title": "Solid Ground dataset validation summary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recorded", "ok", "checkedAt", "targets", "problems"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recorded": { "type": "boolean" },
+    "ok": { "type": ["boolean", "null"] },
+    "checkedAt": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "maxLength": 40
+    },
+    "targets": {
+      "type": "array",
+      "maxItems": 20,
+      "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+    },
+    "problems": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": { "type": "string", "maxLength": 600 }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "recorded": { "const": true } },
+        "required": ["recorded"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "type": "boolean" },
+          "checkedAt": { "type": "string" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "recorded": { "const": false } },
+        "required": ["recorded"]
+      },
+      "then": {
+        "properties": {
+          "ok": { "type": "null" },
+          "checkedAt": { "type": "null" }
+        }
+      }
+    }
+  ]
+}
