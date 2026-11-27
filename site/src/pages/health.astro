@@ -10,7 +10,7 @@ import {
   records,
   relativeAge,
 } from "../lib/data";
-import { groupControlFailures } from "../lib/failures.js";
+import { groupControlFailures } from "@solid-ground/smoke/status";
 import { validationTargetLabels } from "../lib/validation.js";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;

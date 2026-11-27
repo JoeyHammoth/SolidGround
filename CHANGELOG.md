@@ -53,7 +53,10 @@ All notable changes to this project are documented here. The format follows
   names the validated dataset, and a test fails when the README JSON API table
   drifts from the endpoints on disk.
 - `gate.schema.json` and `validation.schema.json` define the two publish-gate
-  JSON responses, and tests validate the generated endpoint bodies against them.
+  JSON responses, tests validate the generated endpoint bodies against them
+  (including a gate with no runs), and the README API table links both schemas.
+- `pnpm smoke:status` renders the same grouped failure reasons as `/health/`,
+  so the terminal no longer repeats a control id on every line.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

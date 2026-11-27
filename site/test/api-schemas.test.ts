@@ -10,6 +10,18 @@ describe("API response schemas", () => {
     expect(validateGateState({ ...body, ready: "yes" }).length).toBeGreaterThan(0);
   });
 
+  it("accepts a gate with no control runs yet", () => {
+    expect(
+      validateGateState({
+        streak: 0,
+        required: 14,
+        remaining: 14,
+        ready: false,
+        lastRun: null,
+      }),
+    ).toEqual([]);
+  });
+
   it("validation.json matches the validation schema in either state", async () => {
     const body = await (await validationGET({} as never)).json();
     expect(validateValidationSummary(body)).toEqual([]);
