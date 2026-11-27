@@ -170,6 +170,9 @@ jobs:
           merge-multiple: true
       - name: Validate the artifacts and the controls
         run: pnpm run smoke:report --dir results --out smoke/results.ndjson --controls-out smoke/controls.jsonl
+      - name: Add this batch's control verdicts to the summary
+        if: always()
+        run: pnpm run smoke:status --file smoke/controls.jsonl --last 1 >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -252,6 +255,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/checkout@v7
+        with:
           ref: data
           path: data
       - uses: actions/download-artifact@v8
@@ -284,3 +298,6 @@ jobs:
           git commit -m "chore(data): record smoke controls $(date -u +%FT%TZ)"
           git push
           gh workflow run deploy.yml --ref main
+      - name: Summarize the audit trail
+        if: always()
+        run: pnpm run smoke:status --file data/smoke/controls.jsonl --last 14 >> "$GITHUB_STEP_SUMMARY"
