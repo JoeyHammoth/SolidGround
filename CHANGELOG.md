@@ -30,6 +30,16 @@ All notable changes to this project are documented here. The format follows
 - `verify.yml` plans a batch from the published edition, runs one cell per job
   with Harden-Runner in `audit` mode, then validates the artifacts and the
   controls. Phase 0 has no publish job, so a run cannot change a record yet.
+- The sandbox runner probes a package's first real subpath when its root is not
+  exported, and records it in a new `target` field. `@kobalte/core@2.0.0-alpha.5`
+  exports only directory-shaped subpaths, so the root probe failed on packaging;
+  `@kobalte/core/accordion` imports, builds and typechecks against `2.0.4`.
+- An environmental failure never withdraws a pass: `foldSmoke` ignores a fresh
+  result whose `error` is set, because a registry 429 or install timeout says
+  nothing about the package.
+- `verify.yml` writes each batch's control verdicts and the fourteen-day audit
+  trail to the run's step summary, so a failing control day is visible without
+  downloading an artifact.
 - `smoke:publish` folds a batch the report step trusted into the published
   edition: it updates the record's `smoke`, `smokeAt`, `verified` and
   `confidence`, the matching `index.json` rows and `meta.lastSuccessfulVerify`.
