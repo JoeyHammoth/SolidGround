@@ -177,7 +177,11 @@ each response names its schema in a `$schema` field.
 `pnpm check:live` fetches those endpoints from the deployed site and validates
 every body against its schema, failing on a drift or a `$schema` that names the
 wrong document (it needs network access, so it is not part of `pnpm test`). Pass
-`--base <url>` to check a preview or a local build instead.
+`--base <url>` to check a preview or a local build instead, or `--strict` to
+fail when `fixtures/live/controls.json` is behind the deployed answer. The
+Verify workflow runs the check on every scheduled run and opens one issue while
+it fails; the refresh procedure is in
+[`docs/runbooks/verify.md`](docs/runbooks/verify.md).
 
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
 [`LICENSE-DATA`](LICENSE-DATA).

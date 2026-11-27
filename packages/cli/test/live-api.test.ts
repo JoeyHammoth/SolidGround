@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { checkLiveEndpoints, schemaFileName, type FetchJson } from "../src/live-api.js";
+import {
+  checkLiveEndpoints,
+  compareRecordedControls,
+  reportProblems,
+  schemaFileName,
+  type FetchJson,
+} from "../src/live-api.js";
 
 const GATE = {
   $schema: "https://example.test/schemas/gate.schema.json",
@@ -45,6 +51,55 @@ describe("schemaFileName", () => {
   it("maps an endpoint to the schema that describes it", () => {
     expect(schemaFileName("/api/v1/gate.json")).toBe("gate.schema.json");
     expect(schemaFileName("/api/v1/controls.json")).toBe("controls.schema.json");
+  });
+});
+
+describe("compareRecordedControls", () => {
+  it("accepts a fixture recorded from the same run", () => {
+    expect(compareRecordedControls(CONTROLS, CONTROLS)).toEqual([]);
+  });
+
+  it("fails a fixture older than the deployed answer", () => {
+    const problems = compareRecordedControls(CONTROLS, {
+      ...CONTROLS,
+      lastRun: "2026-11-29T04:11:00Z",
+    });
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toContain("fixtures/live/controls.json: recorded lastRun");
+    expect(problems[0]).toContain("older than the deployed 2026-11-29T04:11:00Z");
+    expect(problems[0]).toContain("refresh it");
+  });
+
+  it("accepts a fixture ahead of a lagging deploy", () => {
+    expect(
+      compareRecordedControls(
+        { ...CONTROLS, lastRun: "2026-11-30T04:11:00Z" },
+        CONTROLS,
+      ),
+    ).toEqual([]);
+  });
+
+  it("accepts a deployed response with no runs yet", () => {
+    expect(compareRecordedControls(CONTROLS, { ...CONTROLS, lastRun: null })).toEqual([]);
+  });
+
+  it("fails a missing or run-less fixture", () => {
+    expect(compareRecordedControls(undefined, CONTROLS)[0]).toContain("missing");
+    expect(compareRecordedControls({ ...CONTROLS, lastRun: null }, CONTROLS)[0]).toContain(
+      "carries no lastRun",
+    );
+  });
+});
+
+describe("reportProblems", () => {
+  const report = { valid: [], problems: ["schema drift"], fixture: ["fixture behind"], bodies: {} };
+
+  it("keeps fixture staleness out of the default failure set", () => {
+    expect(reportProblems(report, false)).toEqual(["schema drift"]);
+  });
+
+  it("includes it under --strict", () => {
+    expect(reportProblems(report, true)).toEqual(["schema drift", "fixture behind"]);
   });
 });
 
