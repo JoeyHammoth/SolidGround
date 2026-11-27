@@ -49,8 +49,11 @@ All notable changes to this project are documented here. The format follows
 - `validation.json` names the validated dataset (`data`) instead of exposing the
   runner's checkout path, and the footer links `llms.txt` for assistants.
 - Failed control days on `/health/` expand to the individual control failures,
-  the validation line names the validated dataset, and a test fails when the
-  README JSON API table drifts from the endpoints on disk.
+  grouped by control id and counted on the timeline cell, the validation line
+  names the validated dataset, and a test fails when the README JSON API table
+  drifts from the endpoints on disk.
+- `gate.schema.json` and `validation.schema.json` define the two publish-gate
+  JSON responses, and tests validate the generated endpoint bodies against them.
 - A workflow test reads `verify.yml` and fails if the audit job stops calling
   `audit:issue`, loses `issues: write`, or the gate steps are unwired.
 - Change events: `diffRecords` emits one event per new package, status change,

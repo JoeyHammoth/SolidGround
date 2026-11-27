@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/gate.schema.json",
+  "title": "Solid Ground publish-gate state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["streak", "required", "remaining", "ready", "lastRun"],
+  "properties": {
+    "streak": { "type": "integer", "minimum": 0 },
+    "required": { "type": "integer", "minimum": 0 },
+    "remaining": { "type": "integer", "minimum": 0 },
+    "ready": { "type": "boolean" },
+    "lastRun": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "maxLength": 40
+    }
+  }
+}
