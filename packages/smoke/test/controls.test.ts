@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { SmokeResult } from "@solid-ground/schema";
 import { CONTROLS, checkControls, controlCells } from "../src/controls.js";
@@ -26,6 +28,36 @@ const BAD = result({
 const SUBPATH = result({
   name: "@solid-ground/control-subpath",
   target: "@solid-ground/control-subpath/widget",
+});
+
+describe("control fixtures", () => {
+  it("ship every file their manifest points at, so a gitignored path cannot vanish", () => {
+    for (const control of CONTROLS) {
+      const dir = path.resolve(control.path);
+      const manifest = JSON.parse(
+        readFileSync(path.join(dir, "package.json"), "utf8"),
+      ) as {
+        main?: string;
+        module?: string;
+        types?: string;
+        exports?: Record<string, unknown>;
+      };
+      const targets = [manifest.main, manifest.module, manifest.types].filter(
+        (target): target is string => typeof target === "string",
+      );
+      for (const entry of Object.values(manifest.exports ?? {})) {
+        if (typeof entry === "string") targets.push(entry);
+        else if (typeof entry === "object" && entry !== null) {
+          for (const value of Object.values(entry)) {
+            if (typeof value === "string") targets.push(value);
+          }
+        }
+      }
+      for (const target of targets) {
+        expect(existsSync(path.join(dir, target)), `${control.id}: ${target}`).toBe(true);
+      }
+    }
+  });
 });
 
 describe("controlCells", () => {
