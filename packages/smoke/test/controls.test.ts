@@ -23,6 +23,10 @@ const BAD = result({
   name: "@solid-ground/control-bad",
   smoke: { import: false, build: null, types: null },
 });
+const SUBPATH = result({
+  name: "@solid-ground/control-subpath",
+  target: "@solid-ground/control-subpath/widget",
+});
 
 describe("controlCells", () => {
   it("runs both controls against the Solid release under test", () => {
@@ -30,6 +34,7 @@ describe("controlCells", () => {
     expect(cells.map((cell) => cell.id)).toEqual([
       "control-good",
       "control-bad",
+      "control-subpath",
     ]);
     expect(
       cells.every(
@@ -47,15 +52,15 @@ describe("controlCells", () => {
 });
 
 describe("checkControls", () => {
-  it("accepts a batch where both controls answered as expected", () => {
-    expect(checkControls([GOOD, BAD])).toEqual([]);
+  it("accepts a batch where every control answered as expected", () => {
+    expect(checkControls([GOOD, BAD, SUBPATH])).toEqual([]);
   });
 
   it("rejects a batch where the good control failed to import", () => {
     const broken = result({
       smoke: { import: false, build: true, types: true },
     });
-    expect(checkControls([broken, BAD])).toEqual([
+    expect(checkControls([broken, BAD, SUBPATH])).toEqual([
       "control-good: import was false, expected true",
     ]);
   });
@@ -65,13 +70,13 @@ describe("checkControls", () => {
       name: "@solid-ground/control-bad",
       smoke: { import: true, build: null, types: null },
     });
-    expect(checkControls([GOOD, wrong])).toEqual([
+    expect(checkControls([GOOD, wrong, SUBPATH])).toEqual([
       "control-bad: import was true, expected false",
     ]);
   });
 
   it("rejects a batch with a missing control", () => {
-    expect(checkControls([GOOD])).toEqual([
+    expect(checkControls([GOOD, SUBPATH])).toEqual([
       "control-bad: no result in the batch",
     ]);
   });
@@ -81,9 +86,16 @@ describe("checkControls", () => {
       smoke: { import: null, build: null, types: null },
       error: "pnpm install failed: 429 Too Many Requests",
     });
-    const failures = checkControls([failed, BAD]);
+    const failures = checkControls([failed, BAD, SUBPATH]);
     expect(failures[0]).toContain("environmental failure");
     expect(failures).toContain("control-good: import was null, expected true");
+  });
+
+  it("rejects a subpath control that probed the package root", () => {
+    const atRoot = result({ name: "@solid-ground/control-subpath", target: null });
+    expect(checkControls([GOOD, BAD, atRoot])).toEqual([
+      "control-subpath: probed null, expected @solid-ground/control-subpath/widget",
+    ]);
   });
 
   it("checks the newest result for a control", () => {
@@ -91,6 +103,6 @@ describe("checkControls", () => {
       smoke: { import: false, build: true, types: true },
     });
     const newer = result({ at: "2026-11-27T01:00:00Z" });
-    expect(checkControls([older, newer, BAD])).toEqual([]);
+    expect(checkControls([older, newer, BAD, SUBPATH])).toEqual([]);
   });
 });

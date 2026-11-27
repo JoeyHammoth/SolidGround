@@ -78,6 +78,11 @@ const BAD = result({
   version: "0.0.0",
   smoke: { import: false, build: null, types: null },
 });
+const SUBPATH = result({
+  name: "@solid-ground/control-subpath",
+  version: "0.0.0",
+  target: "@solid-ground/control-subpath/widget",
+});
 
 async function edition(): Promise<string> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "sg-smoke-publish-"));
@@ -119,6 +124,19 @@ async function edition(): Promise<string> {
   return dir;
 }
 
+async function writeAudit(dir: string, days: number): Promise<void> {
+  const lines: string[] = [];
+  for (let index = 0; index < days; index += 1) {
+    const day = String(index + 1).padStart(2, "0");
+    const at = `2026-11-${day}T04:00:00Z`;
+    for (const base of [GOOD, BAD, SUBPATH]) {
+      lines.push(JSON.stringify({ ...base, at }));
+    }
+  }
+  await mkdir(path.join(dir, "smoke"), { recursive: true });
+  await writeFile(path.join(dir, CONTROL_HISTORY_FILE), `${lines.join("\n")}\n`);
+}
+
 const cleanup: string[] = [];
 afterEach(async () => {
   for (const dir of cleanup.splice(0)) await rm(dir, { recursive: true, force: true });
@@ -126,7 +144,7 @@ afterEach(async () => {
 
 describe("foldBatch", () => {
   it("folds a package result and ignores the controls", () => {
-    const folded = foldBatch([record()], [GOOD, BAD, result()], POLICY, SOLID, NOW);
+    const folded = foldBatch([record()], [GOOD, BAD, SUBPATH, result()], POLICY, SOLID, NOW);
     expect(folded).toHaveLength(1);
     expect(folded[0]?.verified).toBe(true);
     expect(folded[0]?.smoke.import).toBe(true);
@@ -139,7 +157,7 @@ describe("publishBatch", () => {
     cleanup.push(dir);
     const outcome = await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, result()],
+      results: [GOOD, BAD, SUBPATH, result()],
       policy: POLICY,
       now: NOW,
     });
@@ -166,7 +184,7 @@ describe("publishBatch", () => {
     cleanup.push(dir);
     await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, result()],
+      results: [GOOD, BAD, SUBPATH, result()],
       policy: POLICY,
       now: NOW,
     });
@@ -174,20 +192,21 @@ describe("publishBatch", () => {
     const lines = (await readFile(path.join(dir, CONTROL_HISTORY_FILE), "utf8"))
       .trim()
       .split("\n");
-    expect(lines).toHaveLength(2);
+    expect(lines).toHaveLength(3);
     expect(lines.map((line) => JSON.parse(line).name).sort()).toEqual([
       "@solid-ground/control-bad",
       "@solid-ground/control-good",
+      "@solid-ground/control-subpath",
     ]);
   });
 
   it("does not duplicate control lines when the same batch is published twice", async () => {
     const dir = await edition();
     cleanup.push(dir);
-    await publishBatch({ dataDir: dir, results: [GOOD, BAD, result()], policy: POLICY, now: NOW });
+    await publishBatch({ dataDir: dir, results: [GOOD, BAD, SUBPATH, result()], policy: POLICY, now: NOW });
     const second = await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, result()],
+      results: [GOOD, BAD, SUBPATH, result()],
       policy: POLICY,
       now: NOW,
     });
@@ -196,7 +215,7 @@ describe("publishBatch", () => {
     const lines = (await readFile(path.join(dir, CONTROL_HISTORY_FILE), "utf8"))
       .trim()
       .split("\n");
-    expect(lines).toHaveLength(2);
+    expect(lines).toHaveLength(3);
   });
 
   it("refuses to write anything when a control is wrong", async () => {
@@ -211,7 +230,7 @@ describe("publishBatch", () => {
     await expect(
       publishBatch({
         dataDir: dir,
-        results: [GOOD, wrong, result()],
+        results: [GOOD, wrong, SUBPATH, result()],
         policy: POLICY,
         now: NOW,
       }),
@@ -229,7 +248,7 @@ describe("publishBatch", () => {
     await expect(
       publishBatch({
         dataDir: dir,
-        results: [{ ...GOOD, name: "" } as SmokeResult, BAD],
+        results: [{ ...GOOD, name: "" } as SmokeResult, BAD, SUBPATH],
         policy: POLICY,
         now: NOW,
       }),
@@ -241,7 +260,7 @@ describe("publishBatch", () => {
     cleanup.push(dir);
     const outcome = await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, result()],
+      results: [GOOD, BAD, SUBPATH, result()],
       policy: POLICY,
       dryRun: true,
       now: NOW,
@@ -253,6 +272,56 @@ describe("publishBatch", () => {
       await readFile(path.join(dir, "packages", "example.json"), "utf8"),
     ) as PackageRecord;
     expect(stored.verified).toBe(false);
+  });
+
+  it("refuses a real publish before the two-week control gate", async () => {
+    const dir = await edition();
+    cleanup.push(dir);
+    await writeAudit(dir, 13);
+
+    await expect(
+      publishBatch({
+        dataDir: dir,
+        results: [GOOD, BAD, SUBPATH, result()],
+        policy: POLICY,
+        requireAudit: true,
+        now: NOW,
+      }),
+    ).rejects.toThrow(/publish refused: 13 clean control day\(s\) on record, 14 required/);
+
+    const stored = JSON.parse(
+      await readFile(path.join(dir, "packages", "example.json"), "utf8"),
+    ) as PackageRecord;
+    expect(stored.verified).toBe(false);
+  });
+
+  it("still previews a batch before the audit gate", async () => {
+    const dir = await edition();
+    cleanup.push(dir);
+    const outcome = await publishBatch({
+      dataDir: dir,
+      results: [GOOD, BAD, SUBPATH, result()],
+      policy: POLICY,
+      requireAudit: true,
+      dryRun: true,
+      now: NOW,
+    });
+    expect(outcome.changed).toEqual(["@example/lib"]);
+  });
+
+  it("publishes once fourteen clean control days are recorded", async () => {
+    const dir = await edition();
+    cleanup.push(dir);
+    await writeAudit(dir, 14);
+
+    const outcome = await publishBatch({
+      dataDir: dir,
+      results: [GOOD, BAD, SUBPATH, result()],
+      policy: POLICY,
+      requireAudit: true,
+      now: NOW,
+    });
+    expect(outcome.changed).toEqual(["@example/lib"]);
   });
 
   it("withdraws a pass that names another Solid release", async () => {
@@ -272,7 +341,7 @@ describe("publishBatch", () => {
 
     const outcome = await publishBatch({
       dataDir: dir,
-      results: [GOOD, BAD, result({ solid: "2.0.3" })],
+      results: [GOOD, BAD, SUBPATH, result({ solid: "2.0.3" })],
       policy: POLICY,
       now: NOW,
     });

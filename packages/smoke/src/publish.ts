@@ -11,6 +11,7 @@ import type {
 import { parse as parseYaml } from "yaml";
 import { checkControls, isControlResult } from "./controls.js";
 import { foldSmoke } from "./report.js";
+import { AUDIT_DAYS, readControlHistory, summarizeControls } from "./status.js";
 
 /**
  * The write path of the verify matrix, kept apart from the job that runs
@@ -31,6 +32,12 @@ export interface PublishOptions {
   dryRun?: boolean;
   /** The report step already checked the controls; publish checks again. */
   requireControls?: boolean;
+  /**
+   * Refuse a real publish until the control log shows the full two-week gate.
+   * The CLI sets this; the library leaves it off so a test can write a batch
+   * without fabricating fourteen days of history.
+   */
+  requireAudit?: boolean;
 }
 
 export interface PublishOutcome {
@@ -133,6 +140,18 @@ export async function publishBatch(
     if (failures.length > 0) {
       throw new Error(
         `batch discarded: ${failures.join("; ")}; nothing was written. A batch without trustworthy controls must not change a record.`,
+      );
+    }
+  }
+
+  if (options.requireAudit === true && options.dryRun !== true) {
+    const history = summarizeControls(
+      await readControlHistory(path.join(options.dataDir, CONTROL_HISTORY_FILE)),
+    );
+    if (!history.auditMet) {
+      throw new Error(
+        `publish refused: ${history.streak} clean control day(s) on record, ${AUDIT_DAYS} required. ` +
+          `Run \`pnpm smoke:status\` for the full trail; a dry run is still allowed.`,
       );
     }
   }

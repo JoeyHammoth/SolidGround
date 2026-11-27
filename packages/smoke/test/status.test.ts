@@ -39,6 +39,11 @@ function batch(at: string): SmokeResult[] {
       smoke: { import: false, build: null, types: null },
       at: `${at}T04:11:00Z`,
     }),
+    result({
+      name: "@solid-ground/control-subpath",
+      target: "@solid-ground/control-subpath/widget",
+      at: `${at}T04:12:00Z`,
+    }),
   ];
 }
 
@@ -56,7 +61,7 @@ describe("summarizeControls", () => {
     ]);
     expect(history.days.every((day) => day.clean)).toBe(true);
     expect(history.streak).toBe(3);
-    expect(history.lastRun).toBe("2026-11-26T04:11:00Z");
+    expect(history.lastRun).toBe("2026-11-26T04:12:00Z");
     expect(history.auditMet).toBe(false);
   });
 
@@ -70,6 +75,21 @@ describe("summarizeControls", () => {
     expect(history.days.find((day) => day.day === "2026-11-24")?.clean).toBe(true);
     expect(history.days.find((day) => day.day === "2026-11-25")?.clean).toBe(false);
     expect(history.streak).toBe(1);
+  });
+
+  it("does not count a day missing a control as clean", () => {
+    const history = summarizeControls([
+      result({ at: "2026-11-26T04:10:00Z" }),
+      result({
+        name: "@solid-ground/control-bad",
+        smoke: { import: false, build: null, types: null },
+        at: "2026-11-26T04:11:00Z",
+      }),
+    ]);
+    const day = history.days[0];
+    expect(day?.clean).toBe(false);
+    expect(day?.failures.join(" ")).toContain("control-subpath: no result in the batch");
+    expect(history.streak).toBe(0);
   });
 
   it("keeps a failed retry later the same day visible", () => {

@@ -1,0 +1,18 @@
+{
+  "name": "@solid-ground/control-subpath",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/widget/index.js",
+  "module": "./dist/widget/index.js",
+  "types": "./dist/widget/index.d.ts",
+  "exports": {
+    "./widget": {
+      "types": "./dist/widget/index.d.ts",
+      "default": "./dist/widget/index.js"
+    }
+  },
+  "peerDependencies": {
+    "solid-js": ">=2.0.0"
+  }
+}

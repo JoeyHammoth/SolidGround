@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import type { SmokeResult } from "@solid-ground/schema";
-import { controlFailures, isControlResult } from "./controls.js";
+import { checkControls, controlFailures, isControlResult } from "./controls.js";
 
 /**
  * The audit trail of the matrix. Phase 0 gates every later phase on two weeks
@@ -57,8 +57,12 @@ export function summarizeControls(results: SmokeResult[]): ControlHistory {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, bucket]) => {
       // Every result is judged on its own: a good retry later the same day does
-      // not excuse a wrong verdict earlier in it.
-      const failures = bucket.flatMap((result) => controlFailures(result));
+      // not excuse a wrong verdict earlier in it. The batch check adds a failure
+      // for a control that did not run at all, so a day is only clean when the
+      // full set answered correctly.
+      const failures = [
+        ...new Set([...checkControls(bucket), ...bucket.flatMap(controlFailures)]),
+      ];
       const at = bucket
         .map((result) => result.at)
         .sort()
