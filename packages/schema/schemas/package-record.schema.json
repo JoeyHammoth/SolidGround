@@ -83,7 +83,7 @@
     },
     "shipsTypes": { "type": "boolean" },
     "smokeAt": { "type": ["string", "null"], "maxLength": 40 },
-    "smokeTarget": { "type": ["string", "null"], "maxLength": 214 },
+    "smokeTarget": { "type": ["string", "null"], "maxLength": 500 },
     "checkedAt": { "type": "string", "maxLength": 40 },
     "tested": {
       "type": "object",
