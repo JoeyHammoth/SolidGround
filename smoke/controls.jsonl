@@ -1,0 +1,2 @@
+{"schemaVersion":1,"name":"@solid-ground/control-bad","version":"0.0.0","solid":"2.0.4","channel":"stable","smoke":{"import":false,"build":null,"types":null},"entry":"esm","durationMs":701,"error":null,"at":"2026-11-27T10:48:51.372Z"}
+{"schemaVersion":1,"name":"@solid-ground/control-good","version":"0.0.0","solid":"2.0.4","channel":"stable","smoke":{"import":true,"build":true,"types":true},"entry":"esm","durationMs":3832,"error":null,"at":"2026-11-27T10:49:00.389Z"}
