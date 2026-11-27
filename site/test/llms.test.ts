@@ -1,0 +1,18 @@
+import { describe, expect, it } from "vitest";
+import { GET } from "../src/pages/llms.txt.js";
+import { controls } from "../src/lib/data.js";
+import { AUDIT_DAYS } from "@solid-ground/smoke/status";
+
+describe("GET /llms.txt", () => {
+  it("documents the publish gate with the current state", async () => {
+    const response = await GET({} as never);
+    expect(response.headers.get("content-type")).toContain("text/plain");
+
+    const text = await response.text();
+    expect(text).toContain("## Publish gate");
+    expect(text).toContain(`${AUDIT_DAYS} clean control days`);
+    expect(text).toContain(`${controls.streak} clean day(s) in a row`);
+    expect(text).toContain("/api/v1/gate.json");
+    expect(text).toContain("/api/v1/validation.json");
+  });
+});

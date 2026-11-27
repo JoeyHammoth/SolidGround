@@ -91,13 +91,18 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
         {controls.streak} clean day(s) in a row from {controls.days.length} recorded; last run
         <code>{controls.lastRun}</code>. Audit gate: <strong>{controls.auditMet ? "met" : `not met — ${remaining} more clean day(s) needed`}</strong>.
       </p>
-      <ul>
+      <ol class="gate-timeline" aria-label={`Last ${controlDays.length} control day(s), oldest first`}>
         {controlDays.map((day) => (
-          <li>
-            <code>{day.day}</code> {day.clean ? "clean" : "failed"} — {day.runs} control result(s)
+          <li
+            class={`gate-day ${day.clean ? "clean" : "failed"}`}
+            title={`${day.day}: ${day.clean ? "clean" : "failed"}, ${day.runs} control result(s)`}
+          >
+            <span class="gate-day-mark" aria-hidden="true">{day.clean ? "✓" : "✕"}</span>
+            <time datetime={day.day}>{day.day.slice(5)}</time>
+            <span class="small"> {day.clean ? "clean" : "failed"}</span>
           </li>
         ))}
-      </ul>
+      </ol>
     </>
   ) : (
     <p class="muted">No control runs recorded yet; {AUDIT_DAYS} clean days are needed before the matrix can change a record.</p>
@@ -118,5 +123,5 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
     <a href="https://github.com/JoeyHammoth/SolidGround/issues/new?template=add-package.yml">Request an addition</a>.
   </p>
 
-  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a> · <a href={`${base}/api/v1/gate.json`}><code>gate.json</code></a></p>
+  <p class="small muted">Machine-readable health: <a href={`${base}/api/v1/meta.json`}><code>meta.json</code></a> · <a href={`${base}/api/v1/solid.json`}><code>solid.json</code></a> · <a href={`${base}/api/v1/gate.json`}><code>gate.json</code></a> · <a href={`${base}/api/v1/validation.json`}><code>validation.json</code></a></p>
 </Base>

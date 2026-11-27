@@ -164,6 +164,7 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/meta.json` | Counts, Solid versions tested, rules version, freshness |
 | `/api/v1/solid.json` | Solid dist-tags and surface hashes |
 | `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness |
+| `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
 
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
 [`LICENSE-DATA`](LICENSE-DATA).
