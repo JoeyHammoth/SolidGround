@@ -398,6 +398,8 @@ jobs:
     permissions:
       contents: write
       issues: write
+      # `gh workflow run deploy.yml` after recording the result.
+      actions: write
     concurrency:
       group: data-write
       cancel-in-progress: false
