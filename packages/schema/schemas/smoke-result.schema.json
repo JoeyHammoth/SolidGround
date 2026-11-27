@@ -23,6 +23,11 @@
       }
     },
     "entry": { "type": ["string", "null"], "maxLength": 120 },
+    "target": {
+      "description": "Subpath specifier the steps imported, or null for the package root.",
+      "type": ["string", "null"],
+      "maxLength": 214
+    },
     "durationMs": { "type": ["integer", "null"], "minimum": 0 },
     "error": { "type": ["string", "null"], "maxLength": 2000 },
     "at": { "type": "string", "maxLength": 40 }

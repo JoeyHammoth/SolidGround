@@ -26,6 +26,8 @@ export interface SmokeRun {
   smoke: SmokeResults;
   at: string;
   entry?: string | null;
+  /** The subpath tested, or null when the package root was. */
+  target?: string | null;
   durationMs?: number | null;
   error?: string | null;
 }
@@ -40,6 +42,7 @@ export function smokeResult(run: SmokeRun): SmokeResult {
     channel: run.channel,
     smoke: run.smoke,
     entry: run.entry ?? null,
+    target: run.target ?? null,
     durationMs: run.durationMs ?? null,
     error: run.error ?? null,
     at: run.at,
@@ -130,7 +133,10 @@ export function foldSmoke(
         result.name === record.name &&
         result.channel === "stable" &&
         result.solid === solid.stable2 &&
-        result.version === version,
+        result.version === version &&
+        // An environmental failure (registry 429, install timeout) knows
+        // nothing about the package; it must never withdraw a pass.
+        result.error === null,
     )
     .filter((result) => isFresh(result.at, now, policy.staleness.smokeDays))
     .sort((a, b) => (a.at === b.at ? 0 : a.at < b.at ? 1 : -1));

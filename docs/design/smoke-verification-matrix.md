@@ -43,7 +43,8 @@ packages/smoke/
   src/index.ts        # pure: plan a batch, fold results into records
   src/plan.ts         # matrix selection + the per-cell spec
   src/controls.ts     # the two fixtures' expectations + the discard rule
-  src/runner.ts       # child-process install/import/build in a throwaway dir
+  src/runner.ts       # child-process install/import/build in a throwaway dir,
+                      # including which entry point (root or subpath) to probe
   src/report.ts       # results -> schema-validated JSON artifact
   src/publish.ts      # fold a trusted batch into the published edition
   src/status.ts       # the control log and the two-week audit streak
@@ -126,6 +127,7 @@ per cell is:
   "channel": "stable",
   "smoke": { "import": true, "build": true, "types": null },
   "entry": "esm",
+  "target": null,
   "durationMs": 41230,
   "error": null,
   "at": "2026-11-26T04:12:00Z"
@@ -133,7 +135,10 @@ per cell is:
 ```
 
 `at` is the instant the cell finished, and it is required: freshness is measured
-from it, never from the record's `checkedAt`.
+from it, never from the record's `checkedAt`. `target` names the specifier the
+steps imported when it is not the package root, so a pass against
+`@kobalte/core/accordion` can never be mistaken for a pass against
+`@kobalte/core`.
 
 `error` carries an environmental failure string — registry 429, install
 timeout, runner OOM. An environmental failure emits `smoke: null` for the
@@ -203,8 +208,10 @@ verify.yml  (workflow_dispatch, nightly 04:10 UTC)
   publish contents: write  -> manual only: fold a trusted batch into data
 ```
 
-A scheduled run stops after `history`: it records the control verdicts — the
-failures too — but cannot change a record. `publish` needs the manual input, so
+Both jobs write the audit trail to the run's step summary as well, so a passing
+or failing control day is visible without downloading an artifact. A scheduled
+run stops after `history`: it records the control verdicts — the failures too —
+but cannot change a record. `publish` needs the manual input, so
 promoting a batch is a deliberate act rather than a cron side effect. Both write
 jobs share the `data-write` concurrency group with collect, so they cannot race
 each other. `verify.yml` attaches `step-security/harden-runner` in `audit` mode
@@ -282,9 +289,11 @@ and drops `next` to weekly once the canary channel is stable.
   `main`, `module` and `types` but its `exports` map contains only `"./*"`, so
   `import "@kobalte/core"` fails with `ERR_PACKAGE_PATH_NOT_EXPORTED` in Node,
   at Vite resolve time and as `TS2307` in `tsc` — install succeeds, and none of
-  it is a `solid-js/web` incompatibility. The verdict is correct for a root
-  import, but packages that document subpath-only imports need a per-entry
-  probe before phase 1; see open decision 4.
+  it is a `solid-js/web` incompatibility. The runner now falls back to the first
+  real subpath: for Kobalte it expands the directory-shaped pattern onto
+  `@kobalte/core/accordion`, which imports, builds and typechecks against
+  `2.0.4`, and records that specifier in `target`. A file-shaped export pattern
+  is not expanded, and such a package still gets the root probe.
 - **Node version skew.** The matrix pins `.nvmrc`, like every other job.
 - **A pass that later looks wrong.** Because the artifact is committed, the roll
   forward is `git revert` of the verify commit, and the record returns to
@@ -301,8 +310,11 @@ and drops `next` to weekly once the canary channel is stable.
 3. Who reviews the first month of control runs? Needs a named maintainer before
    phase 0 ends.
 4. Should the import probe follow a package's first `exports` subpath when it
-   declares no `"."` entry? Today the matrix tests a root import, which is the
-   documented usage for most packages but not for a subpath-only one.
+   declares no `"."` entry? *Decided: yes.* The runner prefers the root; when it
+   is not exported it takes the first explicit subpath, or expands a
+   directory-shaped `"./*"` pattern on disk, and records the choice in `target`.
+   Only the directory form is expanded; a file-shaped pattern still gets the
+   root probe.
 
 ## Task list
 
@@ -316,4 +328,6 @@ and drops `next` to weekly once the canary channel is stable.
   a malformed result or a wrong control
 - [x] control log on the data branch, `smoke:status` and a health-page section,
   so the two-week audit is visible after the artifact expires
+- [x] subpath probe and a `target` field, so a subpath-only package is measured
+  rather than failed by the root import
 - [ ] two weeks of clean control runs, then promote to nightly

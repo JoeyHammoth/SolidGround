@@ -1,3 +1,6 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   TOOLCHAIN,
@@ -5,6 +8,8 @@ import {
   cellManifest,
   childEnv,
   chooseEntry,
+  chooseTarget,
+  exportedSubpaths,
   parseRunnerSpec,
   pnpmCommand,
 } from "../src/runner.js";
@@ -110,6 +115,68 @@ describe("chooseEntry", () => {
   });
 });
 
+describe("chooseTarget", () => {
+  it("uses the package name when the root is exported", () => {
+    expect(chooseTarget({ exports: { ".": "./index.js" } }, "@scope/lib")).toEqual({
+      specifier: "@scope/lib",
+      entry: "cjs",
+    });
+    expect(chooseTarget({ main: "./index.js" }, "@scope/lib")).toEqual({
+      specifier: "@scope/lib",
+      entry: "cjs",
+    });
+    expect(chooseTarget({ exports: "./index.js" }, "@scope/lib")).toEqual({
+      specifier: "@scope/lib",
+      entry: "esm",
+    });
+  });
+
+  it("falls back to the first real subpath when the root is not exported", () => {
+    const manifest = { exports: { "./*": { default: "./dist/*/index.js" } } };
+    expect(chooseTarget(manifest, "@kobalte/core", ["accordion", "dialog"])).toEqual({
+      specifier: "@kobalte/core/accordion",
+      entry: "cjs",
+    });
+  });
+
+  it("still attempts the root when no subpath resolves", () => {
+    const manifest = { exports: { "./*": { default: "./dist/*/index.js" } } };
+    expect(chooseTarget(manifest, "@scope/lib", [])).toEqual({
+      specifier: "@scope/lib",
+      entry: "cjs",
+    });
+  });
+});
+
+describe("exportedSubpaths", () => {
+  it("reads explicit subpath keys without touching the disk", async () => {
+    const subpaths = await exportedSubpaths("/nonexistent", {
+      exports: { "./button": "./dist/button.js", "./dialog": "./dist/dialog.js" },
+    });
+    expect(subpaths).toEqual(["button", "dialog"]);
+  });
+
+  it("expands a directory-shaped pattern against the installed package", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "sg-subpaths-"));
+    try {
+      for (const name of ["accordion", "dialog"]) {
+        await mkdir(path.join(dir, "dist", name), { recursive: true });
+        await writeFile(path.join(dir, "dist", name, "index.js"), "export {};\n");
+      }
+      const subpaths = await exportedSubpaths(dir, {
+        exports: { "./*": { default: "./dist/*/index.js" } },
+      });
+      expect(subpaths).toEqual(["accordion", "dialog"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("returns nothing when the package has no exports map", async () => {
+    expect(await exportedSubpaths("/nonexistent", { main: "index.js" })).toEqual([]);
+  });
+});
+
 describe("cellManifest", () => {
   it("pins exactly one solid-js copy per cell", () => {
     const manifest = cellManifest(parseRunnerSpec(SPEC));
@@ -205,6 +272,16 @@ describe("cellFiles", () => {
       compilerOptions: Record<string, unknown>;
     };
     expect(tsconfig.compilerOptions["skipLibCheck"]).toBe(true);
+  });
+
+  it("imports the chosen subpath in the build and typecheck steps", () => {
+    const files = cellFiles(parseRunnerSpec(SPEC), "@scope/lib/button");
+    expect(files["src/main.jsx"]).toContain(
+      'import * as target from "@scope/lib/button";',
+    );
+    expect(files["types.ts"]).toContain(
+      'import * as target from "@scope/lib/button";',
+    );
   });
 
   it("writes only the files the enabled steps need", () => {
