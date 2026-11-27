@@ -306,29 +306,6 @@ jobs:
           git -C data commit -m "chore(data): record smoke controls $(date -u +%FT%TZ)"
           git -C data push
           gh workflow run deploy.yml --ref main
-      - name: Refresh the recorded API fixture
-        # The fixture is the offline suite's copy of what `/api/v1/controls.json`
-        # serves, so the batch that moves the control log is the batch that
-        # refreshes it. It lives on `main`; a push made with GITHUB_TOKEN does
-        # not trigger a redeploy, and no page reads this file.
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if [ ! -f data/smoke/controls.jsonl ]; then
-            echo "::notice::No control log; the recorded fixture is unchanged."
-            exit 0
-          fi
-          pnpm run smoke:fixture --file data/smoke/controls.jsonl --out fixtures/live/controls.json
-          if git diff --quiet fixtures/live/controls.json; then
-            echo "::notice::The recorded fixture already matches this batch."
-            exit 0
-          fi
-          git config user.name "solid-ground-verify"
-          git config user.email "verify@users.noreply.github.com"
-          git add fixtures/live/controls.json
-          git commit -m "chore(test): record the control fixture $(date -u +%FT%TZ)"
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
       - name: Summarize the audit trail
         if: always()
         run: pnpm run smoke:status --file data/smoke/controls.jsonl --last 14 >> "$GITHUB_STEP_SUMMARY"
