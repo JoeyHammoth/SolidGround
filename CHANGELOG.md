@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `/api/v1/gate.json` publishes the recorded fixture's state and run beside the
+  gate numbers, so a monitor reads the lag without loading `/health/`. It is
+  null in an edition with no recorded API check, and optional in the schema so
+  a payload built before the field existed still validates.
 - `/health/` names the recorded fixture's state — current, one batch behind or
   more than one batch behind — from the last scheduled API check, so a stale
   recording is visible without opening an Actions log.
@@ -205,12 +209,19 @@ All notable changes to this project are documented here. The format follows
   `/api/v1/events.json` exposes them as JSON.
 - Freshness watchdog: an hourly check of `meta.json` that opens, updates and
   closes a `pipeline-stale` issue, with a recovery runbook.
+- An optional `FIXTURE_REFRESH_TOKEN` secret lets the `live API` job push and
+  open the fixture refresh pull request when the repository cannot grant a
+  workflow that permission; without the secret the step uses `github.token` as
+  before.
 - Scanner accuracy harness: 25 pinned packages compared against an independent
   detector, with hand adjudication of every disagreement and the result
   published in METHODOLOGY.
 
 ### Fixed
 
+- The blocked-refresh issue comments only when the fixture state changes, not on
+  every scheduled run; the body names the lag, so a fall from one batch behind
+  to more than one still comments.
 - The recorded-answer test derives the control streak and `lastRun` from the
   recorded days instead of pinning them, so the scheduled fixture refresh pull
   request can pass CI; the old pin made every refresh fail the suite.

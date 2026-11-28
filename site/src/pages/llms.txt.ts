@@ -62,7 +62,7 @@ The smoke matrix may only change a record after ${gate.required} clean control d
 Current: ${gate.streak} clean day(s) in a row; ${gate.remaining} more needed${gate.ready ? " (gate met)" : ""}.
 Last control run: ${gate.lastRun ?? "never"}.
 ${fixture}
-Machine-readable gate state: /api/v1/gate.json.
+Machine-readable gate state, including the recorded fixture verdict: /api/v1/gate.json.
 Control-day history with grouped failure reasons: /api/v1/controls.json.
 Dataset schema validation: ${validation}.
 Machine-readable validation summary: /api/v1/validation.json.

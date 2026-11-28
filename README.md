@@ -164,7 +164,7 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/meta.json` | Counts, Solid versions tested, rules version, freshness |
 | `/api/v1/solid.json` | Solid dist-tags and surface hashes |
 | `/api/v1/events.json` | Recent new-package, status, version and dataset events |
-| `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness |
+| `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness, recorded fixture state |
 | `/api/v1/controls.json` | Control-day history with grouped failure reasons and audit state |
 | `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
 

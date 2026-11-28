@@ -28,6 +28,32 @@ describe("API response schemas", () => {
     ).toEqual([]);
   });
 
+  it("accepts a recorded fixture verdict, or none", () => {
+    const gate = {
+      streak: 1,
+      required: 14,
+      remaining: 13,
+      ready: false,
+      lastRun: "2026-11-28T01:06:11.353Z",
+    };
+    expect(validateGateState({ ...gate, fixture: null })).toEqual([]);
+    expect(
+      validateGateState({
+        ...gate,
+        fixture: { status: "behind", lastRun: "2026-11-27T15:47:28.855Z" },
+      }),
+    ).toEqual([]);
+    expect(validateGateState({ ...gate, fixture: { status: "behind", lastRun: null } })).toEqual(
+      [],
+    );
+  });
+
+  it("rejects a gate whose fixture verdict is not an object", () => {
+    const gate = { streak: 1, required: 14, remaining: 13, ready: false, lastRun: null };
+    expect(validateGateState({ ...gate, fixture: "behind" }).length).toBeGreaterThan(0);
+    expect(validateGateState({ ...gate, fixture: { status: "" } }).length).toBeGreaterThan(0);
+  });
+
   it("validation.json matches the validation schema in either state", async () => {
     const body = await (await validationGET({} as never)).json();
     expect(validateValidationSummary(body)).toEqual([]);
