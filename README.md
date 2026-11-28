@@ -167,7 +167,7 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness, recorded fixture state |
 | `/api/v1/controls.json` | Control-day history with grouped failure reasons and audit state |
 | `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
-| `/api/v1/api-check.json` | Recorded deployed-API check: outcome, endpoints, problems, fixture verdict and blocker issue (404 until one is recorded) |
+| `/api/v1/api-check.json` | Recorded deployed-API check: outcome, endpoints, problems, fixture verdict and blocker issue; an edition with no recorded check publishes an `error` body |
 
 `gate.json`, `controls.json`, `validation.json` and `api-check.json` are described by
 [`gate.schema.json`](packages/schema/schemas/gate.schema.json),

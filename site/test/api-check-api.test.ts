@@ -32,12 +32,14 @@ describe("/api/v1/api-check.json with no recording", () => {
     routes = await loadRoutes();
   });
 
-  it("answers 404 rather than a record-shaped placeholder", async () => {
+  it("says no check is recorded instead of publishing a placeholder record", async () => {
     const response = await routes.apiCheck.GET({} as never);
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
-    const body = (await response.json()) as { error?: string };
+    const body = (await response.json()) as { error?: string; $schema?: string };
     expect(body.error).toContain("no recorded API check");
+    // The schema describes a check that happened; an error body must not pass.
+    expect(validateApiCheck(body).length).toBeGreaterThan(0);
   });
 
   it("publishes no fixture verdict in gate.json either", async () => {
