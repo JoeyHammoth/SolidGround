@@ -207,6 +207,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- `/health/` pairs the fixture verdict with the commit's own `lastRun`: the
+  refresh step rewrote the working-tree fixture before the record step read it,
+  so a stale status carried the fresh timestamp.
 - The deployed site is built from the `data` branch rather than the committed
   fixtures. If that branch cannot be read the deploy falls back to the fixtures
   with a warning instead of failing, and a successful collect dispatches a

@@ -546,9 +546,11 @@ jobs:
           jq -R -s 'split("\n") | map(select(length > 0))' "$RUNNER_TEMP/api-problems.txt" \
             > "$RUNNER_TEMP/api-problems.json"
           # How the recorded fixture compared to the deployed answer, so
-          # /health/ can name a stale recording without an Actions log.
+          # /health/ can name a stale recording without an Actions log. Read the
+          # committed fixture, not the working tree: the refresh step above may
+          # already have rewritten it, and the status describes the commit.
           fixture='${{ steps.live.outputs.fixture }}'
-          recorded=$(jq -r '.lastRun // empty' fixtures/live/controls.json 2>/dev/null || true)
+          recorded=$(git show HEAD:fixtures/live/controls.json 2>/dev/null | jq -r '.lastRun // empty' || true)
           jq -n \
             --argjson ok "$ok" \
             --arg at "$(date -u +%FT%TZ)" \
