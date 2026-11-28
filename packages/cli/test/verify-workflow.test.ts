@@ -69,8 +69,8 @@ describe("verify workflow issue wiring", () => {
   it("records the fixture verdict for the health page", () => {
     const run = stepRun("api", "Record the result for /health/");
     expect(run).toContain("fixture: (if $fixture");
-    // The refresh step rewrites the working tree, so the recorded run has to
-    // come from the commit the status describes.
-    expect(run).toContain("git show HEAD:fixtures/live/controls.json");
+    // The refresh step checks out its own branch and rewrites the fixture, so
+    // the recorded run has to come from the commit the status describes.
+    expect(run).toContain('git show "${GITHUB_SHA}:fixtures/live/controls.json"');
   });
 });
