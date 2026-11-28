@@ -9,6 +9,7 @@ import {
   validateSolidFile,
   validateValidationSummary,
 } from "@solid-ground/schema";
+import { API_CHECK_MAX_AGE_HOURS, apiCheckStale } from "@solid-ground/smoke/status";
 
 /**
  * Follow the published `$schema` promise from the outside: fetch each JSON
@@ -22,6 +23,7 @@ import {
 
 export const DEFAULT_BASE = "https://joeyhammoth.github.io/SolidGround";
 export const RECORDED_CONTROLS = "fixtures/live/controls.json";
+export const API_CHECK_PATH = "/api/v1/api-check.json";
 
 interface Endpoint {
   path: string;
@@ -41,8 +43,24 @@ export const ENDPOINTS: readonly Endpoint[] = [
   { path: "/api/v1/gate.json", schemaField: true, validate: validateGateState },
   { path: "/api/v1/controls.json", schemaField: true, validate: validateControls },
   { path: "/api/v1/validation.json", schemaField: true, validate: validateValidationSummary },
-  { path: "/api/v1/api-check.json", schemaField: true, validate: validateApiCheck },
+  { path: API_CHECK_PATH, schemaField: true, validate: validateApiCheck },
 ];
+
+/**
+ * A recorded check that validates can still be old: the schema says a check
+ * happened, not that the recorder is running. Failing here means a stopped
+ * `live API` job is visible from the outside, not only to someone reading
+ * `/health/`.
+ */
+export function staleApiCheckProblem(
+  body: unknown,
+  now: number = Date.now(),
+): string | null {
+  const checkedAt = (body as Record<string, unknown> | null)?.["checkedAt"] ?? null;
+  if (!apiCheckStale(typeof checkedAt === "string" ? checkedAt : null, now)) return null;
+  const hours = Math.floor((now - Date.parse(checkedAt as string)) / 3_600_000);
+  return `${API_CHECK_PATH}: recorded at ${String(checkedAt)}, ${hours} hours ago; the live API job has not recorded a check within ${API_CHECK_MAX_AGE_HOURS} hours`;
+}
 
 export type FetchJson = (url: string) => Promise<unknown>;
 
@@ -164,6 +182,8 @@ export function reportProblems(report: LiveReport, strict: boolean): string[] {
 export async function checkLiveEndpoints(options: {
   base?: string;
   fetchJson: FetchJson;
+  /** Pinned in tests; the age rule is measured against it. */
+  now?: number;
 }): Promise<LiveReport> {
   const base = (options.base ?? DEFAULT_BASE).replace(/\/+$/, "");
   const valid: string[] = [];
@@ -196,6 +216,13 @@ export async function checkLiveEndpoints(options: {
     if (messages.length > 0) {
       for (const message of messages) problems.push(`${endpoint.path}: ${message}`);
       continue;
+    }
+    if (endpoint.path === API_CHECK_PATH) {
+      const stale = staleApiCheckProblem(value, options.now);
+      if (stale !== null) {
+        problems.push(stale);
+        continue;
+      }
     }
     valid.push(endpoint.path);
     bodies[endpoint.path] = value;

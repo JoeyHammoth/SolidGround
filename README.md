@@ -177,8 +177,9 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 each response names its schema in a `$schema` field.
 
 `pnpm check:live` fetches those endpoints from the deployed site and validates
-every body against its schema, failing on a drift or a `$schema` that names the
-wrong document (it needs network access, so it is not part of `pnpm test`). Pass
+every body against its schema, failing on a drift, a `$schema` that names the
+wrong document, or an `api-check.json` older than a day (a recorder that
+stopped writing) (it needs network access, so it is not part of `pnpm test`). Pass
 `--base <url>` to check a preview or a local build instead, or `--strict` to
 fail when `fixtures/live/controls.json` is behind the deployed answer
 (`pnpm smoke:fixture` regenerates that fixture from the control log). The

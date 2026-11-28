@@ -8,6 +8,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `/health/` shows how old the recorded API check is, and a banner once it is
+  older than the nightly cadence, so a `live API` job that stopped recording is
+  visible on the page instead of only in an Actions log.
+- `pnpm check:live` fails a recorded `/api/v1/api-check.json` older than 26
+  hours: the schema proves a check happened, not that the recorder is still
+  writing. The window is shared with `/health/` through the smoke package.
 - `/api/v1/api-check.json` publishes what the `live API` job recorded — the
   outcome, endpoint count, problems, the recorded fixture verdict and the
   blocker issue — under `api-check.schema.json`, and `pnpm check:live` validates

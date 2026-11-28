@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@solid-ground/schema": "workspace:*",
+    "@solid-ground/smoke": "workspace:*",
     "yaml": "^2.6.1"
   }
 }

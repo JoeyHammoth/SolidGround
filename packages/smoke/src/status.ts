@@ -41,6 +41,25 @@ export const SCHEMA_BASE =
 export const CONTROLS_SCHEMA_URL = `${SCHEMA_BASE}/controls.schema.json`;
 const DAY_MS = 86_400_000;
 
+/**
+ * How old a recorded deployed-API check may be and still describe a recorder
+ * that is running. The `live API` job runs nightly, so a record from the
+ * previous run is normal; the two extra hours keep a delayed schedule from
+ * failing the check before the next run has a chance to write.
+ */
+export const API_CHECK_MAX_AGE_HOURS = 26;
+
+/** True when a record exists and is too old to prove the recorder still writes. */
+export function apiCheckStale(
+  checkedAt: string | null | undefined,
+  now: number = Date.now(),
+): boolean {
+  if (!checkedAt) return false;
+  const time = Date.parse(checkedAt);
+  if (Number.isNaN(time)) return false;
+  return now - time > API_CHECK_MAX_AGE_HOURS * 3_600_000;
+}
+
 /** The gate facts a monitor needs, independent of how they are printed. */
 export interface GateState {
   streak: number;

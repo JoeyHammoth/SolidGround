@@ -21,6 +21,11 @@ pnpm smoke:gate --file data/smoke/controls.jsonl --json
 against its schema, including the `$schema` each response names. It needs
 network access, so it is not part of `pnpm test`.
 
+A recorded `/api/v1/api-check.json` that validates but is older than 26 hours
+fails the same check: the schema proves a check happened, not that the job is
+still writing, so a stopped recorder is visible from outside. `/health/` shows
+the record's age and a banner once it passes that window.
+
 The scheduled `live API` job runs it, opens one issue while it fails
 (`api: issue …`), and closes it on the next passing run. It also writes
 `api-check.json` to the `data` branch and redeploys, which is what the
