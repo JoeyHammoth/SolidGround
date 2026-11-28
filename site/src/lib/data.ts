@@ -109,6 +109,18 @@ export interface DeployApiCheck {
   base: string;
   endpoints: number;
   problems: string[];
+  /** How the recorded fixture compared to the deployed answer during that check. */
+  fixture: { status: string; lastRun: string | null } | null;
+}
+
+function readApiCheckFixture(value: unknown): DeployApiCheck["fixture"] {
+  if (typeof value !== "object" || value === null) return null;
+  const fixture = value as Record<string, unknown>;
+  if (typeof fixture["status"] !== "string") return null;
+  return {
+    status: fixture["status"],
+    lastRun: typeof fixture["lastRun"] === "string" ? fixture["lastRun"] : null,
+  };
 }
 
 function readApiCheck(): DeployApiCheck | null {
@@ -123,6 +135,7 @@ function readApiCheck(): DeployApiCheck | null {
       base: typeof parsed.base === "string" ? parsed.base : "",
       endpoints: typeof parsed.endpoints === "number" ? parsed.endpoints : 0,
       problems: parsed.problems,
+      fixture: readApiCheckFixture(parsed.fixture),
     };
   } catch {
     return null;
