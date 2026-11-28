@@ -31,6 +31,7 @@ describe("deployed /api/v1/controls.json", () => {
         day: string;
         clean: boolean;
         runs: number;
+        at: string;
         failures: number;
         groups: { subject: string; details: string[] }[];
       }[];
@@ -50,7 +51,10 @@ describe("deployed /api/v1/controls.json", () => {
         ],
       },
     ]);
-    expect(body.streak).toBe(0);
-    expect(body.lastRun).toBe("2026-11-27T15:47:28.855Z");
+    // Derived, not pinned: the scheduled refresh adds a day every batch, and a
+    // hardcoded streak made every refresh pull request fail this suite.
+    const trailingClean = [...body.days].reverse().findIndex((day) => !day.clean);
+    expect(body.streak).toBe(trailingClean === -1 ? body.days.length : trailingClean);
+    expect(body.lastRun).toBe(body.days.at(-1)?.at);
   });
 });

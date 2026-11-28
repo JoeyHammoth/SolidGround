@@ -207,6 +207,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- The recorded-answer test derives the control streak and `lastRun` from the
+  recorded days instead of pinning them, so the scheduled fixture refresh pull
+  request can pass CI; the old pin made every refresh fail the suite.
 - `/health/` pairs the fixture verdict with the commit's own `lastRun`: the
   refresh step rewrote the working-tree fixture before the record step read it,
   so a stale status carried the fresh timestamp.
