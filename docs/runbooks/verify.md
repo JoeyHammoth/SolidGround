@@ -57,7 +57,10 @@ A fixture one batch behind is the normal state between merges: the check prints
 a `note` and the job keeps the pull request current without failing. Only a
 fixture two or more batches behind, or one whose recorded day no longer matches
 the deployed answer, prints a `warn`. `pnpm check:live --strict` fails on either,
-which is how a maintainer asks whether the recording is current. The verdict is
+which is how a maintainer asks whether the recording is current. The scheduled
+job fails too once the recording is more than one batch behind: it records the
+verdict first, then goes red, so the run is the nudge and the issue is the
+durable record. The verdict is
 recorded in `api-check.json`, and `/health/` shows it under **Deployed API**, so
 a stale recording does not need an Actions log to be seen. The record also says
 what that run did about the lag, so the page links the `ci: …` issue when the
@@ -70,9 +73,10 @@ The automation needs two repository settings:
   to create and approve pull requests"** must be enabled, or the job needs the
   maintainer token described next. Without either, the workflow token cannot
   open the pull request: the job still pushes the branch, prints a warning and
-  opens one `ci: …` issue, which closes on the next run that opens the pull
-  request. Turning the setting on is the whole fix. The issue comments once per
-  fixture state — one batch behind, or more than one — rather than once per run.
+  opens one `ci: …` issue, which `/health/` links by number and which closes on
+  the next run that opens the pull request. Turning the setting on is the whole
+  fix. The issue comments once per fixture state — one batch behind, or more
+  than one — rather than once per run.
 - **Or store a `FIXTURE_REFRESH_TOKEN` secret.** A fine-grained personal access
   token scoped to this repository with Contents, Pull requests and Issues write
   makes the refresh step push and open the pull request as its owner rather than

@@ -18,7 +18,12 @@ const workflow = parse(
     string,
     {
       permissions?: Record<string, string>;
-      steps?: Array<{ name?: string; run?: string; env?: Record<string, string> }>;
+      steps?: Array<{
+        name?: string;
+        run?: string;
+        if?: string;
+        env?: Record<string, string>;
+      }>;
     }
   >;
 };
@@ -72,6 +77,21 @@ describe("verify workflow issue wiring", () => {
     expect(run).toContain("pnpm run automation:issue --clear");
     // The lag goes into the issue so a worse one comments again.
     expect(run).toContain('--blocked --fixture "${{ steps.live.outputs.fixture }}"');
+  });
+
+  it("hands the blocker issue's number to the record step", () => {
+    expect(stepRun("api", "Refresh the recorded API fixture")).toContain("--github-output");
+    const record = stepRun("api", "Record the result for /health/");
+    expect(record).toContain("steps.refresh.outputs.issue");
+    expect(record).toContain("issue: (if $issue");
+  });
+
+  it("turns a two-batch lag into a red run", () => {
+    const step = workflow.jobs["api"]?.steps?.find(
+      (candidate) => candidate.name === "Fail when the recording is more than one batch behind",
+    );
+    expect(step?.if).toContain("'stale'");
+    expect(step?.run).toContain("exit 1");
   });
 
   it("can use a maintainer token, falling back to the workflow token", () => {

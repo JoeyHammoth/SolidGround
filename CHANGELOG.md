@@ -8,6 +8,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `api-check.json` has a schema, and `pnpm validate` checks it: a malformed
+  record fails the deploy instead of letting `/health/` render an unknown
+  fixture state.
+- `/health/` links the exact `ci: …` issue a blocked refresh filed or
+  commented on, recorded as `fixture.issue`; the issue search remains the
+  fallback for a record written before the number was kept.
 - `/health/` names a blocked refresh for what it is: the page links the `ci: …`
   issue instead of claiming a refresh pull request is open, and `/llms.txt` no
   longer says to merge one. The header smoke badge carries the recorded
@@ -223,6 +229,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- The `live API` job fails once the recorded fixture is more than one batch
+  behind, after it has recorded the verdict, instead of only warning: a
+  recording that far behind no longer describes the deployed answer.
 - The blocked-refresh issue comments only when the fixture state changes, not on
   every scheduled run; the body names the lag, so a fall from one batch behind
   to more than one still comments.

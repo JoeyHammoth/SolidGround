@@ -21,6 +21,7 @@ function createValidator() {
   const gateSchema = require("../schemas/gate.schema.json");
   const validationSchema = require("../schemas/validation.schema.json");
   const controlsSchema = require("../schemas/controls.schema.json");
+  const apiCheckSchema = require("../schemas/api-check.schema.json");
   return {
     record: ajv.compile(recordSchema),
     indexRow: ajv.compile(indexSchema),
@@ -30,6 +31,7 @@ function createValidator() {
     gate: ajv.compile(gateSchema),
     validation: ajv.compile(validationSchema),
     controls: ajv.compile(controlsSchema),
+    apiCheck: ajv.compile(apiCheckSchema),
     registry: ajv.compile(registrySchema),
     event: ajv.compile(eventSchema),
     smoke: ajv.compile(smokeSchema),
@@ -100,6 +102,12 @@ export function validateValidationSummary(value: unknown): string[] {
 export function validateControls(value: unknown): string[] {
   if (validators.controls(value)) return [];
   return [formatValidationErrors(validators.controls.errors)];
+}
+
+/** The record the Verify job writes to the data branch for `/health/`. */
+export function validateApiCheck(value: unknown): string[] {
+  if (validators.apiCheck(value)) return [];
+  return [formatValidationErrors(validators.apiCheck.errors)];
 }
 
 /**
@@ -230,6 +238,13 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
         } catch (error) {
           failures.push(`${target}: invalid JSON (${(error as Error).message})`);
         }
+      } else if (path.basename(target) === "api-check.json") {
+        try {
+          const parsed: unknown = JSON.parse(await readFile(target, "utf8"));
+          for (const message of validateApiCheck(parsed)) failures.push(`${target}: ${message}`);
+        } catch (error) {
+          failures.push(`${target}: invalid JSON (${(error as Error).message})`);
+        }
       }
       continue;
     }
@@ -282,6 +297,10 @@ export async function validatePaths(paths: string[]): Promise<string[]> {
       }
       if (path.basename(file) === "solid.json") {
         for (const message of validateSolidFile(parsed)) failures.push(`${file}: ${message}`);
+        continue;
+      }
+      if (path.basename(file) === "api-check.json") {
+        for (const message of validateApiCheck(parsed)) failures.push(`${file}: ${message}`);
         continue;
       }
       const isRecord =

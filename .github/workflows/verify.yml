@@ -536,7 +536,7 @@ jobs:
           else
             echo "refresh=blocked" >> "$GITHUB_OUTPUT"
             echo "::warning::Could not open the refresh pull request. Set a FIXTURE_REFRESH_TOKEN secret, or enable Settings -> Actions -> General -> Workflow permissions -> Allow GitHub Actions to create and approve pull requests, then rerun this job."
-            pnpm run automation:issue --blocked --fixture "${{ steps.live.outputs.fixture }}"
+            pnpm run automation:issue --blocked --fixture "${{ steps.live.outputs.fixture }}" --github-output
           fi
 
       - name: Record the result for /health/
@@ -566,6 +566,7 @@ jobs:
           # working tree nor HEAD describes what the status was computed from.
           fixture='${{ steps.live.outputs.fixture }}'
           refresh='${{ steps.refresh.outputs.refresh }}'
+          issue='${{ steps.refresh.outputs.issue }}'
           recorded=$(git show "${GITHUB_SHA}:fixtures/live/controls.json" 2>/dev/null | jq -r '.lastRun // empty' || true)
           jq -n \
             --argjson ok "$ok" \
@@ -575,8 +576,9 @@ jobs:
             --arg fixture "$fixture" \
             --arg recorded "$recorded" \
             --arg refresh "$refresh" \
+            --arg issue "$issue" \
             --slurpfile problems "$RUNNER_TEMP/api-problems.json" \
-            '{schemaVersion: 1, ok: $ok, checkedAt: $at, base: $base, endpoints: $endpoints, problems: $problems[0], fixture: (if $fixture == "" then null else {status: $fixture, lastRun: (if $recorded == "" then null else $recorded end), refresh: (if $refresh == "" then null else $refresh end)} end)}' \
+            '{schemaVersion: 1, ok: $ok, checkedAt: $at, base: $base, endpoints: $endpoints, problems: $problems[0], fixture: (if $fixture == "" then null else {status: $fixture, lastRun: (if $recorded == "" then null else $recorded end), refresh: (if $refresh == "" then null else $refresh end), issue: (if $issue == "" then null else ($issue | tonumber) end)} end)}' \
             > data/api-check.json
           git -C data config user.name "solid-ground-verify"
           git -C data config user.email "verify@users.noreply.github.com"
@@ -589,3 +591,14 @@ jobs:
           git -C data push
           # A push made with GITHUB_TOKEN does not trigger other workflows.
           gh workflow run deploy.yml --ref main
+
+      - name: Fail when the recording is more than one batch behind
+        # One batch behind is the state between refreshes; two or more means the
+        # recorded answer no longer describes the deployed site, and
+        # `check:live --strict` already fails on it. The issue is the durable
+        # record, the red run is the nudge. This runs last so the check and the
+        # verdict are recorded first.
+        if: always() && github.ref == 'refs/heads/main' && steps.live.outputs.fixture == 'stale'
+        run: |
+          echo "::error::fixtures/live/controls.json is more than one batch behind the deployed response; merge the refresh pull request or resolve the issue it names."
+          exit 1

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solid-ground.dev/schemas/api-check.schema.json",
+  "title": "Solid Ground recorded API check",
+  "description": "What the Verify live API job saw when it last validated the deployed JSON: the outcome, when, how many endpoints answered and the problems behind a failure, plus the recorded fixture verdict and what that run did about it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "ok", "checkedAt", "base", "endpoints", "problems"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri", "maxLength": 200 },
+    "schemaVersion": { "const": 1 },
+    "ok": { "type": "boolean" },
+    "checkedAt": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "base": { "type": "string", "format": "uri", "maxLength": 200 },
+    "endpoints": { "type": "integer", "minimum": 0 },
+    "problems": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "type": "string", "maxLength": 500 }
+    },
+    "fixture": {
+      "description": "How fixtures/live/controls.json compared to the deployed answer: current, one batch behind (behind) or more than one (stale); what this run did about it; and the issue a blocked refresh files. Null when the run reported no verdict.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "lastRun"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "lastRun": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "maxLength": 40
+        },
+        "refresh": {
+          "type": ["string", "null"],
+          "enum": ["current", "opened", "blocked", "skipped", null]
+        },
+        "issue": {
+          "description": "The open refresh-blocker issue this run commented on or created.",
+          "type": ["integer", "null"],
+          "minimum": 1
+        }
+      }
+    }
+  }
+}
