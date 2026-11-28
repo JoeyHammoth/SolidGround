@@ -57,15 +57,18 @@ A fixture one batch behind is the normal state between merges: the check prints
 a `note` and the job keeps the pull request current without failing. Only a
 fixture two or more batches behind, or one whose recorded day no longer matches
 the deployed answer, prints a `warn`. `pnpm check:live --strict` fails on either,
-which is how a maintainer asks whether the recording is current.
+which is how a maintainer asks whether the recording is current. The verdict is
+recorded in `api-check.json`, and `/health/` shows it under **Deployed API**, so
+a stale recording does not need an Actions log to be seen.
 
 The automation needs two repository settings:
 
 - **Settings → Actions → General → Workflow permissions → "Allow GitHub Actions
   to create and approve pull requests"** must be enabled. Without it the
-  workflow token cannot open the pull request: the job still pushes the branch
-  and then prints a warning naming this setting, so turning it on is the whole
-  fix.
+  workflow token cannot open the pull request: the job still pushes the branch,
+  prints a warning naming this setting and opens one `ci: …` issue, which closes
+  on the next run that opens the pull request. Turning the setting on is the
+  whole fix.
 - **The `Protect main` ruleset** requires the `test` and `analyze` checks and
   enables _require extra approval for unattributed changes_, so a bot commit
   needs one human approval. A pull request created by a workflow token starts its

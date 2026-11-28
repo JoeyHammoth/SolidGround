@@ -59,4 +59,14 @@ describe("verify workflow issue wiring", () => {
     expect(run).toContain("gh pr create");
     expect(run).toContain("Allow GitHub Actions to create and approve");
   });
+
+  it("turns a blocked refresh into an issue and closes it when unblocked", () => {
+    const run = stepRun("api", "Refresh the recorded API fixture");
+    expect(run).toContain("pnpm run automation:issue --blocked");
+    expect(run).toContain("pnpm run automation:issue --clear");
+  });
+
+  it("records the fixture verdict for the health page", () => {
+    expect(stepRun("api", "Record the result for /health/")).toContain("fixture: (if $fixture");
+  });
 });

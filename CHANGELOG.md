@@ -8,6 +8,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `/health/` names the recorded fixture's state — current, one batch behind or
+  more than one batch behind — from the last scheduled API check, so a stale
+  recording is visible without opening an Actions log.
+- A blocked fixture refresh owns one `ci: …` issue: when the workflow token may
+  not open the pull request, the job names the Actions setting to enable and
+  closes the issue on the next run that opens it, or finds nothing to refresh.
 - The `live API` job proposes the recorded fixture refresh as a pull request:
   it rebuilds `fixtures/live/controls.json` from the data branch, force-pushes
   one `automation/api-fixture` branch and reuses a single open pull request, so
