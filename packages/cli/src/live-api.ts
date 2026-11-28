@@ -44,13 +44,24 @@ export const ENDPOINTS: readonly Endpoint[] = [
 
 export type FetchJson = (url: string) => Promise<unknown>;
 
+export interface FixtureNote {
+  /** Why the recorded answer needs a refresh. */
+  message: string;
+  /**
+   * The deployed answer only gained the newest control day. Every nightly batch
+   * moves `lastRun`, so this is the expected state between refreshes rather
+   * than a problem worth warning about on every scheduled run.
+   */
+  routine: boolean;
+}
+
 export interface LiveReport {
   /** Endpoints whose body validated. */
   valid: string[];
   /** Schema or transport failures: the deployed API is wrong. */
   problems: string[];
-  /** The recorded fixture lags the deployed answer. */
-  fixture: string[];
+  /** The recorded fixture lags the deployed answer; `routine` ones are nightly. */
+  fixture: FixtureNote[];
   /** Bodies by endpoint path, for the checks that need the content. */
   bodies: Record<string, unknown>;
 }
@@ -66,19 +77,57 @@ function lastRunOf(value: unknown): string | null {
   return typeof lastRun === "string" ? lastRun : null;
 }
 
+/** Day fields that must still agree for a recording to describe the deployed answer. */
+const DAY_FIELDS = ["day", "clean", "runs", "at", "failures", "groups"] as const;
+
+function daysOf(value: unknown): Record<string, unknown>[] | null {
+  if (typeof value !== "object" || value === null) return null;
+  const days = (value as Record<string, unknown>)["days"];
+  return Array.isArray(days) ? (days as Record<string, unknown>[]) : null;
+}
+
+function sameDay(recorded: Record<string, unknown>, deployed: Record<string, unknown>): boolean {
+  return DAY_FIELDS.every(
+    (field) => JSON.stringify(recorded[field]) === JSON.stringify(deployed[field]),
+  );
+}
+
+/**
+ * True when the only gap is the newest deployed day: a second batch moved it, or
+ * the batch added it. Every earlier recorded day still has to match, so two
+ * missing batches, a missing middle day or a day that changed after the fact is
+ * real staleness.
+ */
+export function isOneBatchBehind(recorded: unknown, deployed: unknown): boolean {
+  const recordedDays = daysOf(recorded);
+  const deployedDays = daysOf(deployed);
+  if (recordedDays === null || deployedDays === null) return false;
+  if (deployedDays.length < recordedDays.length) return false;
+  if (deployedDays.length > recordedDays.length + 1) return false;
+  const byDay = new Map(recordedDays.map((day) => [String(day["day"]), day]));
+  for (const day of deployedDays.slice(0, -1)) {
+    const match = byDay.get(String(day["day"]));
+    if (match === undefined || !sameDay(day, match)) return false;
+  }
+  return true;
+}
+
 /**
  * The offline suite validates a recorded deployed answer, so that answer has to
- * keep up with the API. Returns a problem only when the deployed run is newer:
- * a fixture ahead of the deploy means the release has not landed yet.
+ * keep up with the API. Returns a note only when the deployed run is newer: a
+ * fixture ahead of the deploy means the release has not landed yet.
  */
 export function compareRecordedControls(
   recorded: unknown,
   deployed: unknown,
   file = RECORDED_CONTROLS,
-): string[] {
+): FixtureNote[] {
   if (recorded === undefined || recorded === null) {
     return [
-      `${file}: missing; record the deployed answer with \`curl <base>/api/v1/controls.json > ${file}\``,
+      {
+        message: `${file}: missing; record the deployed answer with \`curl <base>/api/v1/controls.json > ${file}\``,
+        routine: false,
+      },
     ];
   }
   const deployedRun = lastRunOf(deployed);
@@ -86,12 +135,18 @@ export function compareRecordedControls(
   const recordedRun = lastRunOf(recorded);
   if (recordedRun === null) {
     return [
-      `${file}: carries no lastRun while the deployed response reports ${deployedRun}; refresh it`,
+      {
+        message: `${file}: carries no lastRun while the deployed response reports ${deployedRun}; refresh it`,
+        routine: false,
+      },
     ];
   }
   if (new Date(deployedRun).getTime() > new Date(recordedRun).getTime()) {
     return [
-      `${file}: recorded lastRun ${recordedRun} is older than the deployed ${deployedRun}; refresh it`,
+      {
+        message: `${file}: recorded lastRun ${recordedRun} is older than the deployed ${deployedRun}; refresh it`,
+        routine: isOneBatchBehind(recorded, deployed),
+      },
     ];
   }
   return [];
@@ -99,7 +154,9 @@ export function compareRecordedControls(
 
 /** What the process should report, and therefore what it exits on. */
 export function reportProblems(report: LiveReport, strict: boolean): string[] {
-  return strict ? [...report.problems, ...report.fixture] : report.problems;
+  return strict
+    ? [...report.problems, ...report.fixture.map((note) => note.message)]
+    : report.problems;
 }
 
 export async function checkLiveEndpoints(options: {
@@ -182,15 +239,18 @@ async function main(argv: string[]): Promise<number> {
 
   for (const path of report.valid) console.log(`ok   ${path}`);
   for (const problem of report.problems) console.error(`fail ${problem}`);
-  for (const problem of report.fixture) {
-    if (strict) console.error(`fail ${problem}`);
-    else console.log(`warn ${problem}`);
+  for (const note of report.fixture) {
+    // A fixture one batch behind is the normal state between merges; only a
+    // larger or inconsistent lag is worth the `warn` the workflow watches for.
+    if (strict) console.error(`fail ${note.message}`);
+    else if (note.routine) console.log(`note ${note.message}`);
+    else console.log(`warn ${note.message}`);
   }
 
   const reported = reportProblems(report, strict);
   console.log(
     `${report.valid.length}/${ENDPOINTS.length} endpoint(s) valid, ${report.problems.length} problem(s), ` +
-      `${report.fixture.length} stale fixture note(s) against ${base}` +
+      `${report.fixture.length} fixture note(s) against ${base}` +
       (strict ? "" : "; pass --strict to fail on a stale fixture"),
   );
   return reported.length === 0 ? 0 : 1;
