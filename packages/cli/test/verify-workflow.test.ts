@@ -121,6 +121,17 @@ describe("verify workflow issue wiring", () => {
     expect(recorded).toBe("2026-01-01T00:00:00.000Z");
   });
 
+  it("records what the refresh step did, so the page cannot promise a pull request", () => {
+    const refresh = stepRun("api", "Refresh the recorded API fixture");
+    expect(refresh).toContain("refresh=opened");
+    expect(refresh).toContain("refresh=blocked");
+    expect(refresh).toContain("refresh=current");
+
+    const run = stepRun("api", "Record the result for /health/");
+    expect(run).toContain("steps.refresh.outputs.refresh");
+    expect(run).toContain("refresh: (if $refresh");
+  });
+
   it("records the fixture verdict for the health page", () => {
     const run = stepRun("api", "Record the result for /health/");
     expect(run).toContain("fixture: (if $fixture");

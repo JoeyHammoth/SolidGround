@@ -59,7 +59,10 @@ fixture two or more batches behind, or one whose recorded day no longer matches
 the deployed answer, prints a `warn`. `pnpm check:live --strict` fails on either,
 which is how a maintainer asks whether the recording is current. The verdict is
 recorded in `api-check.json`, and `/health/` shows it under **Deployed API**, so
-a stale recording does not need an Actions log to be seen.
+a stale recording does not need an Actions log to be seen. The record also says
+what that run did about the lag, so the page links the `ci: …` issue when the
+refresh was blocked instead of promising a pull request that does not exist;
+the header badge carries the same lag on every page.
 
 The automation needs two repository settings:
 

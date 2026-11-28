@@ -109,8 +109,12 @@ export interface DeployApiCheck {
   base: string;
   endpoints: number;
   problems: string[];
-  /** How the recorded fixture compared to the deployed answer during that check. */
-  fixture: { status: string; lastRun: string | null } | null;
+  /**
+   * How the recorded fixture compared to the deployed answer during that check,
+   * and what the same run did about it: current, opened, blocked or skipped.
+   * `refresh` is null in an edition recorded before it was written.
+   */
+  fixture: { status: string; lastRun: string | null; refresh: string | null } | null;
 }
 
 function readApiCheckFixture(value: unknown): DeployApiCheck["fixture"] {
@@ -120,6 +124,7 @@ function readApiCheckFixture(value: unknown): DeployApiCheck["fixture"] {
   return {
     status: fixture["status"],
     lastRun: typeof fixture["lastRun"] === "string" ? fixture["lastRun"] : null,
+    refresh: typeof fixture["refresh"] === "string" ? fixture["refresh"] : null,
   };
 }
 
