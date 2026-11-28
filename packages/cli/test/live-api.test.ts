@@ -36,6 +36,22 @@ const CONTROLS = {
   ],
 };
 
+const API_CHECK = {
+  $schema: "https://example.test/schemas/api-check.schema.json",
+  schemaVersion: 1,
+  ok: true,
+  checkedAt: "2026-11-28T01:06:11Z",
+  base: "https://example.test",
+  endpoints: 7,
+  problems: [],
+  fixture: {
+    status: "current",
+    lastRun: "2026-11-28T04:11:00Z",
+    refresh: "current",
+    issue: null,
+  },
+};
+
 function fetchMap(bodies: Record<string, unknown>, failing: string[] = []): FetchJson {
   return async (url) => {
     for (const path of failing) {
@@ -157,10 +173,15 @@ describe("checkLiveEndpoints", () => {
       fetchJson: fetchMap({
         "/api/v1/gate.json": GATE,
         "/api/v1/controls.json": CONTROLS,
+        "/api/v1/api-check.json": API_CHECK,
       }),
     });
 
-    expect(report.valid).toEqual(["/api/v1/gate.json", "/api/v1/controls.json"]);
+    expect(report.valid).toEqual([
+      "/api/v1/gate.json",
+      "/api/v1/controls.json",
+      "/api/v1/api-check.json",
+    ]);
     expect(report.problems).toHaveLength(4);
     expect(report.problems[0]).toContain("/api/v1/index.json: unreachable");
   });

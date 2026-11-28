@@ -74,6 +74,7 @@ Machine-readable gate state, including the recorded fixture verdict: /api/v1/gat
 Control-day history with grouped failure reasons: /api/v1/controls.json.
 Dataset schema validation: ${validation}.
 Machine-readable validation summary: /api/v1/validation.json.
+Recorded deployed-API check, including the fixture verdict and blocker issue: /api/v1/api-check.json (404 until one is recorded).
 Response schemas: https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/gate.schema.json,
 https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/controls.schema.json
 and https://github.com/JoeyHammoth/SolidGround/blob/main/packages/schema/schemas/validation.schema.json.

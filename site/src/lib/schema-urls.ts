@@ -10,3 +10,4 @@ import { SCHEMA_BASE } from "@solid-ground/smoke/status";
 export const GATE_SCHEMA_URL = `${SCHEMA_BASE}/gate.schema.json`;
 export const VALIDATION_SCHEMA_URL = `${SCHEMA_BASE}/validation.schema.json`;
 export const CONTROLS_SCHEMA_URL = `${SCHEMA_BASE}/controls.schema.json`;
+export const API_CHECK_SCHEMA_URL = `${SCHEMA_BASE}/api-check.schema.json`;

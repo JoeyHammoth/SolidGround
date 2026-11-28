@@ -8,6 +8,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `/api/v1/api-check.json` publishes what the `live API` job recorded — the
+  outcome, endpoint count, problems, the recorded fixture verdict and the
+  blocker issue — under `api-check.schema.json`, and `pnpm check:live` validates
+  the deployed body. It answers 404 until a run records a check, because the
+  schema describes a check that happened.
+- An integration test replays a stale recording through a copied dataset:
+  `gate.json` keeps the verdict and drops the workflow state, `api-check.json`
+  publishes the blocked refresh and its issue, and `/llms.txt` says the refresh
+  is blocked instead of promising a pull request to merge.
 - `api-check.json` has a schema, and `pnpm validate` checks it: a malformed
   record fails the deploy instead of letting `/health/` render an unknown
   fixture state.

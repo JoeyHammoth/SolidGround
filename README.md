@@ -167,11 +167,13 @@ The site publishes static, versioned JSON. Nothing is generated per request:
 | `/api/v1/gate.json` | Publish-gate streak, required and remaining days, readiness, recorded fixture state |
 | `/api/v1/controls.json` | Control-day history with grouped failure reasons and audit state |
 | `/api/v1/validation.json` | Deploy-recorded schema validation: timestamp, targets, problems |
+| `/api/v1/api-check.json` | Recorded deployed-API check: outcome, endpoints, problems, fixture verdict and blocker issue (404 until one is recorded) |
 
-`gate.json`, `controls.json` and `validation.json` are described by
+`gate.json`, `controls.json`, `validation.json` and `api-check.json` are described by
 [`gate.schema.json`](packages/schema/schemas/gate.schema.json),
-[`controls.schema.json`](packages/schema/schemas/controls.schema.json) and
-[`validation.schema.json`](packages/schema/schemas/validation.schema.json);
+[`controls.schema.json`](packages/schema/schemas/controls.schema.json),
+[`validation.schema.json`](packages/schema/schemas/validation.schema.json) and
+[`api-check.schema.json`](packages/schema/schemas/api-check.schema.json);
 each response names its schema in a `$schema` field.
 
 `pnpm check:live` fetches those endpoints from the deployed site and validates
