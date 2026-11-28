@@ -55,19 +55,61 @@ describe("schemaFileName", () => {
 });
 
 describe("compareRecordedControls", () => {
+  const NEXT_DAY = {
+    day: "2026-11-29",
+    clean: true,
+    runs: 3,
+    at: "2026-11-29T04:11:00Z",
+    failures: 0,
+    groups: [],
+  };
+
   it("accepts a fixture recorded from the same run", () => {
     expect(compareRecordedControls(CONTROLS, CONTROLS)).toEqual([]);
   });
 
-  it("fails a fixture older than the deployed answer", () => {
-    const problems = compareRecordedControls(CONTROLS, {
+  it("marks a fixture one batch behind as routine", () => {
+    const notes = compareRecordedControls(CONTROLS, {
       ...CONTROLS,
       lastRun: "2026-11-29T04:11:00Z",
+      days: [...CONTROLS.days, NEXT_DAY],
     });
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toContain("fixtures/live/controls.json: recorded lastRun");
-    expect(problems[0]).toContain("older than the deployed 2026-11-29T04:11:00Z");
-    expect(problems[0]).toContain("refresh it");
+    expect(notes).toHaveLength(1);
+    expect(notes[0]?.routine).toBe(true);
+    expect(notes[0]?.message).toContain("fixtures/live/controls.json: recorded lastRun");
+    expect(notes[0]?.message).toContain("older than the deployed 2026-11-29T04:11:00Z");
+    expect(notes[0]?.message).toContain("refresh it");
+  });
+
+  it("marks another batch on the same day as routine", () => {
+    const notes = compareRecordedControls(CONTROLS, {
+      ...CONTROLS,
+      lastRun: "2026-11-28T16:11:00Z",
+      days: [{ ...CONTROLS.days[0], runs: 3, at: "2026-11-28T16:11:00Z" }],
+    });
+    expect(notes[0]?.routine).toBe(true);
+  });
+
+  it("warns when the fixture is more than one batch behind", () => {
+    const notes = compareRecordedControls(CONTROLS, {
+      ...CONTROLS,
+      lastRun: "2026-11-30T04:11:00Z",
+      days: [
+        ...CONTROLS.days,
+        NEXT_DAY,
+        { ...NEXT_DAY, day: "2026-11-30", at: "2026-11-30T04:11:00Z" },
+      ],
+    });
+    expect(notes[0]?.routine).toBe(false);
+  });
+
+  it("warns when a recorded day no longer matches the deployed answer", () => {
+    const notes = compareRecordedControls(CONTROLS, {
+      ...CONTROLS,
+      lastRun: "2026-11-29T04:11:00Z",
+      days: [{ ...CONTROLS.days[0], runs: 3 }, NEXT_DAY],
+    });
+    expect(notes[0]?.routine).toBe(false);
   });
 
   it("accepts a fixture ahead of a lagging deploy", () => {
@@ -84,15 +126,20 @@ describe("compareRecordedControls", () => {
   });
 
   it("fails a missing or run-less fixture", () => {
-    expect(compareRecordedControls(undefined, CONTROLS)[0]).toContain("missing");
-    expect(compareRecordedControls({ ...CONTROLS, lastRun: null }, CONTROLS)[0]).toContain(
+    expect(compareRecordedControls(undefined, CONTROLS)[0]?.message).toContain("missing");
+    expect(compareRecordedControls({ ...CONTROLS, lastRun: null }, CONTROLS)[0]?.message).toContain(
       "carries no lastRun",
     );
   });
 });
 
 describe("reportProblems", () => {
-  const report = { valid: [], problems: ["schema drift"], fixture: ["fixture behind"], bodies: {} };
+  const report = {
+    valid: [],
+    problems: ["schema drift"],
+    fixture: [{ message: "fixture behind", routine: true }],
+    bodies: {},
+  };
 
   it("keeps fixture staleness out of the default failure set", () => {
     expect(reportProblems(report, false)).toEqual(["schema drift"]);

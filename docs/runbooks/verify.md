@@ -42,14 +42,48 @@ pnpm check:live --strict   # fails while the fixture is behind
 ```
 
 `smoke:fixture` shares its builder with the endpoint, so the file matches what
-is served rather than a screenshot of it. The `history` job cannot do this for
-you: `main` requires a pull request and two green checks, so a workflow token
-push is rejected (`GH013`). The refresh is therefore a normal PR, and
-`check:live --strict` is what says it is due.
+is served rather than a screenshot of it.
 
-A scheduled run that finds the fixture behind prints a warning with the same
-command instead of failing, because a fixture refresh is not an API problem. If
-the warning persists, the `history` job's refresh step is the thing to look at.
+### The scheduled refresh
+
+`main` requires a pull request, so the `live API` job proposes the refresh
+instead of pushing it. When the deployed answer is newer than the recording, it
+rebuilds the fixture from `data/smoke/controls.jsonl`, force-pushes the
+`automation/api-fixture` branch and opens — or reuses — one pull request against
+`main`. Every scheduled run rewrites that branch, so a single pull request
+carries the newest answer; merge it whenever convenient.
+
+A fixture one batch behind is the normal state between merges: the check prints
+a `note` and the job keeps the pull request current without failing. Only a
+fixture two or more batches behind, or one whose recorded day no longer matches
+the deployed answer, prints a `warn`. `pnpm check:live --strict` fails on either,
+which is how a maintainer asks whether the recording is current.
+
+The automation needs two repository settings:
+
+- **Settings → Actions → General → Workflow permissions → "Allow GitHub Actions
+  to create and approve pull requests"** must be enabled. Without it the
+  workflow token cannot open the pull request: the job still pushes the branch
+  and then prints a warning naming this setting, so turning it on is the whole
+  fix.
+- **The `Protect main` ruleset** requires the `test` and `analyze` checks and
+  enables _require extra approval for unattributed changes_, so a bot commit
+  needs one human approval. A pull request created by a workflow token starts its
+  checks in the approval-required state: open the pull request and use
+  **Approve workflows to run**, then approve and merge as usual. The bot never
+  merges.
+
+### Bypassing the rule instead (not recommended)
+
+The `Protect main` ruleset's bypass list holds only the repository admin role,
+always. A direct push from the workflow needs a bypass actor, and the eligible
+ones are roles, teams, GitHub Apps and Dependabot. The built-in `GITHUB_TOKEN`
+is not among them, which is why the earlier attempt failed with `GH013`; the
+workaround would be a GitHub App installed on the repository, its token added to
+the bypass list, and the job pushing with
+[`actions/create-github-app-token`](https://github.com/actions/create-github-app-token).
+That grant is repository-wide — the app could push any file to `main`, not just
+the fixture — so the pull request path is the narrower one.
 
 ## When a batch is discarded
 

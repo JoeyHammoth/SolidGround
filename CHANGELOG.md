@@ -8,6 +8,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- The `live API` job proposes the recorded fixture refresh as a pull request:
+  it rebuilds `fixtures/live/controls.json` from the data branch, force-pushes
+  one `automation/api-fixture` branch and reuses a single open pull request, so
+  the refresh never needs a bypass on `main`. `docs/runbooks/verify.md` names the
+  two settings it needs and the exact bypass a direct push would require.
+- A fixture one batch behind now prints a `note` instead of a warning: every
+  nightly batch moves `lastRun`, so only a fixture two or more batches behind —
+  or one whose recorded day no longer matches the deployed answer — warns.
 - A publish-gate reminder: `pnpm smoke:gate` reports the clean-day count, and
   `--notify` opens one issue when the fourteen-day gate is met, with the
   `publish=true` dispatch to run. The publish job closes it after committing,

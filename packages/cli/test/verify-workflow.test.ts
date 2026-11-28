@@ -50,4 +50,13 @@ describe("verify workflow issue wiring", () => {
       "pnpm run smoke:gate --close",
     );
   });
+
+  it("proposes the fixture refresh as a pull request instead of pushing main", () => {
+    expect(workflow.jobs["api"]?.permissions?.["pull-requests"]).toBe("write");
+    const run = stepRun("api", "Refresh the recorded API fixture");
+    expect(run).toContain("pnpm run smoke:fixture");
+    expect(run).toContain("automation/api-fixture");
+    expect(run).toContain("gh pr create");
+    expect(run).toContain("Allow GitHub Actions to create and approve");
+  });
 });

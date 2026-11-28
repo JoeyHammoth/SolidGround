@@ -180,8 +180,10 @@ wrong document (it needs network access, so it is not part of `pnpm test`). Pass
 `--base <url>` to check a preview or a local build instead, or `--strict` to
 fail when `fixtures/live/controls.json` is behind the deployed answer
 (`pnpm smoke:fixture` regenerates that fixture from the control log). The
-Verify workflow runs the check on every scheduled run and opens one issue while
-it fails; the refresh procedure is in
+Verify workflow runs the check on every scheduled run, opens one issue while it
+fails, and proposes the fixture refresh as a pull request from
+`automation/api-fixture` rather than pushing to a protected `main`; the refresh
+procedure is in
 [`docs/runbooks/verify.md`](docs/runbooks/verify.md).
 
 Data is licensed **CC BY 4.0**; code is **MIT**. Attribution example is in
