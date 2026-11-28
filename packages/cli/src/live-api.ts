@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
+  validateApiCheck,
   validateControls,
   validateGateState,
   validateIndexRows,
@@ -40,6 +41,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
   { path: "/api/v1/gate.json", schemaField: true, validate: validateGateState },
   { path: "/api/v1/controls.json", schemaField: true, validate: validateControls },
   { path: "/api/v1/validation.json", schemaField: true, validate: validateValidationSummary },
+  { path: "/api/v1/api-check.json", schemaField: true, validate: validateApiCheck },
 ];
 
 export type FetchJson = (url: string) => Promise<unknown>;
