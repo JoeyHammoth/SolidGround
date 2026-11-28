@@ -11,7 +11,8 @@ All notable changes to this project are documented here. The format follows
 - `/api/v1/api-check.json` publishes what the `live API` job recorded — the
   outcome, endpoint count, problems, the recorded fixture verdict and the
   blocker issue — under `api-check.schema.json`, and `pnpm check:live` validates
-  the deployed body. It answers 404 until a run records a check, because the
+  the deployed body. An edition with no recorded check publishes an `error`
+  body instead, because a static build cannot choose a status code and the
   schema describes a check that happened.
 - An integration test replays a stale recording through a copied dataset:
   `gate.json` keeps the verdict and drops the workflow state, `api-check.json`
