@@ -48,6 +48,23 @@ describe("API response schemas", () => {
     );
   });
 
+  it("rejects workflow state inside the published fixture", () => {
+    // gate.json publishes the recording's identity only; /health/ and
+    // api-check.json own the refresh outcome and the blocker issue.
+    const gate = { streak: 1, required: 14, remaining: 13, ready: false, lastRun: null };
+    expect(
+      validateGateState({
+        ...gate,
+        fixture: {
+          status: "behind",
+          lastRun: null,
+          refresh: "blocked",
+          issue: 83,
+        },
+      }).length,
+    ).toBeGreaterThan(0);
+  });
+
   it("rejects a gate whose fixture verdict is not an object", () => {
     const gate = { streak: 1, required: 14, remaining: 13, ready: false, lastRun: null };
     expect(validateGateState({ ...gate, fixture: "behind" }).length).toBeGreaterThan(0);
