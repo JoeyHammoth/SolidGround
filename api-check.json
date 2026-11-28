@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "ok": false,
-  "checkedAt": "2026-11-28T02:10:11Z",
+  "checkedAt": "2026-11-28T02:15:59Z",
   "base": "https://joeyhammoth.github.io/SolidGround",
   "endpoints": 5,
   "problems": [
-    "/api/v1/gate.json: /fixture must NOT have additional properties"
+    "/api/v1/gate.json: /fixture must NOT have additional properties; /fixture must NOT have additional properties"
   ],
   "fixture": {
     "status": "behind",
