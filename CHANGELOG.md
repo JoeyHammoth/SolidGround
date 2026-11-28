@@ -229,6 +229,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- `/api/v1/gate.json` publishes only the recorded fixture's status and run. The
+  refresh outcome and blocker issue stay in `api-check.json`, so the gate
+  payload matches `gate.schema.json`, which forbids extra properties.
 - The `live API` job fails once the recorded fixture is more than one batch
   behind, after it has recorded the verdict, instead of only warning: a
   recording that far behind no longer describes the deployed answer.

@@ -39,6 +39,18 @@ export function refreshOutcome(
 }
 
 /**
+ * The public half of a recorded fixture, for `/api/v1/gate.json`. The refresh
+ * outcome and the blocker issue belong to `/health/` and `api-check.json`; the
+ * gate payload is published against a schema that lists only these two, so it
+ * must not pass the whole record through.
+ */
+export function publicFixture(
+  fixture: { status: string; lastRun: string | null } | null | undefined,
+): { status: string; lastRun: string | null } | null {
+  return fixture ? { status: fixture.status, lastRun: fixture.lastRun } : null;
+}
+
+/**
  * One line for the header badge, which every page shows. Null when there is
  * nothing to report: no recording, or a recording that is current.
  */
