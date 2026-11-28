@@ -1,4 +1,7 @@
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
@@ -64,6 +67,45 @@ describe("verify workflow issue wiring", () => {
     const run = stepRun("api", "Refresh the recorded API fixture");
     expect(run).toContain("pnpm run automation:issue --blocked");
     expect(run).toContain("pnpm run automation:issue --clear");
+  });
+
+  it("reads the recorded run from the trigger commit, not the refreshed tree", () => {
+    // The refresh step before this one checks out a branch, rebuilds the
+    // fixture and commits, so HEAD and the working tree name a newer run than
+    // the one the verdict was computed from. Run the step's own command to
+    // prove it still answers with the trigger commit's lastRun.
+    const run = stepRun("api", "Record the result for /health/");
+    const line = run
+      .split("\n")
+      .map((candidate) => candidate.trim())
+      .find((candidate) => candidate.startsWith("recorded="));
+    expect(line, "the record step no longer reads a recorded timestamp").toBeDefined();
+
+    const repo = mkdtempSync(join(tmpdir(), "sg-recorded-"));
+    const live = join(repo, "fixtures", "live");
+    mkdirSync(live, { recursive: true });
+    const writeFixture = (lastRun: string) =>
+      writeFileSync(join(live, "controls.json"), `${JSON.stringify({ lastRun }, null, 2)}\n`);
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: repo, encoding: "utf8" });
+    git("init", "-q");
+    git("config", "user.name", "test");
+    git("config", "user.email", "test@example.com");
+    writeFixture("2026-01-01T00:00:00.000Z");
+    git("add", "-A");
+    git("commit", "-q", "-m", "recorded fixture");
+    const trigger = git("rev-parse", "HEAD").trim();
+
+    git("checkout", "-q", "-b", "automation/api-fixture");
+    writeFixture("2026-02-02T00:00:00.000Z");
+    git("commit", "-q", "-am", "refreshed fixture");
+
+    const recorded = execFileSync("bash", ["-c", `${line}\nprintf '%s' "$recorded"`], {
+      cwd: repo,
+      encoding: "utf8",
+      env: { ...process.env, GITHUB_SHA: trigger },
+    });
+    expect(recorded).toBe("2026-01-01T00:00:00.000Z");
   });
 
   it("records the fixture verdict for the health page", () => {
