@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "ok": true,
-  "checkedAt": "2026-11-28T02:18:53Z",
+  "checkedAt": "2026-11-28T08:09:27Z",
   "base": "https://joeyhammoth.github.io/SolidGround",
-  "endpoints": 6,
+  "endpoints": 7,
   "problems": [],
   "fixture": {
     "status": "behind",
