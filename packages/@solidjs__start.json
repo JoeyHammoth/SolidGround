@@ -199,14 +199,14 @@
   },
   "smokeAt": null,
   "shipsTypes": false,
-  "checkedAt": "2026-11-27T12:23:44.509Z",
+  "checkedAt": "2026-11-28T11:48:20.516Z",
   "tested": {
     "solid": "2.0.4",
     "solidNext": "2.0.0-rc.23",
     "rules": "2026.11.1",
     "tool": "0.1.0"
   },
-  "downloadsWeekly": 255267,
+  "downloadsWeekly": 257707,
   "links": {
     "npm": "https://www.npmjs.com/package/@solidjs/start",
     "repository": "https://github.com/solidjs/solid-start",
