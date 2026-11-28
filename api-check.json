@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "ok": true,
-  "checkedAt": "2026-11-28T01:46:27Z",
+  "checkedAt": "2026-11-28T02:00:23Z",
   "base": "https://joeyhammoth.github.io/SolidGround",
   "endpoints": 6,
   "problems": [],
   "fixture": {
     "status": "behind",
-    "lastRun": "2026-11-28T01:06:11.353Z"
+    "lastRun": "2026-11-28T01:06:11.353Z",
+    "refresh": "blocked"
   }
 }
