@@ -6,13 +6,15 @@ import {
   syncAuditIssue,
 } from "../src/audit-issue.js";
 
-function harness(openIssues = "") {
+function harness(openIssues = "", lastComment = "") {
   const calls: string[][] = [];
   return {
     calls,
     run(args: string[]) {
       calls.push(args);
-      return args[1] === "list" ? openIssues : "";
+      if (args[1] === "list") return openIssues;
+      if (args[1] === "view") return lastComment;
+      return "";
     },
   };
 }
@@ -34,6 +36,27 @@ describe("syncAuditIssue", () => {
 
   it("comments on the open issue instead of opening a second one", () => {
     const gh = harness("41\n");
+    expect(syncAuditIssue({ stale: true, run: gh.run })).toBe("commented");
+    expect(gh.calls.at(-1)).toEqual(["issue", "comment", "41", "--body", AUDIT_ISSUE_BODY]);
+  });
+
+  it("leaves the issue alone while the same state repeats", () => {
+    const gh = harness("41\n", AUDIT_ISSUE_BODY);
+    expect(syncAuditIssue({ stale: true, run: gh.run })).toBe("unchanged");
+    expect(gh.calls.some((call) => call[1] === "comment")).toBe(false);
+    expect(gh.calls.at(-1)).toEqual([
+      "issue",
+      "view",
+      "41",
+      "--json",
+      "comments",
+      "--jq",
+      '.comments[-1].body // ""',
+    ]);
+  });
+
+  it("comments again when the last comment described a different state", () => {
+    const gh = harness("41\n", "an older report");
     expect(syncAuditIssue({ stale: true, run: gh.run })).toBe("commented");
     expect(gh.calls.at(-1)).toEqual(["issue", "comment", "41", "--body", AUDIT_ISSUE_BODY]);
   });

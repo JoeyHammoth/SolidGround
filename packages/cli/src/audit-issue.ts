@@ -14,7 +14,7 @@ export const AUDIT_ISSUE_BODY = [
   "Run `pnpm audit:blocked --data data`, review the diff and commit it. This job stays red until the note matches again.",
 ].join("\n\n");
 
-export type AuditIssueOutcome = "created" | "commented" | "closed" | "none";
+export type AuditIssueOutcome = "created" | "commented" | "unchanged" | "closed" | "none";
 export type GhRunner = (args: string[]) => string;
 
 function defaultGh(args: string[]): string {
@@ -52,6 +52,19 @@ export function syncAuditIssue(options: {
   if (options.stale) {
     const first = open[0];
     if (first) {
+      // One comment per state, not one per run. The scheduled jobs reach this
+      // branch every night, and an identical comment each time buries the one
+      // that carried a change.
+      const last = run([
+        "issue",
+        "view",
+        first,
+        "--json",
+        "comments",
+        "--jq",
+        '.comments[-1].body // ""',
+      ]).trim();
+      if (last === body.trim()) return "unchanged";
       run(["issue", "comment", first, "--body", body]);
       return "commented";
     }

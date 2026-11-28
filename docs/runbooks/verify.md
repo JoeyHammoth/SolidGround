@@ -64,11 +64,18 @@ a stale recording does not need an Actions log to be seen.
 The automation needs two repository settings:
 
 - **Settings → Actions → General → Workflow permissions → "Allow GitHub Actions
-  to create and approve pull requests"** must be enabled. Without it the
-  workflow token cannot open the pull request: the job still pushes the branch,
-  prints a warning naming this setting and opens one `ci: …` issue, which closes
-  on the next run that opens the pull request. Turning the setting on is the
-  whole fix.
+  to create and approve pull requests"** must be enabled, or the job needs the
+  maintainer token described next. Without either, the workflow token cannot
+  open the pull request: the job still pushes the branch, prints a warning and
+  opens one `ci: …` issue, which closes on the next run that opens the pull
+  request. Turning the setting on is the whole fix. The issue comments once per
+  fixture state — one batch behind, or more than one — rather than once per run.
+- **Or store a `FIXTURE_REFRESH_TOKEN` secret.** A fine-grained personal access
+  token scoped to this repository with Contents, Pull requests and Issues write
+  makes the refresh step push and open the pull request as its owner rather than
+  as `github-actions`; the issue lifecycle for a blocked refresh uses the same
+  token. Nothing is required when the setting above is on: delete the secret and
+  the step falls back to the workflow token. Rotate it like any credential.
 - **The `Protect main` ruleset** requires the `test` and `analyze` checks and
   enables _require extra approval for unattributed changes_, so a bot commit
   needs one human approval. A pull request created by a workflow token starts its

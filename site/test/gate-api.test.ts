@@ -13,6 +13,7 @@ describe("GET /api/v1/gate.json", () => {
       remaining: number;
       ready: boolean;
       lastRun: string | null;
+      fixture: { status: string; lastRun: string | null } | null;
     };
 
     expect(state.required).toBe(AUDIT_DAYS);
@@ -21,5 +22,21 @@ describe("GET /api/v1/gate.json", () => {
     expect(state.lastRun === null || !Number.isNaN(new Date(state.lastRun).getTime())).toBe(
       true,
     );
+  });
+
+  it("publishes the recorded fixture verdict beside the gate numbers", async () => {
+    const state = (await (await GET({} as never)).json()) as {
+      fixture: { status: string; lastRun: string | null } | null;
+    };
+    // Null in the golden dataset, which carries no api-check.json; the data
+    // edition records one and then the status and run are published.
+    expect(state).toHaveProperty("fixture");
+    if (state.fixture !== null) {
+      expect(state.fixture.status.length).toBeGreaterThan(0);
+      expect(
+        state.fixture.lastRun === null ||
+          !Number.isNaN(new Date(state.fixture.lastRun).getTime()),
+      ).toBe(true);
+    }
   });
 });

@@ -16,7 +16,10 @@ const workflow = parse(
 ) as {
   jobs: Record<
     string,
-    { permissions?: Record<string, string>; steps?: Array<{ name?: string; run?: string }> }
+    {
+      permissions?: Record<string, string>;
+      steps?: Array<{ name?: string; run?: string; env?: Record<string, string> }>;
+    }
   >;
 };
 
@@ -67,6 +70,16 @@ describe("verify workflow issue wiring", () => {
     const run = stepRun("api", "Refresh the recorded API fixture");
     expect(run).toContain("pnpm run automation:issue --blocked");
     expect(run).toContain("pnpm run automation:issue --clear");
+    // The lag goes into the issue so a worse one comments again.
+    expect(run).toContain('--blocked --fixture "${{ steps.live.outputs.fixture }}"');
+  });
+
+  it("can use a maintainer token, falling back to the workflow token", () => {
+    const step = workflow.jobs["api"]?.steps?.find(
+      (candidate) => candidate.name === "Refresh the recorded API fixture",
+    );
+    expect(step?.env?.["GH_TOKEN"]).toContain("secrets.FIXTURE_REFRESH_TOKEN");
+    expect(step?.env?.["GH_TOKEN"]).toContain("github.token");
   });
 
   it("reads the recorded run from the trigger commit, not the refreshed tree", () => {

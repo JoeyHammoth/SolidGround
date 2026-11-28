@@ -15,6 +15,20 @@
       "type": ["string", "null"],
       "format": "date-time",
       "maxLength": 40
+    },
+    "fixture": {
+      "description": "How fixtures/live/controls.json compared to the deployed answer during the last recorded API check: current, one batch behind (behind) or more than one batch behind (stale). Null when this edition has no recorded check. Not required, so a payload built before the field existed still validates.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["status", "lastRun"],
+      "properties": {
+        "status": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "lastRun": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "maxLength": 40
+        }
+      }
     }
   }
 }
