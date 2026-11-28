@@ -1,5 +1,6 @@
 export * from "./types.js";
 export {
+  validateApiCheck,
   validateChangeEvent,
   validateControlLog,
   validateControlSummary,

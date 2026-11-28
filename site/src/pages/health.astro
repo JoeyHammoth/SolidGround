@@ -15,10 +15,11 @@ import { groupControlFailures } from "@solid-ground/smoke/status";
 import { validationTargetLabels } from "../lib/validation.js";
 import { describeFixtureStatus, refreshOutcome } from "../lib/fixture-status.js";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-// The issue lifecycle files one issue per blocker, so a search finds whatever
-// the run opened without the page needing to know its number.
-const refreshIssueUrl =
-  "https://github.com/JoeyHammoth/SolidGround/issues?q=is%3Aissue+is%3Aopen+fixture+refresh";
+// The check records the issue it filed or commented on; the search is the
+// fallback for a record written before that number was kept.
+const refreshIssueUrl = apiCheck?.fixture?.issue
+  ? `https://github.com/JoeyHammoth/SolidGround/issues/${apiCheck.fixture.issue}`
+  : "https://github.com/JoeyHammoth/SolidGround/issues?q=is%3Aissue+is%3Aopen+fixture+refresh";
 const stale = Date.now() - new Date(meta.generatedAt).getTime() > 72 * 3600 * 1000;
 const oldest = [...records].sort((a, b) => a.checkedAt.localeCompare(b.checkedAt))[0];
 const controlDays = controls.days.slice(-14);

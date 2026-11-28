@@ -5,9 +5,10 @@ import {
   AUTOMATION_ISSUE_TITLE,
   automationIssueBody,
   syncAutomationIssue,
+  syncAutomationIssueResult,
 } from "../src/automation-issue.js";
 
-function harness(openIssues = "", lastComment = "") {
+function harness(openIssues = "", lastComment = "", created = "") {
   const calls: string[][] = [];
   return {
     calls,
@@ -15,6 +16,7 @@ function harness(openIssues = "", lastComment = "") {
       calls.push(args);
       if (args[1] === "list") return openIssues;
       if (args[1] === "view") return lastComment;
+      if (args[1] === "create") return created;
       return "";
     },
   };
@@ -69,6 +71,20 @@ describe("syncAutomationIssue", () => {
     const gh = harness("83\n", automationIssueBody("behind"));
     expect(syncAutomationIssue({ blocked: true, fixture: "behind", run: gh.run })).toBe("unchanged");
     expect(gh.calls.some((call) => call[1] === "comment")).toBe(false);
+  });
+
+  it("reports the issue number so the page can link exactly it", () => {
+    expect(
+      syncAutomationIssueResult({
+        blocked: true,
+        fixture: "behind",
+        run: harness("", "", "https://github.com/JoeyHammoth/SolidGround/issues/94\n").run,
+      }),
+    ).toEqual({ outcome: "created", number: "94" });
+
+    expect(
+      syncAutomationIssueResult({ blocked: true, fixture: "behind", run: harness("83\n").run }),
+    ).toEqual({ outcome: "commented", number: "83" });
   });
 
   it("leaves no issue behind when nothing was ever blocked", () => {

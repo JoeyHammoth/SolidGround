@@ -114,7 +114,13 @@ export interface DeployApiCheck {
    * and what the same run did about it: current, opened, blocked or skipped.
    * `refresh` is null in an edition recorded before it was written.
    */
-  fixture: { status: string; lastRun: string | null; refresh: string | null } | null;
+  fixture: {
+    status: string;
+    lastRun: string | null;
+    refresh: string | null;
+    /** The blocker issue a blocked refresh filed or commented on. */
+    issue: number | null;
+  } | null;
 }
 
 function readApiCheckFixture(value: unknown): DeployApiCheck["fixture"] {
@@ -125,6 +131,7 @@ function readApiCheckFixture(value: unknown): DeployApiCheck["fixture"] {
     status: fixture["status"],
     lastRun: typeof fixture["lastRun"] === "string" ? fixture["lastRun"] : null,
     refresh: typeof fixture["refresh"] === "string" ? fixture["refresh"] : null,
+    issue: typeof fixture["issue"] === "number" && fixture["issue"] > 0 ? fixture["issue"] : null,
   };
 }
 

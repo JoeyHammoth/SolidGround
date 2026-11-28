@@ -1,4 +1,10 @@
-import { syncAuditIssue, type AuditIssueOutcome, type GhRunner } from "./audit-issue.js";
+import { appendFileSync } from "node:fs";
+import {
+  syncAuditIssueResult,
+  type AuditIssueOutcome,
+  type AuditIssueResult,
+  type GhRunner,
+} from "./audit-issue.js";
 
 /**
  * The recorded fixture refresh is proposed as a pull request, and opening one
@@ -35,12 +41,12 @@ export const AUTOMATION_ISSUE_BODY = automationIssueBody();
 export const AUTOMATION_CLOSE_COMMENT =
   "The fixture refresh pull request can be opened again. Closing.";
 
-export function syncAutomationIssue(options: {
+export function syncAutomationIssueResult(options: {
   blocked: boolean;
   fixture?: string;
   run?: GhRunner;
-}): AuditIssueOutcome {
-  return syncAuditIssue({
+}): AuditIssueResult {
+  return syncAuditIssueResult({
     stale: options.blocked,
     ...(options.run ? { run: options.run } : {}),
     title: AUTOMATION_ISSUE_TITLE,
@@ -49,16 +55,33 @@ export function syncAutomationIssue(options: {
   });
 }
 
+export function syncAutomationIssue(options: {
+  blocked: boolean;
+  fixture?: string;
+  run?: GhRunner;
+}): AuditIssueOutcome {
+  return syncAutomationIssueResult(options).outcome;
+}
+
 async function main(argv: string[]): Promise<number> {
   const blocked = argv.includes("--blocked");
   const clear = argv.includes("--clear");
   if (blocked === clear) {
-    console.error("usage: automation-issue.ts <--blocked [--fixture current|behind|stale]|--clear>");
+    console.error(
+    "usage: automation-issue.ts <--blocked [--fixture current|behind|stale] [--github-output]|--clear>",
+  );
     return 2;
   }
   const at = argv.indexOf("--fixture");
   const fixture = at >= 0 ? argv[at + 1] : undefined;
-  console.log(`automation issue: ${syncAutomationIssue({ blocked, ...(fixture ? { fixture } : {}) })}`);
+  const result = syncAutomationIssueResult({ blocked, ...(fixture ? { fixture } : {}) });
+  // The workflow records this for /health/, which links the exact issue rather
+  // than a search that may miss it.
+  const output = process.env["GITHUB_OUTPUT"];
+  if (argv.includes("--github-output") && result.number && output) {
+    appendFileSync(output, `issue=${result.number}\n`);
+  }
+  console.log(`automation issue: ${result.outcome}`);
   return 0;
 }
 
