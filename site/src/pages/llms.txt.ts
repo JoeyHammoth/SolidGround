@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { gateState } from "@solid-ground/smoke/status";
 import { apiCheck, controls, deployValidation } from "../lib/data";
-import { describeFixtureStatus } from "../lib/fixture-status.js";
+import { describeFixtureStatus, refreshOutcome } from "../lib/fixture-status.js";
 
 export const GET: APIRoute = () => {
   const gate = gateState(controls);
@@ -9,9 +9,17 @@ export const GET: APIRoute = () => {
     ? `${deployValidation.ok ? "passed" : "failed"} at ${deployValidation.checkedAt ?? "an unrecorded time"} (${deployValidation.problems.length} problem(s))`
     : "not recorded in this build";
   // The gate counts the recorded fixture, not the deployed response. Say so
-  // when they disagree, so an agent does not read a lagging streak as current.
-  const fixture = apiCheck?.fixture
-    ? `Recorded gate fixture (fixtures/live/controls.json): ${describeFixtureStatus(apiCheck.fixture.status)}${apiCheck.fixture.lastRun ? ` (recorded at ${apiCheck.fixture.lastRun})` : ""}.${apiCheck.fixture.status === "current" ? "" : " The gate is computed from that file, so /api/v1/controls.json may list a newer run until the refresh pull request is merged."}`
+  // when they disagree, and do not promise a pull request the job could not
+  // open: a blocked refresh is resolved through its issue, not by merging.
+  const recorded = apiCheck?.fixture;
+  const fixtureTrailer =
+    recorded?.status === "current"
+      ? ""
+      : refreshOutcome(recorded?.refresh) === "blocked"
+        ? " The gate is computed from that file, so /api/v1/controls.json may list a newer run until the blocked refresh is resolved; the repository's open issues name the setting it needs."
+        : " The gate is computed from that file, so /api/v1/controls.json may list a newer run until the refresh pull request is merged.";
+  const fixture = recorded
+    ? `Recorded gate fixture (fixtures/live/controls.json): ${describeFixtureStatus(recorded.status)}${recorded.lastRun ? ` (recorded at ${recorded.lastRun})` : ""}.${fixtureTrailer}`
     : "Recorded gate fixture (fixtures/live/controls.json): not recorded in this build.";
 
   const body = `# Solid Ground: SolidJS 2 ecosystem compatibility data

@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `/health/` names a blocked refresh for what it is: the page links the `ci: …`
+  issue instead of claiming a refresh pull request is open, and `/llms.txt` no
+  longer says to merge one. The header smoke badge carries the recorded
+  fixture's lag in its tooltip on every page.
 - `/api/v1/gate.json` publishes the recorded fixture's state and run beside the
   gate numbers, so a monitor reads the lag without loading `/health/`. It is
   null in an edition with no recorded API check, and optional in the schema so
