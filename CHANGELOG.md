@@ -11,6 +11,10 @@ All notable changes to this project are documented here. The format follows
 - `/health/` names the recorded fixture's state — current, one batch behind or
   more than one batch behind — from the last scheduled API check, so a stale
   recording is visible without opening an Actions log.
+- `/llms.txt` names the recorded gate fixture's state and the run it was
+  recorded at, and says when `/api/v1/controls.json` may list a newer run than
+  the gate counts, so an agent reading the document does not take a lagging
+  recording for a current one.
 - A blocked fixture refresh owns one `ci: …` issue: when the workflow token may
   not open the pull request, the job names the Actions setting to enable and
   closes the issue on the next run that opens it, or finds nothing to refresh.

@@ -1,12 +1,18 @@
 import type { APIRoute } from "astro";
 import { gateState } from "@solid-ground/smoke/status";
-import { controls, deployValidation } from "../lib/data";
+import { apiCheck, controls, deployValidation } from "../lib/data";
+import { describeFixtureStatus } from "../lib/fixture-status.js";
 
 export const GET: APIRoute = () => {
   const gate = gateState(controls);
   const validation = deployValidation
     ? `${deployValidation.ok ? "passed" : "failed"} at ${deployValidation.checkedAt ?? "an unrecorded time"} (${deployValidation.problems.length} problem(s))`
     : "not recorded in this build";
+  // The gate counts the recorded fixture, not the deployed response. Say so
+  // when they disagree, so an agent does not read a lagging streak as current.
+  const fixture = apiCheck?.fixture
+    ? `Recorded gate fixture (fixtures/live/controls.json): ${describeFixtureStatus(apiCheck.fixture.status)}${apiCheck.fixture.lastRun ? ` (recorded at ${apiCheck.fixture.lastRun})` : ""}.${apiCheck.fixture.status === "current" ? "" : " The gate is computed from that file, so /api/v1/controls.json may list a newer run until the refresh pull request is merged."}`
+    : "Recorded gate fixture (fixtures/live/controls.json): not recorded in this build.";
 
   const body = `# Solid Ground: SolidJS 2 ecosystem compatibility data
 
@@ -55,6 +61,7 @@ dataset is stale. Each package record has \`checkedAt\` and \`tested.solid\`.
 The smoke matrix may only change a record after ${gate.required} clean control days.
 Current: ${gate.streak} clean day(s) in a row; ${gate.remaining} more needed${gate.ready ? " (gate met)" : ""}.
 Last control run: ${gate.lastRun ?? "never"}.
+${fixture}
 Machine-readable gate state: /api/v1/gate.json.
 Control-day history with grouped failure reasons: /api/v1/controls.json.
 Dataset schema validation: ${validation}.
