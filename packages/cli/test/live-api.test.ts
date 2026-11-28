@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  API_CHECK_PATH,
   checkLiveEndpoints,
   compareRecordedControls,
   reportProblems,
   schemaFileName,
+  staleApiCheckProblem,
   type FetchJson,
 } from "../src/live-api.js";
 
@@ -67,6 +69,27 @@ describe("schemaFileName", () => {
   it("maps an endpoint to the schema that describes it", () => {
     expect(schemaFileName("/api/v1/gate.json")).toBe("gate.schema.json");
     expect(schemaFileName("/api/v1/controls.json")).toBe("controls.schema.json");
+  });
+});
+
+describe("staleApiCheckProblem", () => {
+  const now = Date.parse("2026-11-28T12:00:00Z");
+
+  it("accepts a record from the last nightly run", () => {
+    expect(staleApiCheckProblem(API_CHECK, now)).toBeNull();
+    expect(staleApiCheckProblem({ ...API_CHECK, checkedAt: "2026-11-27T12:00:00Z" }, now)).toBeNull();
+  });
+
+  it("fails a record older than the nightly cadence plus slack", () => {
+    const problem = staleApiCheckProblem({ ...API_CHECK, checkedAt: "2026-11-27T09:00:00Z" }, now);
+    expect(problem).toContain(`${API_CHECK_PATH}: recorded at 2026-11-27T09:00:00Z, 27 hours ago`);
+    expect(problem).toContain("has not recorded a check within 26 hours");
+  });
+
+  it("leaves a missing or unreadable timestamp to the schema check", () => {
+    expect(staleApiCheckProblem({}, now)).toBeNull();
+    expect(staleApiCheckProblem({ checkedAt: "not a date" }, now)).toBeNull();
+    expect(staleApiCheckProblem(null, now)).toBeNull();
   });
 });
 
@@ -170,6 +193,7 @@ describe("checkLiveEndpoints", () => {
   it("reports only the endpoints whose bodies were supplied and validated", async () => {
     const report = await checkLiveEndpoints({
       base: "https://example.test/",
+      now: Date.parse("2026-11-28T03:00:00Z"),
       fetchJson: fetchMap({
         "/api/v1/gate.json": GATE,
         "/api/v1/controls.json": CONTROLS,
@@ -184,6 +208,23 @@ describe("checkLiveEndpoints", () => {
     ]);
     expect(report.problems).toHaveLength(4);
     expect(report.problems[0]).toContain("/api/v1/index.json: unreachable");
+  });
+
+  it("fails a recorded check the nightly job stopped refreshing", async () => {
+    const report = await checkLiveEndpoints({
+      base: "https://example.test",
+      now: Date.parse("2026-11-30T03:00:00Z"),
+      fetchJson: fetchMap({
+        "/api/v1/gate.json": GATE,
+        "/api/v1/controls.json": CONTROLS,
+        "/api/v1/api-check.json": API_CHECK,
+      }),
+    });
+
+    expect(report.valid).toEqual(["/api/v1/gate.json", "/api/v1/controls.json"]);
+    expect(report.problems).toContainEqual(
+      expect.stringContaining(`${API_CHECK_PATH}: recorded at 2026-11-28T01:06:11Z`),
+    );
   });
 
   it("fails a response whose $schema names another document", async () => {

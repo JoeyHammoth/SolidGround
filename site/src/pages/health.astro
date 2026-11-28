@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
-import { AUDIT_DAYS } from "@solid-ground/smoke/status";
+import { AUDIT_DAYS, API_CHECK_MAX_AGE_HOURS, apiCheckStale } from "@solid-ground/smoke/status";
 import {
   apiCheck,
   consistencyProblems,
@@ -93,6 +93,7 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
       <span>
         <strong>{apiCheck.ok ? "passed" : "failed"}</strong>
         {apiCheck.checkedAt && ` at ${apiCheck.checkedAt}`}
+        {apiCheck.checkedAt && ` (${relativeAge(apiCheck.checkedAt)})`}
         {apiCheck.endpoints > 0 && ` over ${apiCheck.endpoints} endpoint(s)`}{" "}
         ({apiCheck.problems.length} problem(s)).
       </span>
@@ -104,6 +105,11 @@ const remaining = Math.max(0, AUDIT_DAYS - controls.streak);
       </span>
     )}
   </p>
+  {apiCheck && apiCheckStale(apiCheck.checkedAt) && (
+    <div class="banner" role="status">
+      The recorded API check is older than {API_CHECK_MAX_AGE_HOURS} hours, so the nightly <code>live API</code> job may have stopped recording. Its last record describes an earlier deploy.
+    </div>
+  )}
   {apiCheck && apiCheck.problems.length > 0 && (
     <ul>
       {apiCheck.problems.slice(0, 8).map((problem) => <li><code>{problem}</code></li>)}

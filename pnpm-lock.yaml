@@ -50,6 +50,9 @@ importers:
       '@solid-ground/schema':
         specifier: workspace:*
         version: link:../schema
+      '@solid-ground/smoke':
+        specifier: workspace:*
+        version: link:../smoke
       yaml:
         specifier: ^2.6.1
         version: 2.9.1
